@@ -1,6 +1,8 @@
+mod config;
 mod commands;
+
 use std::sync::{Arc, Mutex};
-use tauri::{WindowEvent};
+use tauri::WindowEvent;
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
 

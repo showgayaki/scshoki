@@ -2,7 +2,8 @@ use appium_client::Client;
 use appium_client::capabilities::android::AndroidCapabilities;
 use image::{DynamicImage, GenericImageView, ImageBuffer};
 use std::fs;
-use std::path::Path;
+
+use crate::config;
 
 pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elements: &str) -> Result<Vec<Vec<u8>>, String> {
     let script = r#"
@@ -20,18 +21,19 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
         .map_err(|e| format!("Failed to execute script: {}", e))?
         .as_i64().unwrap_or(0);
 
-    // let scroll_script = r#"window.scrollBy(0, 800);"#;
+    if height <= 0 {
+        return Err("Failed to retrieve page height.".to_string());
+    }
 
-    const OFFSET: i64 = 800;
-    let scroll_script: String = format!(r#"window.scrollBy(0, {});"#, OFFSET);
+    let scroll_script = r#"window.scrollBy(0, 800);"#;
+    let get_scroll_position = r#"return window.scrollY;"#;
 
-    let mut y_offset: i64 = 0;
-    let mut screenshots: Vec<Vec<u8>> = vec![];
+    let mut y_offset = 0;
+    let mut screenshots = vec![];
 
     // 保存先ディレクトリを作成
-    let screenshot_dir = Path::new("screenshots");
-    if !screenshot_dir.exists() {
-        fs::create_dir(screenshot_dir).map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
+    if !config::SCREENSHOT_DIR.exists() {
+        fs::create_dir(&*config::SCREENSHOT_DIR).map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
     }
 
     // **1. 最初のスクリーンショット（ヘッダーあり）を撮影**
@@ -39,7 +41,7 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
     screenshots.push(first_screenshot.clone());
 
     // **個別保存**
-    fs::write(screenshot_dir.join("screenshot_0.png"), &first_screenshot)
+    fs::write(config::SCREENSHOT_DIR.join("screenshot_0.png"), &first_screenshot)
         .map_err(|e| format!("Failed to save screenshot_0.png: {}", e))?;
 
     // **2. 指定した要素を非表示にする**
@@ -59,18 +61,34 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
     // **3. スクロールしながらスクリーンショット**
     let mut index = 1;
     while y_offset < height {
+        // スクロール実行
         client.execute(&scroll_script, vec![]).await.map_err(|e| format!("Failed to scroll: {}", e))?;
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(1500)).await; // **スクロール後の待機時間を増やす**
 
+        // **現在のスクロール位置を取得**
+        let new_y_offset: i64 = client.execute(get_scroll_position, vec![]).await
+            .map_err(|e| format!("Failed to get scroll position: {}", e))?
+            .as_i64().unwrap_or(y_offset);
+
+        println!("Scrolled to: {}", new_y_offset);
+
+        // **スクロール位置が変わらなかった場合、ループを終了**
+        if new_y_offset == y_offset {
+            println!("No further scrolling detected, stopping.");
+            break;
+        }
+
+        y_offset = new_y_offset;
+
+        // **スクリーンショットを撮影**
         let screenshot = client.screenshot().await.map_err(|e| format!("Failed to take screenshot: {}", e))?;
         screenshots.push(screenshot.clone());
 
         // **個別保存**
         let filename = format!("screenshot_{}.png", index);
-        fs::write(screenshot_dir.join(filename), &screenshot)
+        fs::write(config::SCREENSHOT_DIR.join(filename), &screenshot)
             .map_err(|e| format!("Failed to save screenshot_{}: {}", index, e))?;
 
-        y_offset += OFFSET;
         index += 1;
     }
 

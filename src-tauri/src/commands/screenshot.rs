@@ -4,6 +4,8 @@ use appium_client::commands::AppiumCommand;
 use http::Method;
 use std::fs;
 use tauri::command;
+
+use crate::config;
 use crate::commands::utils::{capture_full_page, combine_screenshots};
 
 #[command]
@@ -31,7 +33,8 @@ pub async fn take_screenshot(url: String, hidden_elements: String) -> Result<(),
     let screenshots = capture_full_page(&client, &hidden_elements).await?;
 
     let final_screenshot = combine_screenshots(screenshots)?;
-    fs::write("screenshot.png", final_screenshot).map_err(|e| format!("Failed to save screenshot: {}", e))?;
+    let screenshot_path = config::SCREENSHOT_DIR.join("screenshot.png");
+    fs::write(screenshot_path, final_screenshot).map_err(|e| format!("Failed to save screenshot: {}", e))?;
 
     println!("スクリーンショットを保存しました");
 
