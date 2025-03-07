@@ -1,11 +1,10 @@
-use appium_client::Client;
-use appium_client::capabilities::android::AndroidCapabilities;
+use thirtyfour::prelude::*;
 use image::{DynamicImage, GenericImageView, ImageBuffer};
 use std::fs;
 
 use crate::config;
 
-pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elements: &str) -> Result<Vec<Vec<u8>>, String> {
+pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Result<Vec<Vec<u8>>, String> {
     let script = r#"
         return {
             height: Math.max(
@@ -21,15 +20,16 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
         };
     "#;
 
-    let result = client.execute(script, vec![]).await.map_err(|e| format!("Failed to execute script: {}", e))?;
-    let height = result.get("height").and_then(|h| h.as_f64()).unwrap_or(0.0);
+    let result = driver.execute(script, vec![]).await.map_err(|e| format!("Failed to execute script: {}", e))?;
+    let result_map = result.json().as_object().ok_or("Failed to convert script result to map")?;
+    let height = result_map.get("height").and_then(|h| h.as_f64()).unwrap_or(0.0);
 
-    let screen_height = result.get("screenHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let viual_viewport_height = result.get("visualViewportHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let avail_height = result.get("availHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let client_height = result.get("clientHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let viewport_height = result.get("viewportHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let scroll_height = result.get("scrollHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
+    let screen_height = result_map.get("screenHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
+    let viual_viewport_height = result_map.get("visualViewportHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
+    let avail_height = result_map.get("availHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
+    let client_height = result_map.get("clientHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
+    let viewport_height = result_map.get("viewportHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
+    let scroll_height = result_map.get("scrollHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
     let navigation_bar_height = avail_height - viewport_height + 72.0; // とりあえず72pxは力技
 
     if height <= 0.0 {
@@ -54,7 +54,7 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
     // 1. 最初のスクリーンショット（ヘッダーあり）を撮影
     let mut screenshots = vec![];
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await; // 読み込み待ち
-    let first_screenshot = client.screenshot().await.map_err(|e| format!("Failed to take screenshot: {}", e))?;
+    let first_screenshot = driver.screenshot_as_png().await.map_err(|e| format!("Failed to take screenshot: {}", e))?;
 
     let cropped_first_screenshot = crop_image(&first_screenshot, navigation_bar_height)?;
     screenshots.push(cropped_first_screenshot.clone());
@@ -77,7 +77,7 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
             "#,
             hidden_elements
         );
-        client.execute(&hide_script, vec![]).await.map_err(|e| format!("Failed to set position: static: {}", e))?;
+        driver.execute(&hide_script, Vec::new()).await.map_err(|e| format!("Failed to set position: static: {}", e))?;
     }
 
     // 3. スクロールしながらスクリーンショット
@@ -96,13 +96,13 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
 
         // スクロール実行
         let scroll_script = format!(r#"window.scrollBy(0, {});"#, scroll_amount);
-        client.execute(&scroll_script, vec![]).await.map_err(|e| format!("Failed to scroll: {}", e))?;
+        driver.execute(&scroll_script, vec![]).await.map_err(|e| format!("Failed to scroll: {}", e))?;
         tokio::time::sleep(std::time::Duration::from_millis(2000)).await; // スクロール完了を待つ
 
         // 新しいスクロール位置を取得
-        let new_y_offset = client.execute(get_scroll_position, vec![]).await
+        let new_y_offset = driver.execute(get_scroll_position, vec![]).await
         .map_err(|e| format!("Failed to get scroll position: {}", e))?
-        .as_f64().unwrap_or(y_offset);
+        .json().as_f64().unwrap_or(y_offset);
 
         println!("Scrolled to: {}", new_y_offset);
 
@@ -115,7 +115,7 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
         y_offset = new_y_offset;
 
         // スクリーンショットを撮る
-        let screenshot: Vec<u8> = client.screenshot().await.map_err(|e| format!("Failed to take screenshot: {}", e))?;
+        let screenshot: Vec<u8> = driver.screenshot_as_png().await.map_err(|e| format!("Failed to take screenshot: {}", e))?;
         // 最後のスクロール時は、被った部分をカット
         let cropped_screenshot = if y_offset + viewport_height > height {
              // 被った部分をカットしてから余白をカット
@@ -148,7 +148,7 @@ pub async fn capture_full_page(client: &Client<AndroidCapabilities>, hidden_elem
             "#,
             hidden_elements
         );
-        client.execute(&show_script, vec![]).await.map_err(|e| format!("Failed to restore position: {}", e))?;
+        driver.execute(&show_script, Vec::new()).await.map_err(|e| format!("Failed to set position: static: {}", e))?;
     }
 
     Ok(screenshots)
