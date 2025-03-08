@@ -2,7 +2,9 @@ use thirtyfour::prelude::*;
 use image::{DynamicImage, GenericImageView, ImageBuffer};
 use std::fs;
 
-use crate::config;
+use crate::config::constants;
+use crate::services::utils::{crop_image, crop_bottom};
+
 
 pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Result<Vec<Vec<u8>>, String> {
     let script = r#"
@@ -47,8 +49,8 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
     println!("  navigation_bar_height: {} px", navigation_bar_height);
 
     // 保存先ディレクトリを作成
-    if !config::SCREENSHOT_DIR.exists() {
-        fs::create_dir(&*config::SCREENSHOT_DIR).map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
+    if !constants::SCREENSHOT_DIR.exists() {
+        fs::create_dir(&*constants::SCREENSHOT_DIR).map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
     }
 
     // 1. 最初のスクリーンショット（ヘッダーあり）を撮影
@@ -60,7 +62,7 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
     screenshots.push(cropped_first_screenshot.clone());
 
     // 個別保存
-    fs::write(config::SCREENSHOT_DIR.join("screenshot_0.png"), &first_screenshot)
+    fs::write(constants::SCREENSHOT_DIR.join("screenshot_0.png"), &cropped_first_screenshot)
         .map_err(|e| format!("Failed to save screenshot_0.png: {}", e))?;
 
     // 2. 指定した要素を非表示にする
@@ -128,7 +130,7 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
         screenshots.push(cropped_screenshot.clone());
 
         let filename = format!("screenshot_{}.png", index);
-        fs::write(config::SCREENSHOT_DIR.join(filename), &cropped_screenshot)
+        fs::write(constants::SCREENSHOT_DIR.join(filename), &cropped_screenshot)
             .map_err(|e| format!("Failed to save screenshot_{}: {}", index, e))?;
 
         index += 1;
@@ -152,52 +154,6 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
     }
 
     Ok(screenshots)
-}
-
-
-// 画像の下を navigation_bar_height 分カットする関数
-fn crop_image(image_data: &[u8], navigation_bar_height: f64) -> Result<Vec<u8>, String> {
-    println!("crop_image");
-    println!("navigation_bar_height: {}", navigation_bar_height);
-    let image = image::load_from_memory(image_data).map_err(|e| format!("Failed to load image: {}", e))?;
-    let (width, height) = image.dimensions();
-
-    let width = width as f64;
-    let height = height as f64;
-
-    if height <= navigation_bar_height {
-        return Err("Image height is smaller than navigation bar height, cannot crop.".to_string());
-    }
-
-    let cropped_height = (height - navigation_bar_height) as u32;
-    let cropped_image = image.view(0, 0, width as u32, cropped_height).to_image();
-
-    let mut output = std::io::Cursor::new(Vec::new());
-    cropped_image.write_to(&mut output, image::ImageFormat::Png)
-        .map_err(|e| format!("Failed to save cropped image: {}", e))?;
-
-    Ok(output.into_inner())
-}
-
-
-// 最後のスクロールで、被った部分をカットする関数
-fn crop_bottom(image_data: &[u8], crop_height: f64) -> Result<Vec<u8>, String> {
-    let image = image::load_from_memory(image_data).map_err(|e| format!("Failed to load image: {}", e))?;
-    let (width, height) = image.dimensions();
-    let height = height as f64;
-
-    if height <= crop_height {
-        return Err("Image height is smaller than crop height, cannot crop.".to_string());
-    }
-
-    let new_height = (height - crop_height) as u32;
-    let cropped_image = image.view(0, crop_height as u32, width, new_height).to_image();
-
-    let mut output = std::io::Cursor::new(Vec::new());
-    cropped_image.write_to(&mut output, image::ImageFormat::Png)
-        .map_err(|e| format!("Failed to save cropped image: {}", e))?;
-
-    Ok(output.into_inner())
 }
 
 
