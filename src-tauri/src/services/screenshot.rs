@@ -1,6 +1,7 @@
-use thirtyfour::prelude::*;
-use image::{DynamicImage, GenericImageView, ImageBuffer};
 use std::fs;
+use image::{DynamicImage, GenericImageView, ImageBuffer};
+use thirtyfour::prelude::*;
+use tracing::info;
 
 use crate::config::constants;
 use crate::services::dom::{get_page_metrics, hide_elements, show_elements, get_scroll_position, scroll_by};
@@ -8,6 +9,8 @@ use crate::services::utils::{trim_extra_space, cut_scroll_overlap};
 
 
 pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Result<Vec<Vec<u8>>, String> {
+    info!("Capturing full page screenshot...");
+
     // ページの各種メトリクスを取得
     let metrics = get_page_metrics(driver).await
         .map_err(|e| format!("Failed to get page metrics: {}", e))?;
@@ -25,22 +28,24 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
         return Err("Failed to retrieve page height.".to_string());
     }
 
-    println!("Debug info:");
-    println!("  screenHeight: {} px", screen_height);
-    println!("  visualViewportHeight: {} px", visual_viewport_height);
-    println!("  availHeight: {} px", avail_height);
-    println!("  clientHeight: {} px", client_height);
-    println!("  height: {} px", height);
-    println!("  viewport_height: {} px", viewport_height);
-    println!("  scroll_height: {} px", scroll_height);
-    println!("  navigation_bar_height: {} px", navigation_bar_height);
+    info!("Debug info:");
+    info!("screenHeight: {} px", screen_height);
+    info!("visualViewportHeight: {} px", visual_viewport_height);
+    info!("availHeight: {} px", avail_height);
+    info!("clientHeight: {} px", client_height);
+    info!("height: {} px", height);
+    info!("viewport_height: {} px", viewport_height);
+    info!("scroll_height: {} px", scroll_height);
+    info!("navigation_bar_height: {} px", navigation_bar_height);
 
     // 保存先ディレクトリを作成
     if !constants::SCREENSHOT_DIR.exists() {
+        info!("Creating screenshots directory...");
         fs::create_dir(&*constants::SCREENSHOT_DIR).map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
     }
 
     // 1. 最初のスクリーンショット（ヘッダーあり）を撮影
+    info!("Taking first screenshot...");
     let mut screenshots = vec![];
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await; // 読み込み待ち
     let first_screenshot = driver.screenshot_as_png().await.map_err(|e| format!("Failed to take screenshot: {}", e))?;
@@ -51,6 +56,7 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
     // 個別保存
     fs::write(constants::SCREENSHOT_DIR.join("screenshot_0.png"), &cropped_first_screenshot)
         .map_err(|e| format!("Failed to save screenshot_0.png: {}", e))?;
+    info!("Saved screenshot_0.png");
 
     // 2. 指定した要素を非表示にする
     hide_elements(driver, hidden_elements).await
@@ -77,11 +83,11 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
         let new_y_offset = get_scroll_position(driver).await
             .map_err(|e| format!("Failed to get scroll position: {}", e))?;
 
-        println!("Scrolled to: {}", new_y_offset);
+        info!("Scrolled to: {}", new_y_offset);
 
         // `y_offset` が変わらない（スクロールの余地なし）ならループを抜ける
         if new_y_offset == y_offset {
-            println!("No further scrolling detected, stopping.");
+            info!("No further scrolling detected, stopping.");
             break;
         }
 
@@ -117,6 +123,7 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
 
 // スクリーンショットを結合する関数
 pub fn combine_screenshots(screenshots: Vec<Vec<u8>>) -> Result<Vec<u8>, String> {
+    info!("Combining screenshots...");
     if screenshots.is_empty() {
         return Err("No screenshots to combine".to_string());
     }
@@ -135,7 +142,7 @@ pub fn combine_screenshots(screenshots: Vec<Vec<u8>>) -> Result<Vec<u8>, String>
     }
 
     // 最終画像の高さが合っているかログ出力
-    println!("Combining {} images, total height: {} px", screenshots.len(), total_height);
+    info!("Combining {} images, total height: {} px", screenshots.len(), total_height);
 
     let mut combined_image = ImageBuffer::new(width, total_height);
     let mut y_offset = 0;
