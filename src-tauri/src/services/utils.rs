@@ -1,10 +1,11 @@
 use image::GenericImageView;
+use tracing::info;
 
 
 // 画像の下を navigation_bar_height 分カットする関数
 pub fn trim_extra_space(image_data: &[u8], extra_space_height: f64) -> Result<Vec<u8>, String> {
-    println!("crop_image");
-    println!("navigation_bar_height: {}", extra_space_height);
+    info!("extra_space_height: {}", extra_space_height);
+
     let image = image::load_from_memory(image_data).map_err(|e| format!("Failed to load image: {}", e))?;
     let (width, height) = image.dimensions();
 
@@ -28,6 +29,8 @@ pub fn trim_extra_space(image_data: &[u8], extra_space_height: f64) -> Result<Ve
 
 // 最後のスクロールで、被った部分をカットする関数
 pub fn cut_scroll_overlap(image_data: &[u8], scroll_overlap_height: f64) -> Result<Vec<u8>, String> {
+    info!("scroll_overlap_height: {}", scroll_overlap_height);
+
     let image = image::load_from_memory(image_data).map_err(|e| format!("Failed to load image: {}", e))?;
     let (width, height) = image.dimensions();
     let height = height as f64;

@@ -4,7 +4,7 @@ mod services;
 
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
-use tracing::info;
+use tracing::{info, error};
 
 use services::appium::AppiumState;
 use services::logger;
@@ -25,7 +25,7 @@ fn main() {
             tauri::async_runtime::spawn(async move {
                 let state: State<AppiumState> = app_handle.state();
                 if let Err(e) = state.start_appium().await {
-                    eprintln!("Failed to start Appium: {}", e);
+                    error!("Failed to start Appium: {}", e);
                 }
             });
             Ok(())
@@ -34,7 +34,7 @@ fn main() {
             if let WindowEvent::CloseRequested { .. } = event {
                 let state: State<AppiumState> = app.state();
                 if let Err(e) = state.stop_appium() {
-                    eprintln!("Failed to stop Appium: {}", e);
+                    error!("Failed to stop Appium: {}", e);
                 }
             }
         })

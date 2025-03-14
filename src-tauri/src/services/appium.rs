@@ -1,5 +1,6 @@
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
+use tracing::{info, error};
 
 
 // Appium のプロセスを管理するための型
@@ -12,6 +13,7 @@ impl AppiumState {
     pub async fn start_appium(&self) -> Result<(), String> {
         let mut lock = self.process.lock().unwrap();
         if lock.is_some() {
+            error!("Appium is already running.");
             return Err("Appium is already running.".to_string());
         }
 
@@ -25,7 +27,7 @@ impl AppiumState {
             .map_err(|e| format!("Failed to start Appium: {}", e))?;
 
         *lock = Some(process);
-        println!("Appium server started.");
+        info!("Appium server started.");
         Ok(())
     }
 
@@ -34,9 +36,10 @@ impl AppiumState {
         let mut lock = self.process.lock().unwrap();
         if let Some(mut process) = lock.take() {
             if let Err(e) = process.kill() {
+                error!("Failed to stop Appium: {}", e);
                 return Err(format!("Failed to stop Appium: {}", e));
             } else {
-                println!("Appium server stopped.");
+                info!("Appium server stopped.");
             }
         }
         Ok(())
