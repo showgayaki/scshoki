@@ -3,35 +3,22 @@ use image::{DynamicImage, GenericImageView, ImageBuffer};
 use std::fs;
 
 use crate::config::constants;
-use crate::services::utils::{crop_image, crop_bottom};
+use crate::services::dom::{get_page_metrics, hide_elements, show_elements, get_scroll_position, scroll_by};
+use crate::services::utils::{trim_extra_space, cut_scroll_overlap};
 
 
 pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Result<Vec<Vec<u8>>, String> {
-    let script = r#"
-        return {
-            height: Math.max(
-                document.body.scrollHeight, document.body.offsetHeight,
-                document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight
-            ),
-            screenHeight: screen.height,
-            visualViewportHeight: window.visualViewport.height,
-            availHeight: screen.availHeight,
-            clientHeight: document.documentElement.clientHeight,
-            viewportHeight: window.innerHeight,
-            scrollHeight: document.documentElement.scrollHeight,
-        };
-    "#;
+    // ページの各種メトリクスを取得
+    let metrics = get_page_metrics(driver).await
+        .map_err(|e| format!("Failed to get page metrics: {}", e))?;
 
-    let result = driver.execute(script, vec![]).await.map_err(|e| format!("Failed to execute script: {}", e))?;
-    let result_map = result.json().as_object().ok_or("Failed to convert script result to map")?;
-    let height = result_map.get("height").and_then(|h| h.as_f64()).unwrap_or(0.0);
-
-    let screen_height = result_map.get("screenHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let viual_viewport_height = result_map.get("visualViewportHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let avail_height = result_map.get("availHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let client_height = result_map.get("clientHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let viewport_height = result_map.get("viewportHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
-    let scroll_height = result_map.get("scrollHeight").and_then(|h| h.as_f64()).unwrap_or(0.0);
+    let height = *metrics.get("height").unwrap_or(&0.0);
+    let screen_height = *metrics.get("screenHeight").unwrap_or(&0.0);
+    let visual_viewport_height = *metrics.get("visualViewportHeight").unwrap_or(&0.0);
+    let avail_height = *metrics.get("availHeight").unwrap_or(&0.0);
+    let client_height = *metrics.get("clientHeight").unwrap_or(&0.0);
+    let viewport_height = *metrics.get("viewportHeight").unwrap_or(&0.0);
+    let scroll_height = *metrics.get("scrollHeight").unwrap_or(&0.0);
     let navigation_bar_height = avail_height - viewport_height + 72.0; // とりあえず72pxは力技
 
     if height <= 0.0 {
@@ -40,7 +27,7 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
 
     println!("Debug info:");
     println!("  screenHeight: {} px", screen_height);
-    println!("  visualViewportHeight: {} px", viual_viewport_height);
+    println!("  visualViewportHeight: {} px", visual_viewport_height);
     println!("  availHeight: {} px", avail_height);
     println!("  clientHeight: {} px", client_height);
     println!("  height: {} px", height);
@@ -58,7 +45,7 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await; // 読み込み待ち
     let first_screenshot = driver.screenshot_as_png().await.map_err(|e| format!("Failed to take screenshot: {}", e))?;
 
-    let cropped_first_screenshot = crop_image(&first_screenshot, navigation_bar_height)?;
+    let cropped_first_screenshot = trim_extra_space(&first_screenshot, navigation_bar_height)?;
     screenshots.push(cropped_first_screenshot.clone());
 
     // 個別保存
@@ -66,24 +53,10 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
         .map_err(|e| format!("Failed to save screenshot_0.png: {}", e))?;
 
     // 2. 指定した要素を非表示にする
-    if !hidden_elements.trim().is_empty() {
-        let hide_script = format!(
-            r#"
-            (function() {{
-                let elements = document.querySelectorAll("{}");
-                elements.forEach(e => {{
-                    e.dataset.originalPosition = e.style.position;
-                    e.style.position = 'static';
-                }});
-            }})();
-            "#,
-            hidden_elements
-        );
-        driver.execute(&hide_script, Vec::new()).await.map_err(|e| format!("Failed to set position: static: {}", e))?;
-    }
+    hide_elements(driver, hidden_elements).await
+        .map_err(|e| format!("Failed to hide elements: {}", e))?;
 
     // 3. スクロールしながらスクリーンショット
-    let get_scroll_position = r#"return window.scrollY;"#;
     let mut y_offset = 0.0;
     let mut index = 1;
 
@@ -97,14 +70,12 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
         };
 
         // スクロール実行
-        let scroll_script = format!(r#"window.scrollBy(0, {});"#, scroll_amount);
-        driver.execute(&scroll_script, vec![]).await.map_err(|e| format!("Failed to scroll: {}", e))?;
+        scroll_by(driver, scroll_amount).await.map_err(|e| format!("Failed to scroll: {}", e))?;
         tokio::time::sleep(std::time::Duration::from_millis(2000)).await; // スクロール完了を待つ
 
         // 新しいスクロール位置を取得
-        let new_y_offset = driver.execute(get_scroll_position, vec![]).await
-        .map_err(|e| format!("Failed to get scroll position: {}", e))?
-        .json().as_f64().unwrap_or(y_offset);
+        let new_y_offset = get_scroll_position(driver).await
+            .map_err(|e| format!("Failed to get scroll position: {}", e))?;
 
         println!("Scrolled to: {}", new_y_offset);
 
@@ -121,10 +92,10 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
         // 最後のスクロール時は、被った部分をカット
         let cropped_screenshot = if y_offset + viewport_height > height {
              // 被った部分をカットしてから余白をカット
-            let temp = crop_bottom(&screenshot, remaining_scroll)?;
-            crop_image(&temp, navigation_bar_height)?
+            let temp = cut_scroll_overlap(&screenshot, remaining_scroll)?;
+            trim_extra_space(&temp, navigation_bar_height)?
         } else {
-            crop_image(&screenshot, navigation_bar_height)?
+            trim_extra_space(&screenshot, navigation_bar_height)?
         };
 
         screenshots.push(cropped_screenshot.clone());
@@ -137,21 +108,8 @@ pub async fn capture_full_page(driver: &WebDriver, hidden_elements: &str) -> Res
     }
 
     // 4. 非表示にした要素を元に戻す
-    if !hidden_elements.trim().is_empty() {
-        let show_script = format!(
-            r#"
-            (function() {{
-                let elements = document.querySelectorAll("{}");
-                elements.forEach(e => {{
-                    e.style.position = e.dataset.originalPosition || '';
-                    delete e.dataset.originalPosition;
-                }});
-            }})();
-            "#,
-            hidden_elements
-        );
-        driver.execute(&show_script, Vec::new()).await.map_err(|e| format!("Failed to set position: static: {}", e))?;
-    }
+    show_elements(driver, hidden_elements).await
+        .map_err(|e| format!("Failed to restore elements: {}", e))?;
 
     Ok(screenshots)
 }
