@@ -4,13 +4,18 @@ mod services;
 
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
+use tracing::info;
 
 use services::appium::AppiumState;
+use services::logger;
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
 
 
 fn main() {
+    logger::init_logger();  // ロガーの初期化
+    info!("Application started.");
+
     tauri::Builder::default()
         .manage(AppiumState {
             process: Arc::new(Mutex::new(None)),
