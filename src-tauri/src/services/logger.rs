@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use log::info;
 use log4rs::{
     append::rolling_file::{
@@ -10,15 +9,11 @@ use log4rs::{
     config::{Appender, Config, Logger, Root},
     encode::pattern::PatternEncoder,
 };
+use std::path::PathBuf;
 
 use crate::config::constants::{
-    LOG_DIR,
-    LOG_FILE_NAME,
-    LOG_ROTATE_BASE,
-    LOG_ROTATE_COUNT,
-    LOG_ROTATE_SIZE,
+    LOG_DIR, LOG_FILE_NAME, LOG_ROTATE_BASE, LOG_ROTATE_COUNT, LOG_ROTATE_SIZE,
 };
-
 
 pub fn init_logger() {
     // ログのフォーマット
@@ -29,22 +24,23 @@ pub fn init_logger() {
         let path = PathBuf::from(LOG_FILE_NAME);
         if let Some(ext) = path.extension() {
             let stem = path.file_stem().unwrap_or_default().to_string_lossy();
-            format!("{}/{}-{{}}.{}", LOG_DIR.display(), stem, ext.to_string_lossy()) // scshoki-{}.log
+            format!(
+                "{}/{}-{{}}.{}",
+                LOG_DIR.display(),
+                stem,
+                ext.to_string_lossy()
+            ) // scshoki-{}.log
         } else {
             format!("{}/{}-{{}}", LOG_DIR.display(), LOG_FILE_NAME) // scshoki-{}
         }
     };
 
     let stdout = log4rs::append::console::ConsoleAppender::builder()
-        .encoder(Box::new(PatternEncoder::new(
-            LOG_PATTERN,
-        )))
+        .encoder(Box::new(PatternEncoder::new(LOG_PATTERN)))
         .build();
 
     let file = RollingFileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new(
-            LOG_PATTERN,
-        )))
+        .encoder(Box::new(PatternEncoder::new(LOG_PATTERN)))
         .build(
             &LOG_DIR.join(LOG_FILE_NAME),
             Box::new(CompoundPolicy::new(
@@ -77,5 +73,8 @@ pub fn init_logger() {
 
     log4rs::init_config(config).unwrap();
 
-    info!("Logger initialized. Log file: {}", LOG_DIR.join(LOG_FILE_NAME).display());
+    info!(
+        "Logger initialized. Log file: {}",
+        LOG_DIR.join(LOG_FILE_NAME).display()
+    );
 }

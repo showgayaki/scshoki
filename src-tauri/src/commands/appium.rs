@@ -1,6 +1,5 @@
-use tauri::{command, State};
 use crate::services::appium::AppiumState;
-
+use tauri::{command, State};
 
 // Appium を起動する（Tauri コマンド）
 #[command]

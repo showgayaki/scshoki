@@ -1,19 +1,55 @@
-use std::fs;
+use log::{error, info};
 use serde_json::json;
+use std::fs;
 use tauri::command;
-use log::{info, error};
+use tauri::State;
 use thirtyfour::prelude::*;
+use tokio::time::{sleep, Duration, Instant};
 
-use crate::config::constants;
+use crate::config::constants::{SCREENSHOT_DIR, APPIUM_SERVER_URL, APPIUM_TIMEOUT};
+use crate::services::appium::AppiumState;
 use crate::services::screenshot::{capture_full_page, combine_screenshots};
 
 
+// Appiumが起動完了するまで `/status` をポーリング
+async fn wait_for_appium_ready(timeout: Duration) -> Result<(), String> {
+    let start_time = Instant::now();
+    let client = reqwest::Client::new();
+
+    while start_time.elapsed() < timeout {
+        if let Ok(response) = client.get(format!("{}/status", APPIUM_SERVER_URL)).send().await {
+            if response.status().is_success() {
+                return Ok(()); // Appium起動完了
+            }
+        }
+        sleep(Duration::from_millis(500)).await; // 500ms 待って再試行
+    }
+
+    Err("Timed out waiting for Appium to be ready".to_string())
+}
+
 #[command]
-pub async fn take_screenshot(url: String, hidden_elements: String) -> Result<(), String> {
+pub async fn take_screenshot(
+    state: State<'_, AppiumState>,
+    url: String,
+    hidden_elements: String,
+) -> Result<(), String> {
+    // Appiumサーバーを起動
+    if let Err(e) = state.start_appium().await {
+        error!("Failed to start Appium: {}", e);
+        return Err(format!("Failed to start Appium: {}", e));
+    }
+
+    // Appiumの起動を待機
+    if let Err(e) = wait_for_appium_ready(APPIUM_TIMEOUT).await {
+        error!("Appium did not start in time: {}", e);
+        return Err(e);
+    }
+
     info!("Taking screenshot of {}", url);
 
     let mut caps = DesiredCapabilities::chrome();
-    caps.insert_base_capability("platformName".to_string(), serde_json::json!("Android"));
+    caps.insert_base_capability("platformName".to_string(), json!("Android"));
     caps.insert_base_capability(
         "appium:options".to_string(),
         json!({
@@ -22,7 +58,7 @@ pub async fn take_screenshot(url: String, hidden_elements: String) -> Result<(),
         }),
     );
 
-    let driver = WebDriver::new("http://127.0.0.1:4723/", caps)
+    let driver = WebDriver::new(APPIUM_SERVER_URL, caps)
         .await
         .map_err(|e| format!("Failed to connect to Appium: {}", e))?;
 
@@ -41,7 +77,7 @@ pub async fn take_screenshot(url: String, hidden_elements: String) -> Result<(),
     let screenshots = capture_full_page(&driver, &hidden_elements).await?;
 
     let final_screenshot = combine_screenshots(screenshots)?;
-    let screenshot_path = constants::SCREENSHOT_DIR.join("screenshot.png");
+    let screenshot_path = SCREENSHOT_DIR.join("screenshot.png");
     fs::write(&screenshot_path, final_screenshot)
         .map_err(|e| format!("Failed to save screenshot: {}", e))?;
 
@@ -50,6 +86,11 @@ pub async fn take_screenshot(url: String, hidden_elements: String) -> Result<(),
     // セッションを終了
     if let Err(e) = driver.quit().await {
         error!("Failed to quit session: {}", e);
+    }
+
+    // Appiumサーバーを停止
+    if let Err(e) = state.stop_appium() {
+        error!("Failed to stop Appium: {}", e);
     }
 
     Ok(())
