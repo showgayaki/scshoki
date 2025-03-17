@@ -1,19 +1,18 @@
-mod config;
 mod commands;
+mod config;
 mod services;
 
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
-use tracing::{info, error};
+use log::{info, error};
 
 use services::appium::AppiumState;
-use services::logger;
+use services::logger::init_logger;
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
 
-
 fn main() {
-    logger::init_logger();  // ロガーの初期化
+    init_logger();  // ロガーの初期化
     info!("Application started.");
 
     tauri::Builder::default()

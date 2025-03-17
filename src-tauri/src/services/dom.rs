@@ -1,7 +1,7 @@
 use thirtyfour::prelude::*;
 use std::collections::HashMap;
 use std::error::Error;
-use tracing::info;
+use log::info;
 
 
 pub async fn get_page_metrics(driver: &WebDriver) -> Result<HashMap<String, f64>, Box<dyn Error>> {

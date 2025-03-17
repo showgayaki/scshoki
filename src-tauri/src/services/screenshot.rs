@@ -1,7 +1,7 @@
 use std::fs;
 use image::{DynamicImage, GenericImageView, ImageBuffer};
 use thirtyfour::prelude::*;
-use tracing::info;
+use log::info;
 
 use crate::config::constants;
 use crate::services::dom::{get_page_metrics, hide_elements, show_elements, get_scroll_position, scroll_by};
