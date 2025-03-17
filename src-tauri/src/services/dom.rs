@@ -1,8 +1,7 @@
-use thirtyfour::prelude::*;
+use log::info;
 use std::collections::HashMap;
 use std::error::Error;
-use log::info;
-
+use thirtyfour::prelude::*;
 
 pub async fn get_page_metrics(driver: &WebDriver) -> Result<HashMap<String, f64>, Box<dyn Error>> {
     info!("Getting page metrics...");
@@ -23,7 +22,9 @@ pub async fn get_page_metrics(driver: &WebDriver) -> Result<HashMap<String, f64>
     "#;
 
     let result = driver.execute(script, vec![]).await?;
-    let result_map = result.json().as_object()
+    let result_map = result
+        .json()
+        .as_object()
         .ok_or("Failed to convert script result to map")?
         .iter()
         .map(|(k, v)| (k.clone(), v.as_f64().unwrap_or(0.0)))
@@ -32,7 +33,6 @@ pub async fn get_page_metrics(driver: &WebDriver) -> Result<HashMap<String, f64>
     info!("Page metrics: {:?}", result_map);
     Ok(result_map)
 }
-
 
 // 指定した要素を `display: none;` に設定し非表示にする
 pub async fn hide_elements(driver: &WebDriver, selectors: &str) -> Result<(), Box<dyn Error>> {
@@ -58,7 +58,6 @@ pub async fn hide_elements(driver: &WebDriver, selectors: &str) -> Result<(), Bo
     Ok(())
 }
 
-
 // 指定した要素を元の状態に戻す（`display` プロパティをクリア）
 pub async fn show_elements(driver: &WebDriver, selectors: &str) -> Result<(), Box<dyn Error>> {
     info!("Restoring elements: {}", selectors);
@@ -81,7 +80,6 @@ pub async fn show_elements(driver: &WebDriver, selectors: &str) -> Result<(), Bo
     Ok(())
 }
 
-
 // 現在のスクロール位置を取得
 pub async fn get_scroll_position(driver: &WebDriver) -> Result<f64, Box<dyn Error>> {
     info!("Getting scroll position...");
@@ -90,12 +88,11 @@ pub async fn get_scroll_position(driver: &WebDriver) -> Result<f64, Box<dyn Erro
     Ok(result.json().as_f64().unwrap_or(0.0))
 }
 
-
 // 指定したピクセル分スクロールする
 pub async fn scroll_by(driver: &WebDriver, pixels: f64) -> Result<(), Box<dyn Error>> {
-    info!("Scrolling by {} pixels...", pixels);
+    info!("Scrolling by {} px", pixels);
     let script = format!("window.scrollBy(0, {});", pixels);
     driver.execute(&script, vec![]).await?;
-    info!("Scrolled by {} pixels", pixels);
+    info!("Scrolled by {} px", pixels);
     Ok(())
 }

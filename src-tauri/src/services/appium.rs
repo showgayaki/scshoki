@@ -1,7 +1,6 @@
+use log::{error, info};
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
-use log::{info, error};
-
 
 // Appium のプロセスを管理するための型
 pub struct AppiumState {
