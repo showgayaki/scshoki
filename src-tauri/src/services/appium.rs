@@ -1,6 +1,6 @@
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
-use tracing::{info, error};
+use log::{info, error};
 
 
 // Appium のプロセスを管理するための型

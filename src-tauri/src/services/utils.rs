@@ -1,5 +1,5 @@
 use image::GenericImageView;
-use tracing::info;
+use log::info;
 
 
 // 画像の下を navigation_bar_height 分カットする関数

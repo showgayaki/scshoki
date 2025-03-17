@@ -1,7 +1,7 @@
 use std::fs;
 use serde_json::json;
 use tauri::command;
-use tracing::{info, error};
+use log::{info, error};
 use thirtyfour::prelude::*;
 
 use crate::config::constants;
