@@ -1,5 +1,5 @@
 use image::{DynamicImage, GenericImageView, ImageBuffer};
-use log::info;
+use log::{debug, info};
 use std::fs;
 use thirtyfour::prelude::*;
 
@@ -8,6 +8,7 @@ use crate::services::dom::{
     get_page_metrics, get_scroll_position, hide_elements, scroll_by, show_elements,
 };
 use crate::services::utils::{cut_scroll_overlap, trim_extra_space};
+use crate::services::wait::{wait_for_elements_hidden, wait_for_scroll_complete};
 
 pub async fn capture_full_page(
     driver: &WebDriver,
@@ -20,28 +21,13 @@ pub async fn capture_full_page(
         .await
         .map_err(|e| format!("Failed to get page metrics: {}", e))?;
 
-    let height = *metrics.get("height").unwrap_or(&0.0);
-    let screen_height = *metrics.get("screenHeight").unwrap_or(&0.0);
-    let visual_viewport_height = *metrics.get("visualViewportHeight").unwrap_or(&0.0);
-    let avail_height = *metrics.get("availHeight").unwrap_or(&0.0);
-    let client_height = *metrics.get("clientHeight").unwrap_or(&0.0);
-    let viewport_height = *metrics.get("viewportHeight").unwrap_or(&0.0);
-    let scroll_height = *metrics.get("scrollHeight").unwrap_or(&0.0);
-    let navigation_bar_height = avail_height - viewport_height + 72.0; // とりあえず72pxは力技
+    let total_scroll_height = *metrics.get("totalScrollHeight").unwrap_or(&0.0);
+    let inner_height = *metrics.get("innerHeight").unwrap_or(&0.0);
+    let scroll_steps = *metrics.get("scrollSteps").unwrap_or(&0.0) as u32;
 
-    if height <= 0.0 {
+    if total_scroll_height <= 0.0 {
         return Err("Failed to retrieve page height.".to_string());
     }
-
-    info!("Debug info:");
-    info!("screenHeight: {} px", screen_height);
-    info!("visualViewportHeight: {} px", visual_viewport_height);
-    info!("availHeight: {} px", avail_height);
-    info!("clientHeight: {} px", client_height);
-    info!("height: {} px", height);
-    info!("viewport_height: {} px", viewport_height);
-    info!("scroll_height: {} px", scroll_height);
-    info!("navigation_bar_height: {} px", navigation_bar_height);
 
     // 保存先ディレクトリを作成
     if !SCREENSHOT_DIR.exists() {
@@ -50,92 +36,60 @@ pub async fn capture_full_page(
             .map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
     }
 
-    // 1. 最初のスクリーンショット（ヘッダーあり）を撮影
+    // 最初のスクリーンショット（ヘッダーあり）を撮影
     info!("Taking first screenshot...");
     let mut screenshots = vec![];
-    tokio::time::sleep(std::time::Duration::from_millis(1000)).await; // 読み込み待ち
-    let first_screenshot = driver
-        .screenshot_as_png()
-        .await
-        .map_err(|e| format!("Failed to take screenshot: {}", e))?;
 
-    let cropped_first_screenshot = trim_extra_space(&first_screenshot, navigation_bar_height)?;
-    screenshots.push(cropped_first_screenshot.clone());
-
-    // 個別保存
-    fs::write(
-        SCREENSHOT_DIR.join("screenshot_0.png"),
-        &cropped_first_screenshot,
-    )
-    .map_err(|e| format!("Failed to save screenshot_0.png: {}", e))?;
-    info!("Saved screenshot_0.png");
-
-    // 2. 指定した要素を非表示にする
-    hide_elements(driver, hidden_elements)
-        .await
-        .map_err(|e| format!("Failed to hide elements: {}", e))?;
-
-    // 3. スクロールしながらスクリーンショット
-    let mut y_offset = 0.0;
-    let mut index = 1;
-
-    while y_offset < height {
-        // 残りのスクロール可能な高さを計算
-        let remaining_scroll = height - y_offset;
-        let scroll_amount = if remaining_scroll < viewport_height {
-            remaining_scroll // 最後のスクロールは、余った高さだけスクロール
-        } else {
-            viewport_height
-        };
-
-        // スクロール実行
-        scroll_by(driver, scroll_amount)
-            .await
-            .map_err(|e| format!("Failed to scroll: {}", e))?;
-        tokio::time::sleep(std::time::Duration::from_millis(2000)).await; // スクロール完了を待つ
-
-        // 新しいスクロール位置を取得
-        let new_y_offset = get_scroll_position(driver)
-            .await
-            .map_err(|e| format!("Failed to get scroll position: {}", e))?;
-
-        info!("Scrolled to: {}", new_y_offset);
-
-        // `y_offset` が変わらない（スクロールの余地なし）ならループを抜ける
-        if new_y_offset == y_offset {
-            info!("No further scrolling detected, stopping.");
-            break;
-        }
-
-        y_offset = new_y_offset;
+    // スクロールしながらスクリーンショット
+    for index in 1..=scroll_steps {
+        debug!("Starting scroll and caputure.");
 
         // スクリーンショットを撮る
         let screenshot: Vec<u8> = driver
             .screenshot_as_png()
             .await
             .map_err(|e| format!("Failed to take screenshot: {}", e))?;
+
         // 最後のスクロール時は、被った部分をカット
-        let cropped_screenshot = if y_offset + viewport_height > height {
-            // 被った部分をカットしてから余白をカット
-            let temp = cut_scroll_overlap(&screenshot, remaining_scroll)?;
-            trim_extra_space(&temp, navigation_bar_height)?
+        let cropped_screenshot = if index == scroll_steps {
+            // 被った部分を計算
+            let scroll_overlap_height = (inner_height * index as f64) - total_scroll_height;
+            // 余白をカットしてから被った部分をカット
+            let tmp = trim_extra_space(&screenshot, inner_height)?;
+            cut_scroll_overlap(&tmp, scroll_overlap_height)?
         } else {
-            trim_extra_space(&screenshot, navigation_bar_height)?
+            trim_extra_space(&screenshot, inner_height)?
         };
 
         screenshots.push(cropped_screenshot.clone());
 
         let filename = format!("screenshot_{}.png", index);
-        fs::write(
-            SCREENSHOT_DIR.join(filename),
-            &cropped_screenshot,
-        )
-        .map_err(|e| format!("Failed to save screenshot_{}: {}", index, e))?;
+        fs::write(SCREENSHOT_DIR.join(filename), &cropped_screenshot)
+            .map_err(|e| format!("Failed to save screenshot_{}: {}", index, e))?;
+        info!("Saved screenshot_{}.png", index);
 
-        index += 1;
+        // スクロール実行
+        scroll_by(driver, inner_height)
+            .await
+            .map_err(|e| format!("Failed to scroll: {}", e))?;
+        wait_for_scroll_complete(driver).await?; // スクロール完了を待つ
+
+        // 新しいスクロール位置を取得
+        let y_offset = get_scroll_position(driver)
+            .await
+            .map_err(|e| format!("Failed to get scroll position: {}", e))?;
+        info!("Scrolled to: {} px", y_offset);
+
+        // 最初のスクロール直後に指定した要素を非表示にする
+        if index == 1 {
+            hide_elements(driver, hidden_elements)
+                .await
+                .map_err(|e| format!("Failed to hide elements: {}", e))?;
+            wait_for_elements_hidden(driver, hidden_elements).await?; // 非表示完了を待つ
+        }
     }
 
-    // 4. 非表示にした要素を元に戻す
+    // 非表示にした要素を元に戻す
     show_elements(driver, hidden_elements)
         .await
         .map_err(|e| format!("Failed to restore elements: {}", e))?;
@@ -173,7 +127,7 @@ pub fn combine_screenshots(screenshots: Vec<Vec<u8>>) -> Result<Vec<u8>, String>
     let mut combined_image = ImageBuffer::new(width, total_height);
     let mut y_offset = 0;
 
-    for (_i, screenshot) in screenshots.iter().enumerate() {
+    for screenshot in screenshots.iter() {
         let image = image::load_from_memory(screenshot).map_err(|e| e.to_string())?;
         let (_, height) = image.dimensions();
 

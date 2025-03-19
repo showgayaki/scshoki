@@ -3,11 +3,12 @@ use std::sync::LazyLock;
 use std::time::Duration;
 
 // `canonicalize()` を使用して相対パスを絶対パスに変換
-pub const SCREENSHOT_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    std::fs::canonicalize(Path::new("../screenshots")).unwrap_or_else(|_| Path::new("../screenshots").to_path_buf())
+pub static SCREENSHOT_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    std::fs::canonicalize(Path::new("../screenshots"))
+        .unwrap_or_else(|_| Path::new("../screenshots").to_path_buf())
 });
 
-pub const LOG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+pub static LOG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
     std::fs::canonicalize(Path::new("../log")).unwrap_or_else(|_| Path::new("../log").to_path_buf())
 });
 pub const LOG_FILE_NAME: &str = "scshoki.log";

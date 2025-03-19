@@ -42,7 +42,7 @@ pub fn init_logger() {
     let file = RollingFileAppender::builder()
         .encoder(Box::new(PatternEncoder::new(LOG_PATTERN)))
         .build(
-            &LOG_DIR.join(LOG_FILE_NAME),
+            LOG_DIR.join(LOG_FILE_NAME),
             Box::new(CompoundPolicy::new(
                 Box::new(SizeTrigger::new(LOG_ROTATE_SIZE)),
                 Box::new(
@@ -61,13 +61,13 @@ pub fn init_logger() {
         .logger(
             Logger::builder()
                 .appender("file")
-                .build("default_logger", log::LevelFilter::Info),
+                .build("default_logger", log::LevelFilter::Debug),
         )
         .build(
             Root::builder()
                 .appender("stdout")
                 .appender("file")
-                .build(log::LevelFilter::Info),
+                .build(log::LevelFilter::Debug),
         )
         .unwrap();
 

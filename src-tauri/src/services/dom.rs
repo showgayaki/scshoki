@@ -1,23 +1,18 @@
-use log::info;
+use log::{debug, info};
 use std::collections::HashMap;
 use std::error::Error;
 use thirtyfour::prelude::*;
 
 pub async fn get_page_metrics(driver: &WebDriver) -> Result<HashMap<String, f64>, Box<dyn Error>> {
-    info!("Getting page metrics...");
+    debug!("Getting page metrics...");
 
     let script = r#"
+        const innerHeight = window.innerHeight;
+        const totalScrollHeight = document.documentElement.scrollHeight
         return {
-            height: Math.max(
-                document.body.scrollHeight, document.body.offsetHeight,
-                document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight
-            ),
-            screenHeight: screen.height,
-            visualViewportHeight: window.visualViewport.height,
-            availHeight: screen.availHeight,
-            clientHeight: document.documentElement.clientHeight,
-            viewportHeight: window.innerHeight,
-            scrollHeight: document.documentElement.scrollHeight
+            innerHeight: window.innerHeight,
+            totalScrollHeight: document.documentElement.scrollHeight,
+            scrollSteps: Math.ceil(totalScrollHeight / innerHeight),
         };
     "#;
 
@@ -36,7 +31,7 @@ pub async fn get_page_metrics(driver: &WebDriver) -> Result<HashMap<String, f64>
 
 // 指定した要素を `display: none;` に設定し非表示にする
 pub async fn hide_elements(driver: &WebDriver, selectors: &str) -> Result<(), Box<dyn Error>> {
-    info!("Hiding elements: {}", selectors);
+    debug!("Hiding elements: {}", selectors);
 
     if selectors.trim().is_empty() {
         info!("No elements to hide.");
@@ -47,7 +42,7 @@ pub async fn hide_elements(driver: &WebDriver, selectors: &str) -> Result<(), Bo
         r#"
         (function() {{
             let elements = document.querySelectorAll("{}");
-            elements.forEach(e => e.style.display = 'none');
+            elements.forEach(e => e.style.visibility = 'hidden');
         }})();
         "#,
         selectors
@@ -60,7 +55,7 @@ pub async fn hide_elements(driver: &WebDriver, selectors: &str) -> Result<(), Bo
 
 // 指定した要素を元の状態に戻す（`display` プロパティをクリア）
 pub async fn show_elements(driver: &WebDriver, selectors: &str) -> Result<(), Box<dyn Error>> {
-    info!("Restoring elements: {}", selectors);
+    debug!("Restoring elements: {}", selectors);
     if selectors.trim().is_empty() {
         return Ok(());
     }
@@ -69,7 +64,7 @@ pub async fn show_elements(driver: &WebDriver, selectors: &str) -> Result<(), Bo
         r#"
         (function() {{
             let elements = document.querySelectorAll("{}");
-            elements.forEach(e => e.style.display = '');
+            elements.forEach(e => e.style.visibility = '');
         }})();
         "#,
         selectors
@@ -82,7 +77,7 @@ pub async fn show_elements(driver: &WebDriver, selectors: &str) -> Result<(), Bo
 
 // 現在のスクロール位置を取得
 pub async fn get_scroll_position(driver: &WebDriver) -> Result<f64, Box<dyn Error>> {
-    info!("Getting scroll position...");
+    debug!("get_scroll_position");
     let script = "return window.scrollY;";
     let result = driver.execute(script, vec![]).await?;
     Ok(result.json().as_f64().unwrap_or(0.0))
@@ -90,9 +85,8 @@ pub async fn get_scroll_position(driver: &WebDriver) -> Result<f64, Box<dyn Erro
 
 // 指定したピクセル分スクロールする
 pub async fn scroll_by(driver: &WebDriver, pixels: f64) -> Result<(), Box<dyn Error>> {
-    info!("Scrolling by {} px", pixels);
+    debug!("scroll_by");
     let script = format!("window.scrollBy(0, {});", pixels);
     driver.execute(&script, vec![]).await?;
-    info!("Scrolled by {} px", pixels);
     Ok(())
 }
