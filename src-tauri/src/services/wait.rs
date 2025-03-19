@@ -2,6 +2,30 @@ use log::{debug, info};
 use thirtyfour::prelude::*;
 use tokio::time::{sleep, Duration, Instant};
 
+use crate::config::constants::APPIUM_SERVER_URL;
+
+// Appiumが起動完了するまで `/status` をポーリング
+pub async fn wait_for_appium_ready(timeout: Duration) -> Result<(), String> {
+    debug!("wait_for_appium_ready");
+    let start_time = Instant::now();
+    let client = reqwest::Client::new();
+
+    while start_time.elapsed() < timeout {
+        if let Ok(response) = client
+            .get(format!("{}/status", APPIUM_SERVER_URL))
+            .send()
+            .await
+        {
+            if response.status().is_success() {
+                return Ok(()); // Appium起動完了
+            }
+        }
+        sleep(Duration::from_millis(500)).await; // 500ms 待って再試行
+    }
+
+    Err("Timed out waiting for Appium to be ready".to_string())
+}
+
 pub async fn wait_for_page_load(driver: &WebDriver, url: &str) -> Result<(), String> {
     debug!("wait_for_page_load");
 
