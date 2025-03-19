@@ -1,4 +1,4 @@
-use log::{error, info};
+use log::{debug, error, info};
 use serde_json::json;
 use std::fs;
 use tauri::command;
@@ -6,18 +6,23 @@ use tauri::State;
 use thirtyfour::prelude::*;
 use tokio::time::{sleep, Duration, Instant};
 
-use crate::config::constants::{SCREENSHOT_DIR, APPIUM_SERVER_URL, APPIUM_TIMEOUT};
+use crate::config::constants::{APPIUM_SERVER_URL, APPIUM_TIMEOUT, SCREENSHOT_DIR};
 use crate::services::appium::AppiumState;
 use crate::services::screenshot::{capture_full_page, combine_screenshots};
-
+use crate::services::wait::wait_for_page_load;
 
 // Appiumが起動完了するまで `/status` をポーリング
 async fn wait_for_appium_ready(timeout: Duration) -> Result<(), String> {
+    debug!("wait_for_appium_ready");
     let start_time = Instant::now();
     let client = reqwest::Client::new();
 
     while start_time.elapsed() < timeout {
-        if let Ok(response) = client.get(format!("{}/status", APPIUM_SERVER_URL)).send().await {
+        if let Ok(response) = client
+            .get(format!("{}/status", APPIUM_SERVER_URL))
+            .send()
+            .await
+        {
             if response.status().is_success() {
                 return Ok(()); // Appium起動完了
             }
@@ -34,6 +39,8 @@ pub async fn take_screenshot(
     url: String,
     hidden_elements: String,
 ) -> Result<(), String> {
+    debug!("take_screenshot");
+
     // Appiumサーバーを起動
     if let Err(e) = state.start_appium().await {
         error!("Failed to start Appium: {}", e);
@@ -72,6 +79,9 @@ pub async fn take_screenshot(
         .goto(&formatted_url)
         .await
         .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
+
+    // ページの完全読み込みを待つ
+    wait_for_page_load(&driver, &formatted_url).await?;
 
     // スクロールしながらスクリーンショットを撮影
     let screenshots = capture_full_page(&driver, &hidden_elements).await?;
