@@ -117,18 +117,20 @@ pub fn download_file(url: &str, dest_path: &Path) -> Result<(), String> {
 }
 
 /// ダウンロード後に解凍処理を追加
-pub fn download_and_extract(url: &str, dest_dir: &Path, is_zip: bool) -> Result<(), String> {
+pub fn download_and_extract(url: &str, dest_dir: &Path) -> Result<(), String> {
     let archive_path = dest_dir.join("temp_download");
 
     // ファイルをダウンロード
     download_file(url, &archive_path)?;
 
-    // 解凍
-    if is_zip {
-        unzip_file(&archive_path, dest_dir)?
+    // 拡張子をチェックして解凍方法を自動選択
+    if url.ends_with(".zip") {
+        unzip_file(&archive_path, dest_dir)?;
+    } else if url.ends_with(".tar.gz") {
+        extract_tar_gz(&archive_path, dest_dir)?;
     } else {
-        extract_tar_gz(&archive_path, dest_dir)?
-    };
+        return Err("Unsupported archive format".to_string());
+    }
 
     // アーカイブ削除
     fs::remove_file(&archive_path).map_err(|e| format!("Failed to delete archive: {}", e))?;

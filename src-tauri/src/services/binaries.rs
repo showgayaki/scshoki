@@ -3,7 +3,7 @@ use reqwest::blocking::Client;
 use serde_json::Value;
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use crate::config::constants::{
     APPIUM_URL, BINARY_DIR, CHROMEDRIVER_VERSION_URL, GECKODRIVER_LATEST_RELEASE_URL,
@@ -12,8 +12,7 @@ use crate::utils::file::{download_and_extract, download_file};
 
 // バイナリディレクトリ取得
 fn get_binary_path(binary: &str) -> Result<(PathBuf, PathBuf), String> {
-    let home_dir = env::var("HOME").map_err(|e| format!("Failed to get HOME dir: {}", e))?;
-    let binaries_dir = Path::new(&home_dir).join(BINARY_DIR);
+    let binaries_dir = BINARY_DIR.clone();
     let binary_path = binaries_dir.join(binary);
 
     Ok((binaries_dir, binary_path))
@@ -94,13 +93,12 @@ fn get_geckodriver_url() -> Result<String, String> {
 
 /// `~/.local/scshoki/bin/` の存在確認＆なければ作成
 pub fn init_binaries() -> Result<(), String> {
-    let home_dir = env::var("HOME").map_err(|e| format!("Failed to get HOME dir: {}", e))?;
-    let driver_dir = Path::new(&home_dir).join(BINARY_DIR);
+    let binaries_dir = BINARY_DIR.clone();
 
-    if !driver_dir.exists() {
-        fs::create_dir_all(&driver_dir)
+    if !BINARY_DIR.exists() {
+        fs::create_dir_all(&binaries_dir)
             .map_err(|e| format!("Failed to create binaries dir: {}", e))?;
-        info!("Created binaries directory at {:?}", driver_dir);
+        info!("Created binaries directory at {:?}", binaries_dir);
     }
 
     Ok(())
@@ -142,7 +140,7 @@ pub fn ensure_chromedriver() -> Result<PathBuf, String> {
     let url = get_chromedriver_url()?;
     info!("Downloading ChromeDriver from {:?}", url);
 
-    if let Err(e) = download_and_extract(&url, &binaries_dir, true) {
+    if let Err(e) = download_and_extract(&url, &binaries_dir) {
         error!("{}", e);
         error!("Failed to install ChromeDriver");
     } else {
@@ -164,8 +162,7 @@ pub fn ensure_geckodriver() -> Result<PathBuf, String> {
     let url = get_geckodriver_url()?;
     info!("Downloading GeckoDriver from {:?}", url);
 
-    let is_zip = url.ends_with("zip");
-    if let Err(e) = download_and_extract(&url, &binaries_dir, is_zip) {
+    if let Err(e) = download_and_extract(&url, &binaries_dir) {
         error!("{}", e);
         error!("Failed to install GeckoDriver");
     } else {
