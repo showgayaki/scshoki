@@ -20,3 +20,9 @@ pub const LOG_ROTATE_SIZE: u64 = LOG_ROTATE_SIZE_MB * MB; // 実際のバイト�
 
 pub const APPIUM_SERVER_URL: &str = "http://127.0.0.1:4723";
 pub const APPIUM_TIMEOUT: Duration = Duration::from_secs(10);
+
+pub const BINARY_DIR: &str = ".local/scshoki/bin";
+pub const APPIUM_URL: &str = "https://github.com/appium/appium/releases/latest/download/appium";
+pub const CHROMEDRIVER_VERSION_URL: &str = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json";
+pub const GECKODRIVER_LATEST_RELEASE_URL: &str =
+    "https://api.github.com/repos/mozilla/geckodriver/releases/latest";

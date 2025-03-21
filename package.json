@@ -12,7 +12,6 @@
   "dependencies": {
     "@tauri-apps/api": "^2.3.0",
     "@tauri-apps/plugin-opener": "^2",
-    "appium": "^2.16.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.2.0"
@@ -22,7 +21,6 @@
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
-    "appium-uiautomator2-driver": "^4.1.0",
     "sass-embedded": "^1.85.1",
     "typescript": "~5.6.2",
     "vite": "^6.0.3"
