@@ -7,8 +7,8 @@ use crate::config::constants::SCREENSHOT_DIR;
 use crate::services::dom::{
     get_page_metrics, get_scroll_position, hide_elements, scroll_by, show_elements,
 };
-use crate::services::utils::{cut_scroll_overlap, trim_extra_space};
-use crate::services::wait::{wait_for_elements_hidden, wait_for_scroll_complete};
+use crate::utils::image::{cut_scroll_overlap, trim_extra_space};
+use crate::utils::wait::{wait_for_elements_hidden, wait_for_scroll_complete};
 
 pub async fn capture_full_page(
     driver: &WebDriver,
