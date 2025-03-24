@@ -3,10 +3,13 @@ use reqwest::blocking::Client;
 use serde_json::Value;
 use std::env;
 use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
+use std::process::Command;
 
 use crate::config::constants::{
-    APPIUM_URL, BINARY_DIR, CHROMEDRIVER_VERSION_URL, GECKODRIVER_LATEST_RELEASE_URL,
+    APPIUM_VER, BINARY_DIR, CHROMEDRIVER_VERSION_URL, DRIVER_LIST, GECKODRIVER_LATEST_RELEASE_URL,
+    NODE_DIR, NODE_VER,
 };
 use crate::utils::file::{download_and_extract, download_file};
 
@@ -14,6 +17,9 @@ use crate::utils::file::{download_and_extract, download_file};
 fn get_binary_path(binary: &str) -> Result<(PathBuf, PathBuf), String> {
     let binaries_dir = BINARY_DIR.clone();
     let binary_path = binaries_dir.join(binary);
+
+    let old_path = std::env::var("PATH").unwrap_or_default();
+    std::env::set_var("PATH", format!("{}:{}", binaries_dir.display(), old_path));
 
     Ok((binaries_dir, binary_path))
 }
@@ -104,28 +110,118 @@ pub fn init_binaries() -> Result<(), String> {
     Ok(())
 }
 
-/// `~/.local/scshoki/bin/` に `Appium` があるか確認し、なければダウンロード
-pub fn ensure_appium() -> Result<PathBuf, String> {
-    let (_, appium_path) = get_binary_path("appium")?;
+/// Node.js のバイナリをダウンロードして展開
+pub fn ensure_node() -> Result<(), String> {
+    let node_bin_path = NODE_DIR.join("bin/node");
 
-    if appium_path.exists() {
-        info!("Appium is already installed: {:?}", appium_path);
-        return Ok(appium_path);
+    if node_bin_path.exists() {
+        info!(
+            "Node.js is already installed at: {}",
+            node_bin_path.display()
+        );
+        return Ok(());
     }
 
-    info!("Downloading Appium...");
-    download_file(APPIUM_URL, &appium_path)?;
-    info!("Appium installed at {:?}", appium_path);
+    info!("Downloading and installing Node.js...");
 
-    // 実行権限を付与（UNIX系のみ）
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(&appium_path, fs::Permissions::from_mode(0o755))
-            .map_err(|e| format!("Failed to set execute permissions for Appium: {}", e))?;
+    let node_url = match (env::consts::OS, env::consts::ARCH) {
+        ("macos", "x86_64") => format!(
+            "https://nodejs.org/dist/{}/node-{}-darwin-x64.tar.gz",
+            NODE_VER, NODE_VER
+        ),
+        ("macos", "aarch64") => format!(
+            "https://nodejs.org/dist/{}/node-{}-darwin-arm64.tar.gz",
+            NODE_VER, NODE_VER
+        ),
+        ("windows", "x86_64") => format!(
+            "https://nodejs.org/dist/{}/node-{}-win-x64.zip",
+            NODE_VER, NODE_VER
+        ),
+        _ => return Err("Unsupported platform for Node.js".to_string()),
+    };
+
+    info!("Doanload URL: {}", node_url);
+
+    download_and_extract(&node_url, &BINARY_DIR)?;
+
+    // macOS の場合は `bin/node` を chmod +x
+    if env::consts::OS != "windows" {
+        let node_exec = NODE_DIR.join("bin/node");
+        Command::new("chmod")
+            .arg("+x")
+            .arg(&node_exec)
+            .output()
+            .map_err(|e| format!("Failed to set execute permission for Node.js: {}", e))?;
     }
 
-    Ok(appium_path)
+    Ok(())
+}
+
+pub fn install_appium() -> Result<(), String> {
+    let npm_bin = NODE_DIR.join("bin/npm");
+
+    if NODE_DIR.join("node_modules/appium").is_dir() {
+        info!("Appium is already installed");
+        return Ok(());
+    }
+
+    info!("Installing Appium using {:?}", npm_bin);
+
+    let mut child = Command::new(npm_bin)
+        .current_dir(&*NODE_DIR)
+        .arg("install")
+        .arg(format!("appium@{}", APPIUM_VER))
+        .spawn()
+        .map_err(|e| format!("Failed to start npm: {}", e))?;
+
+    info!("Waiting for Appium installation to complete...");
+
+    let status = child
+        .wait()
+        .map_err(|e| format!("Failed to wait for Appium installation: {}", e))?;
+
+    if !status.success() {
+        return Err("Failed to install Appium".to_string());
+    }
+
+    info!("Appium installed successfully.");
+
+    install_drivers()?;
+    Ok(())
+}
+
+fn install_drivers() -> Result<(), String> {
+    let npm_bin = NODE_DIR.join("bin/npm");
+
+    for driver in DRIVER_LIST.iter() {
+        info!("Installing Appium driver: {}", driver);
+
+        let mut child = Command::new(&npm_bin)
+            .current_dir(&*NODE_DIR)
+            .arg("exec")
+            .arg("appium")
+            .arg("driver")
+            .arg("install")
+            .arg(driver)
+            .spawn()
+            .map_err(|e| format!("Failed to start Appium for {}: {}", driver, e))?;
+
+        let status = child.wait().map_err(|e| {
+            format!(
+                "Failed to wait for Appium driver installation ({}): {}",
+                driver, e
+            )
+        })?;
+
+        if !status.success() {
+            error!("Failed to install Appium driver: {}", driver);
+            return Err(format!("Failed to install Appium driver: {}", driver));
+        }
+
+        info!("Successfully installed Appium driver: {}", driver);
+    }
+
+    Ok(())
 }
 
 /// `chromedriver` があるか確認し、なければダウンロード

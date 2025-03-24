@@ -12,3 +12,6 @@ mkdir -p /tmp/cargo-target
 export CARGO_TARGET_DIR=/tmp/cargo-target
 pnpm tauri dev
 ```
+
+## dev
+RUST_BACKTRACE=1 pnpm tauri dev

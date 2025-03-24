@@ -7,7 +7,7 @@ use std::path::Path;
 use tar::Archive;
 use zip::read::ZipArchive;
 
-/// ZIPファイルを解凍（サブディレクトリ考慮）
+/// ZIPファイルを解凍
 fn unzip_file(zip_path: &Path, dest_dir: &Path) -> Result<(), String> {
     info!("Unzipping ZIP file: {:?}", zip_path);
 
@@ -52,52 +52,54 @@ fn unzip_file(zip_path: &Path, dest_dir: &Path) -> Result<(), String> {
     Ok(())
 }
 
-/// TAR.GZファイルを解凍（サブディレクトリ考慮）
+/// TAR.GZファイルを解凍
 fn extract_tar_gz(tar_gz_path: &Path, dest_dir: &Path) -> Result<(), String> {
-    info!("Extracting TAR.GZ file: {:?}", tar_gz_path);
-
-    // ファイルサイズが異常に小さい場合はエラーとする
-    let metadata = fs::metadata(tar_gz_path)
-        .map_err(|e| format!("Failed to get TAR.GZ file metadata: {}", e))?;
-    if metadata.len() < 100 {
-        // 明らかに異常なサイズ
-        return Err(format!(
-            "Downloaded TAR.GZ file is too small: {} bytes",
-            metadata.len()
-        ));
-    }
-
     let tar_gz =
-        File::open(tar_gz_path).map_err(|e| format!("Failed to open TAR.GZ file: {}", e))?;
+        fs::File::open(tar_gz_path).map_err(|e| format!("Failed to open TAR.GZ file: {}", e))?;
     let tar = GzDecoder::new(tar_gz);
     let mut archive = Archive::new(tar);
 
-    for entry in archive
-        .entries()
-        .map_err(|e| format!("Failed to read TAR entries: {}", e))?
-    {
-        let mut entry = entry.map_err(|e| format!("Failed to access file in TAR: {}", e))?;
-        let path = entry
-            .path()
-            .map_err(|e| format!("Failed to get path in TAR: {}", e))?;
+    // 解凍
+    archive
+        .unpack(dest_dir)
+        .map_err(|e| format!("Failed to extract TAR.GZ: {}", e))?;
 
-        let file_name = path.file_name().ok_or("Invalid file name in TAR archive")?;
-        let output_path = dest_dir.join(file_name);
+    // 解凍後のディレクトリが存在するか確認
+    let extracted_dirs: Vec<_> = fs::read_dir(dest_dir)
+        .map_err(|e| format!("Failed to read extracted directory: {}", e))?
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.path().is_dir())
+        .collect();
 
-        entry
-            .unpack(&output_path)
-            .map_err(|e| format!("Failed to extract {:?}: {}", output_path, e))?;
-
-        // 実行権限を付与（UNIX系のみ）
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            fs::set_permissions(&output_path, fs::Permissions::from_mode(0o755))
-                .map_err(|e| format!("Failed to set execute permissions: {}", e))?;
-        }
+    if extracted_dirs.is_empty() {
+        return Err(
+            "No directories found after extraction. Extraction might have failed.".to_string(),
+        );
     }
 
-    info!("Extraction completed: {:?}", dest_dir);
+    // `node-*` を `node` にリネーム
+    rename_extracted_node(dest_dir)?;
+
+    Ok(())
+}
+
+fn rename_extracted_node(dest_dir: &Path) -> Result<(), String> {
+    for entry in fs::read_dir(dest_dir).map_err(|e| format!("Failed to read dir: {}", e))? {
+        let entry = entry.map_err(|e| format!("Failed to access entry: {}", e))?;
+        let path = entry.path();
+        if path.is_dir()
+            && path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .starts_with("node-")
+        {
+            let new_path = dest_dir.join("node");
+            fs::rename(&path, &new_path)
+                .map_err(|e| format!("Failed to rename {:?} to {:?}: {}", path, new_path, e))?;
+            break;
+        }
+    }
     Ok(())
 }
 
@@ -118,7 +120,11 @@ pub fn download_file(url: &str, dest_path: &Path) -> Result<(), String> {
 
 /// ダウンロード後に解凍処理を追加
 pub fn download_and_extract(url: &str, dest_dir: &Path) -> Result<(), String> {
-    let archive_path = dest_dir.join("temp_download");
+    let file_name = url
+        .split('/')
+        .last()
+        .ok_or("Failed to extract file name from URL")?;
+    let archive_path = dest_dir.join(file_name);
 
     // ファイルをダウンロード
     download_file(url, &archive_path)?;

@@ -10,7 +10,9 @@ use tauri::{Manager, State, WindowEvent};
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
 use services::appium::AppiumState;
-use services::binaries::{ensure_appium, ensure_chromedriver, ensure_geckodriver, init_binaries};
+use services::binaries::{
+    ensure_chromedriver, ensure_geckodriver, ensure_node, init_binaries, install_appium,
+};
 use services::logger::init_logger;
 
 fn main() {
@@ -22,9 +24,15 @@ fn main() {
         error!("Failed to create binaries directory: {}", e);
     }
 
+    // Node.jsのチェック＆ダウンロード
+    if let Err(e) = ensure_node() {
+        eprintln!("Failed to setup Node.js: {}", e);
+        std::process::exit(1);
+    }
+
     // Appiumのチェック＆ダウンロード
-    if let Err(e) = ensure_appium() {
-        error!("Failed to ensure Appium: {}", e);
+    if let Err(e) = install_appium() {
+        error!("Failed to install Appium: {}", e);
     }
 
     // ChromeDriverのチェック＆ダウンロード

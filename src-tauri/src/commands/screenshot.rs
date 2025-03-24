@@ -8,6 +8,7 @@ use thirtyfour::prelude::*;
 use crate::config::constants::{APPIUM_SERVER_URL, APPIUM_TIMEOUT, SCREENSHOT_DIR};
 use crate::services::appium::AppiumState;
 use crate::services::screenshot::{capture_full_page, combine_screenshots};
+use crate::services::webrdiver::create_webdriver;
 use crate::utils::wait::{wait_for_appium_ready, wait_for_page_load};
 
 #[command]
@@ -31,23 +32,7 @@ pub async fn take_screenshot(
     }
 
     info!("Taking screenshot of {}", url);
-
-    let mut caps = DesiredCapabilities::chrome();
-    // let mut caps = DesiredCapabilities::firefox();
-    caps.insert_base_capability("platformName".to_string(), json!("Android"));
-    caps.insert_base_capability("browserName".to_string(), json!("firefox"));
-    caps.insert_base_capability(
-        "appium:options".to_string(),
-        json!({
-            "deviceName": "your_device_name",
-            "automationName": "UiAutomator2",
-            // "automationName": "Gecko",
-        }),
-    );
-
-    let driver = WebDriver::new(APPIUM_SERVER_URL, caps)
-        .await
-        .map_err(|e| format!("Failed to connect to Appium: {}", e))?;
+    let driver = create_webdriver("firefox").await?;
 
     let formatted_url = if url.starts_with("http://") || url.starts_with("https://") {
         url

@@ -10,7 +10,7 @@ pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
         .unwrap_or_else(|_| panic!("Failed to get HOME directory"))
 });
 
-pub const BASE_DIR: &str = ".local/scshoki";
+pub const BASE_DIR: &str = ".scshoki";
 
 // `canonicalize()` を使用して相対パスを絶対パスに変換
 pub static SCREENSHOT_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
@@ -34,8 +34,11 @@ pub const APPIUM_SERVER_URL: &str = "http://127.0.0.1:4723";
 pub const APPIUM_TIMEOUT: Duration = Duration::from_secs(10);
 
 pub static BINARY_DIR: LazyLock<PathBuf> = LazyLock::new(|| HOME_DIR.join(BASE_DIR).join("bin"));
+pub static NODE_DIR: LazyLock<PathBuf> = LazyLock::new(|| BINARY_DIR.join("node"));
+pub const NODE_VER: &str = "v22.14.0";
+pub const APPIUM_VER: &str = "2.17.1";
+pub const DRIVER_LIST: [&str; 3] = ["uiautomator2@4.1.5", "gecko@1.4.3", "safari@3.5.23"];
 
-pub const APPIUM_URL: &str = "https://github.com/appium/appium/releases/latest/download/";
 pub const CHROMEDRIVER_VERSION_URL: &str = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json";
 pub const GECKODRIVER_LATEST_RELEASE_URL: &str =
     "https://api.github.com/repos/mozilla/geckodriver/releases/latest";

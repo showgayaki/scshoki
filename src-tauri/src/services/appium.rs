@@ -2,13 +2,13 @@ use log::{error, info};
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
 
-// Appium のプロセスを管理するための型
+use crate::config::constants::{BINARY_DIR, NODE_DIR};
+
 pub struct AppiumState {
     pub(crate) process: Arc<Mutex<Option<Child>>>,
 }
 
 impl AppiumState {
-    // Appium サーバーを起動
     pub async fn start_appium(&self) -> Result<(), String> {
         let mut lock = self.process.lock().unwrap();
         if lock.is_some() {
@@ -16,11 +16,14 @@ impl AppiumState {
             return Err("Appium is already running.".to_string());
         }
 
-        let process = Command::new("pnpm")
+        let npm_bin = NODE_DIR.join("bin/npm");
+        info!("Starting Appium with Node.js: {:?}", npm_bin);
+
+        let process = Command::new(npm_bin)
+            .current_dir(&*NODE_DIR)
             .arg("exec")
             .arg("appium")
             .arg("--allow-insecure")
-            .arg("chromedriver_autodownload")
             .arg("--session-override")
             .spawn()
             .map_err(|e| format!("Failed to start Appium: {}", e))?;
@@ -30,7 +33,6 @@ impl AppiumState {
         Ok(())
     }
 
-    // Appium サーバーを停止
     pub fn stop_appium(&self) -> Result<(), String> {
         let mut lock = self.process.lock().unwrap();
         if let Some(mut process) = lock.take() {
