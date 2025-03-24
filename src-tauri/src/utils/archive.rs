@@ -2,14 +2,26 @@ use flate2::read::GzDecoder;
 use log::info;
 use std::fs::{self, File};
 use std::io::BufReader;
-use std::io::Write;
 use std::path::Path;
 use tar::Archive;
 use zip::read::ZipArchive;
 
+/// 解凍処理
+pub fn extract(archive_path: &Path, dest_dir: &Path) -> Result<(), String> {
+    info!("Extracting file: {:?}", archive_path);
+
+    if archive_path.extension().and_then(|s| s.to_str()) == Some("zip") {
+        extract_zip(archive_path, dest_dir)
+    } else if archive_path.extension().and_then(|s| s.to_str()) == Some("gz") {
+        extract_tar_gz(archive_path, dest_dir)
+    } else {
+        Err("Unsupported archive format".to_string())
+    }
+}
+
 /// ZIPファイルを解凍
-fn unzip_file(zip_path: &Path, dest_dir: &Path) -> Result<(), String> {
-    info!("Unzipping ZIP file: {:?}", zip_path);
+fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<(), String> {
+    info!("Extract ZIP file: {:?}", zip_path);
 
     let zip_file = File::open(zip_path).map_err(|e| format!("Failed to open ZIP file: {}", e))?;
     let mut archive = ZipArchive::new(BufReader::new(zip_file))
@@ -37,23 +49,17 @@ fn unzip_file(zip_path: &Path, dest_dir: &Path) -> Result<(), String> {
                 .map_err(|e| format!("Failed to create extracted file {:?}: {}", output_path, e))?;
             std::io::copy(&mut file, &mut out_file)
                 .map_err(|e| format!("Failed to extract file {:?}: {}", output_path, e))?;
-
-            // 実行権限を付与（UNIX系のみ）
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                fs::set_permissions(&output_path, fs::Permissions::from_mode(0o755))
-                    .map_err(|e| format!("Failed to set execute permissions: {}", e))?;
-            }
         }
     }
 
-    info!("Unzip completed: {:?}", dest_dir);
+    info!("Extract ZIP completed: {:?}", dest_dir);
     Ok(())
 }
 
 /// TAR.GZファイルを解凍
 fn extract_tar_gz(tar_gz_path: &Path, dest_dir: &Path) -> Result<(), String> {
+    info!("Extract TAR.GZ file: {:?}", tar_gz_path);
+
     let tar_gz =
         fs::File::open(tar_gz_path).map_err(|e| format!("Failed to open TAR.GZ file: {}", e))?;
     let tar = GzDecoder::new(tar_gz);
@@ -100,46 +106,5 @@ fn rename_extracted_node(dest_dir: &Path) -> Result<(), String> {
             break;
         }
     }
-    Ok(())
-}
-
-/// 指定URLのファイルをダウンロード
-pub fn download_file(url: &str, dest_path: &Path) -> Result<(), String> {
-    let response =
-        reqwest::blocking::get(url).map_err(|e| format!("Failed to download {}: {}", url, e))?;
-    let mut file = File::create(dest_path)
-        .map_err(|e| format!("Failed to create file {}: {}", dest_path.display(), e))?;
-    file.write_all(
-        &response
-            .bytes()
-            .map_err(|e| format!("Failed to read response: {}", e))?,
-    )
-    .map_err(|e| format!("Failed to write file: {}", e))?;
-    Ok(())
-}
-
-/// ダウンロード後に解凍処理を追加
-pub fn download_and_extract(url: &str, dest_dir: &Path) -> Result<(), String> {
-    let file_name = url
-        .split('/')
-        .last()
-        .ok_or("Failed to extract file name from URL")?;
-    let archive_path = dest_dir.join(file_name);
-
-    // ファイルをダウンロード
-    download_file(url, &archive_path)?;
-
-    // 拡張子をチェックして解凍方法を自動選択
-    if url.ends_with(".zip") {
-        unzip_file(&archive_path, dest_dir)?;
-    } else if url.ends_with(".tar.gz") {
-        extract_tar_gz(&archive_path, dest_dir)?;
-    } else {
-        return Err("Unsupported archive format".to_string());
-    }
-
-    // アーカイブ削除
-    fs::remove_file(&archive_path).map_err(|e| format!("Failed to delete archive: {}", e))?;
-
     Ok(())
 }

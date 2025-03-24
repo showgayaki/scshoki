@@ -2,7 +2,7 @@ use log::{error, info};
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
 
-use crate::config::constants::{BINARY_DIR, NODE_DIR};
+use crate::config::constants::NODE_DIR;
 
 pub struct AppiumState {
     pub(crate) process: Arc<Mutex<Option<Child>>>,

@@ -2,12 +2,11 @@ use serde_json::json;
 use thirtyfour::prelude::*;
 
 use crate::config::constants::APPIUM_SERVER_URL;
-use crate::services::binaries::ensure_chromedriver;
+use crate::services::setup::ensure_chromedriver;
 
 pub async fn create_webdriver(browser: &str) -> Result<WebDriver, String> {
     let mut caps = Capabilities::new();
     caps.insert("browserName".to_string(), json!(browser));
-    caps.insert("platformName".to_string(), json!("mac"));
 
     match browser {
         "chrome" => {
@@ -15,13 +14,16 @@ pub async fn create_webdriver(browser: &str) -> Result<WebDriver, String> {
             let chromedriver_str = chromedriver_path
                 .to_str()
                 .ok_or("Invalid chromedriver path")?;
+
+            caps.insert("platformName".to_string(), json!("Android"));
+            caps.insert("appium:automationName".to_string(), json!("UiAutomator2"));
             caps.insert(
                 "appium:chromedriverExecutable".to_string(),
                 json!(chromedriver_str),
             );
-            caps.insert("appium:automationName".to_string(), json!("UiAutomator2"));
         }
         "firefox" => {
+            caps.insert("platformName".to_string(), json!("mac"));
             caps.insert("appium:automationName".to_string(), json!("Gecko"));
             caps.insert(
                 "moz:firefoxOptions".to_string(),

@@ -1,11 +1,9 @@
 use log::{debug, error, info};
-use serde_json::json;
 use std::fs;
 use tauri::command;
 use tauri::State;
-use thirtyfour::prelude::*;
 
-use crate::config::constants::{APPIUM_SERVER_URL, APPIUM_TIMEOUT, SCREENSHOT_DIR};
+use crate::config::constants::{APPIUM_TIMEOUT, SCREENSHOT_DIR};
 use crate::services::appium::AppiumState;
 use crate::services::screenshot::{capture_full_page, combine_screenshots};
 use crate::services::webrdiver::create_webdriver;
