@@ -1,7 +1,7 @@
 use image::GenericImageView;
 use log::debug;
 
-use crate::config::adb::PHYSICAL_DENSITY;
+use crate::services::adb::PHYSICAL_DENSITY;
 
 // innerHieght分の高さでtrimして、画像の下の余白をカットする関数
 pub fn trim_extra_space(image_data: &[u8], inner_height: f64) -> Result<Vec<u8>, String> {

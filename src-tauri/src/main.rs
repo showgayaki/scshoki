@@ -1,6 +1,8 @@
 mod commands;
 mod config;
+mod infrastructure;
 mod services;
+mod setup;
 mod utils;
 
 use log::{error, info};
@@ -9,21 +11,21 @@ use tauri::{Manager, State, WindowEvent};
 
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
-use config::adb::PHYSICAL_DENSITY;
 use config::constants::BINARY_DIR;
-use config::device::detect_device;
+use config::env::add_to_path;
+use infrastructure::binaries::init_binaries;
+use infrastructure::logger::init_logger;
+use services::adb::PHYSICAL_DENSITY;
 use services::appium::AppiumState;
-use services::binaries::init_binaries;
-use services::logger::init_logger;
-use services::setup::{ensure_appium, ensure_chromedriver, ensure_geckodriver, ensure_node};
+use services::device::detect_device;
+use setup::setup::{ensure_appium, ensure_chromedriver, ensure_geckodriver, ensure_node};
 
 fn main() {
     init_logger(); // ロガーの初期化
     info!("Application started.");
 
     // `~/.scshoki/bin` をPATHに設定
-    let old_path = std::env::var("PATH").unwrap_or_default();
-    std::env::set_var("PATH", format!("{}:{}", BINARY_DIR.display(), old_path));
+    add_to_path(&BINARY_DIR);
 
     // USBで接続されたデバイスのOSを取得
     match detect_device() {

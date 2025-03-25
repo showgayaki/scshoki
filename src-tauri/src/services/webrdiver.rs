@@ -2,7 +2,7 @@ use serde_json::json;
 use thirtyfour::prelude::*;
 
 use crate::config::constants::APPIUM_SERVER_URL;
-use crate::services::setup::ensure_chromedriver;
+use crate::setup::setup::ensure_chromedriver;
 
 pub async fn create_webdriver(browser: &str) -> Result<WebDriver, String> {
     let mut caps = Capabilities::new();

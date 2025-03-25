@@ -1,8 +1,7 @@
+pub mod adb;
 pub mod appium;
-pub mod binaries;
+pub mod device;
 pub mod dom;
-pub mod logger;
-pub mod network;
+pub mod image;
 pub mod screenshot;
-pub mod setup;
 pub mod webrdiver;
