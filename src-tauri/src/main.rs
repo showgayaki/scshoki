@@ -9,7 +9,9 @@ use tauri::{Manager, State, WindowEvent};
 
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
+use config::adb::PHYSICAL_DENSITY;
 use config::constants::BINARY_DIR;
+use config::device::detect_device;
 use services::appium::AppiumState;
 use services::binaries::init_binaries;
 use services::logger::init_logger;
@@ -22,6 +24,23 @@ fn main() {
     // `~/.scshoki/bin` をPATHに設定
     let old_path = std::env::var("PATH").unwrap_or_default();
     std::env::set_var("PATH", format!("{}:{}", BINARY_DIR.display(), old_path));
+
+    // USBで接続されたデバイスのOSを取得
+    match detect_device() {
+        Ok(device) => {
+            if device == "Android" {
+                info!("Android detected.");
+                // DPIスケールを取得
+                match *PHYSICAL_DENSITY {
+                    Ok(density) => info!("Physical Density: {:.1}", density),
+                    Err(ref e) => error!("Failed to get density: {:.1}", e),
+                }
+            } else {
+                info!("iOS detected.");
+            }
+        }
+        Err(e) => error!("{}", e),
+    }
 
     // バイナリ用ディレクトリのチェック
     if let Err(e) = init_binaries() {
