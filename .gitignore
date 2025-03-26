@@ -1,5 +1,8 @@
 screenshots
 *backup*
+tauri.conf.json
+.env
+Entitlements.plist
 
 # Logs
 logs
