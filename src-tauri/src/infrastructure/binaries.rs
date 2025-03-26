@@ -1,11 +1,11 @@
 use log::info;
 use reqwest::blocking::Client;
 use serde_json::Value;
-use std::env;
 use std::fs;
 
 use crate::config::constants::{
-    BINARY_DIR, CHROMEDRIVER_VERSION_URL, GECKODRIVER_LATEST_RELEASE_URL,
+    ARCH_NAME, BINARY_DIR, CHROMEDRIVER_VERSION_URL, GECKODRIVER_LATEST_RELEASE_URL, NODE_VER,
+    OS_NAME,
 };
 
 /// `~/.scshoki/bin/` の存在確認＆なければ作成
@@ -59,10 +59,25 @@ fn get_latest_geckodriver_version() -> Result<String, String> {
 }
 
 /// ChromeDriverのURL取得
+pub fn get_nodejs_url() -> Result<String, String> {
+    let (os, arch, ext) = match (OS_NAME, ARCH_NAME) {
+        ("windows", "x86_64") => ("win", "x64", "zip"),
+        ("macos", "x86_64") => ("darwin", "x64", "tar.gz"),
+        ("macos", "aarch64") => ("darwin", "arm64", "tar.gz"),
+        _ => return Err("Unsupported platform".to_string()),
+    };
+
+    Ok(format!(
+        "https://nodejs.org/dist/{}/node-{}-{}-{}.{}",
+        NODE_VER, NODE_VER, os, arch, ext
+    ))
+}
+
+/// ChromeDriverのURL取得
 pub fn get_chromedriver_url() -> Result<String, String> {
     let latest_version = get_latest_chromedriver_version()?;
     // プラットフォームの取得
-    let platform = match (env::consts::OS, env::consts::ARCH) {
+    let platform = match (OS_NAME, ARCH_NAME) {
         ("windows", "x86") => "win32",
         ("windows", "x86_64") => "win64",
         ("macos", "x86_64") => "mac-x64",
@@ -79,7 +94,7 @@ pub fn get_chromedriver_url() -> Result<String, String> {
 /// GeckoDriver の URL を取得
 pub fn get_geckodriver_url() -> Result<String, String> {
     let latest_version = get_latest_geckodriver_version()?;
-    let (platform, ext) = match (env::consts::OS, env::consts::ARCH) {
+    let (platform, ext) = match (OS_NAME, ARCH_NAME) {
         ("windows", "x86_64") => ("win64", "zip"),
         ("macos", "x86_64") => ("macos", "tar.gz"),
         ("macos", "aarch64") => ("macos-aarch64", "tar.gz"),

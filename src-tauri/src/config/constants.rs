@@ -3,6 +3,9 @@ use std::path::PathBuf;
 use std::sync::LazyLock;
 use std::time::Duration;
 
+pub const OS_NAME: &str = env::consts::OS;
+pub const ARCH_NAME: &str = env::consts::ARCH;
+
 // HOMEディレクトリのパスをキャッシュ
 pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
     env::var("HOME")
@@ -37,7 +40,12 @@ pub static BINARY_DIR: LazyLock<PathBuf> = LazyLock::new(|| HOME_DIR.join(BASE_D
 pub static NODE_DIR: LazyLock<PathBuf> = LazyLock::new(|| BINARY_DIR.join("node"));
 pub const NODE_VER: &str = "v22.14.0";
 pub const APPIUM_VER: &str = "2.17.1";
-pub const DRIVER_LIST: [&str; 3] = ["uiautomator2@4.1.5", "gecko@1.4.3", "safari@3.5.23"];
+pub const DRIVER_LIST: [&str; 4] = [
+    "uiautomator2@4.1.5",
+    "gecko@1.4.3",
+    "xcuitest@9.0.0",
+    "safari@3.5.23",
+];
 
 pub const CHROMEDRIVER_VERSION_URL: &str = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json";
 pub const GECKODRIVER_LATEST_RELEASE_URL: &str =

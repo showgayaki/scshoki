@@ -1,11 +1,10 @@
 use log::{error, info};
-use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 
-use crate::config::constants::{APPIUM_VER, BINARY_DIR, DRIVER_LIST, NODE_DIR, NODE_VER};
+use crate::config::constants::{APPIUM_VER, BINARY_DIR, DRIVER_LIST, NODE_DIR, OS_NAME};
 use crate::infrastructure::archive::extract;
-use crate::infrastructure::binaries::{get_chromedriver_url, get_geckodriver_url};
+use crate::infrastructure::binaries::{get_chromedriver_url, get_geckodriver_url, get_nodejs_url};
 use crate::infrastructure::fs::{remove_file, set_executable};
 use crate::infrastructure::network::download_file;
 
@@ -21,25 +20,8 @@ pub fn ensure_node() -> Result<(), String> {
         return Ok(());
     }
 
-    info!("Downloading and installing Node.js...");
-
-    let url = match (env::consts::OS, env::consts::ARCH) {
-        ("macos", "x86_64") => format!(
-            "https://nodejs.org/dist/{}/node-{}-darwin-x64.tar.gz",
-            NODE_VER, NODE_VER
-        ),
-        ("macos", "aarch64") => format!(
-            "https://nodejs.org/dist/{}/node-{}-darwin-arm64.tar.gz",
-            NODE_VER, NODE_VER
-        ),
-        ("windows", "x86_64") => format!(
-            "https://nodejs.org/dist/{}/node-{}-win-x64.zip",
-            NODE_VER, NODE_VER
-        ),
-        _ => return Err("Unsupported platform for Node.js".to_string()),
-    };
-
-    info!("Download URL: {}", url);
+    let url = get_nodejs_url()?;
+    info!("Downloading and installing Node.js from {}", url);
     let dest_path = BINARY_DIR.join(url.split('/').last().unwrap());
 
     match download_file(&url, &dest_path) {
@@ -60,7 +42,7 @@ pub fn ensure_node() -> Result<(), String> {
     }
 
     // macOS の場合は `bin/node` を chmod +x
-    if env::consts::OS != "windows" {
+    if OS_NAME != "windows" {
         let node_exec = NODE_DIR.join("bin/node");
         set_executable(&node_exec).expect("Failed to set executable permissions");
     }
@@ -156,7 +138,7 @@ pub fn ensure_chromedriver() -> Result<PathBuf, String> {
                 return Err(format!("Failed to extract ChromeDriver: {}", e));
             } else {
                 // macOS の場合は chmod +x
-                if env::consts::OS != "windows" {
+                if OS_NAME != "windows" {
                     let exec_path = BINARY_DIR.join("chromedriver");
                     set_executable(&exec_path).expect("Failed to set executable permissions");
                 }
@@ -195,7 +177,7 @@ pub fn ensure_geckodriver() -> Result<PathBuf, String> {
                 return Err(format!("Failed to extract GeckoDriver: {}", e));
             } else {
                 // macOS の場合は chmod +x
-                if env::consts::OS != "windows" {
+                if OS_NAME != "windows" {
                     let exec_path = BINARY_DIR.join("geckodriver");
                     set_executable(&exec_path).expect("Failed to set executable permissions");
                 }
