@@ -1,6 +1,6 @@
 screenshots
 *backup*
-tauri.conf.json
+src-tauri/tauri.conf.json
 .env
 Entitlements.plist
 
