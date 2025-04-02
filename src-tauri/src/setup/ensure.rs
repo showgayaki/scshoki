@@ -2,7 +2,7 @@ use log::{error, info};
 use std::path::PathBuf;
 use std::process::Command;
 
-use crate::config::constants::{APPIUM_VER, BINARY_DIR, DRIVER_LIST, NODE_DIR, OS_NAME};
+use crate::config::constants::{APPIUM_VER, BINARY_DIR, DRIVER_LIST, HOST_OS, NODE_DIR};
 use crate::infrastructure::archive::extract;
 use crate::infrastructure::binaries::{get_chromedriver_url, get_geckodriver_url, get_nodejs_url};
 use crate::infrastructure::fs::{remove_file, set_executable};
@@ -42,7 +42,7 @@ pub fn ensure_node() -> Result<(), String> {
     }
 
     // macOS の場合は `bin/node` を chmod +x
-    if OS_NAME != "windows" {
+    if HOST_OS != "windows" {
         let node_exec = NODE_DIR.join("bin/node");
         set_executable(&node_exec).expect("Failed to set executable permissions");
     }
@@ -138,7 +138,7 @@ pub fn ensure_chromedriver() -> Result<PathBuf, String> {
                 return Err(format!("Failed to extract ChromeDriver: {}", e));
             } else {
                 // macOS の場合は chmod +x
-                if OS_NAME != "windows" {
+                if HOST_OS != "windows" {
                     let exec_path = BINARY_DIR.join("chromedriver");
                     set_executable(&exec_path).expect("Failed to set executable permissions");
                 }
@@ -177,7 +177,7 @@ pub fn ensure_geckodriver() -> Result<PathBuf, String> {
                 return Err(format!("Failed to extract GeckoDriver: {}", e));
             } else {
                 // macOS の場合は chmod +x
-                if OS_NAME != "windows" {
+                if HOST_OS != "windows" {
                     let exec_path = BINARY_DIR.join("geckodriver");
                     set_executable(&exec_path).expect("Failed to set executable permissions");
                 }

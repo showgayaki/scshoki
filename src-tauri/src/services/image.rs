@@ -1,7 +1,7 @@
 use image::GenericImageView;
 use log::debug;
 
-use crate::services::adb::PHYSICAL_DENSITY;
+use crate::config::constants::DEVICE_DENSITY;
 
 // innerHieght分の高さでtrimして、画像の下の余白をカットする関数
 pub fn trim_extra_space(image_data: &[u8], inner_height: f64) -> Result<Vec<u8>, String> {
@@ -16,7 +16,7 @@ pub fn trim_extra_space(image_data: &[u8], inner_height: f64) -> Result<Vec<u8>,
         return Err("Image height is smaller than navigation bar height, cannot crop.".to_string());
     }
 
-    let physical_density = PHYSICAL_DENSITY.unwrap_or_else(|e| e);
+    let physical_density = DEVICE_DENSITY.lock().unwrap().unwrap_or(1.0); // デフォルト1.0
     let cropped_image = image
         .view(0, 0, width, (inner_height * physical_density) as u32)
         .to_image();
@@ -41,7 +41,8 @@ pub fn cut_scroll_overlap(
         image::load_from_memory(image_data).map_err(|e| format!("Failed to load image: {}", e))?;
     let (width, height) = image.dimensions();
 
-    let physical_density = PHYSICAL_DENSITY.unwrap_or_else(|e| e);
+    let physical_density = DEVICE_DENSITY.lock().unwrap().unwrap_or(1.0); // デフォルト1.0
+
     let scroll_overlap_height = (scroll_overlap_height * physical_density) as u32;
     if height <= scroll_overlap_height {
         return Err("Image height is smaller than crop height, cannot crop.".to_string());

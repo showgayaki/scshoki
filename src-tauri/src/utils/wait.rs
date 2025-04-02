@@ -12,11 +12,12 @@ pub async fn wait_for_appium_ready(timeout: Duration) -> Result<(), String> {
 
     while start_time.elapsed() < timeout {
         if let Ok(response) = client
-            .get(format!("{}/status", APPIUM_SERVER_URL))
+            .get(format!("{}/status", &*APPIUM_SERVER_URL))
             .send()
             .await
         {
             if response.status().is_success() {
+                info!("Appium server started.");
                 return Ok(()); // Appium起動完了
             }
         }

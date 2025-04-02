@@ -30,7 +30,7 @@ pub async fn take_screenshot(
     }
 
     info!("Taking screenshot of {}", url);
-    let driver = create_webdriver("chrome").await?;
+    let driver = create_webdriver("safari").await?;
 
     let formatted_url = if url.starts_with("http://") || url.starts_with("https://") {
         url

@@ -1,4 +1,3 @@
-pub mod adb;
 pub mod appium;
 pub mod device;
 pub mod dom;

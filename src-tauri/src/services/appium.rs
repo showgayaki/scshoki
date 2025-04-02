@@ -29,7 +29,6 @@ impl AppiumState {
             .map_err(|e| format!("Failed to start Appium: {}", e))?;
 
         *lock = Some(process);
-        info!("Appium server started.");
         Ok(())
     }
 

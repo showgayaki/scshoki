@@ -11,38 +11,23 @@ use tauri::{Manager, State, WindowEvent};
 
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
-use config::constants::BINARY_DIR;
+use config::constants::{BINARY_DIR, HOST_ARCH, HOST_OS};
 use config::env::add_to_path;
 use infrastructure::binaries::init_binaries;
 use infrastructure::logger::init_logger;
-use services::adb::PHYSICAL_DENSITY;
 use services::appium::AppiumState;
-use services::device::detect_device;
-use setup::setup::{ensure_appium, ensure_chromedriver, ensure_geckodriver, ensure_node};
+use services::device::detect::detect_device;
+use setup::ensure::{ensure_appium, ensure_chromedriver, ensure_geckodriver, ensure_node};
 
 fn main() {
     init_logger(); // ロガーの初期化
-    info!("Application started.");
+    info!("Application started on {}({}).", HOST_OS, HOST_ARCH);
 
     // `~/.scshoki/bin` をPATHに設定
     add_to_path(&BINARY_DIR);
 
-    // USBで接続されたデバイスのOSを取得
-    match detect_device() {
-        Ok(device) => {
-            if device == "Android" {
-                info!("Android detected.");
-                // DPIスケールを取得
-                match *PHYSICAL_DENSITY {
-                    Ok(density) => info!("Physical Density: {:.1}", density),
-                    Err(ref e) => error!("Failed to get density: {:.1}", e),
-                }
-            } else {
-                info!("iOS detected.");
-            }
-        }
-        Err(e) => error!("{}", e),
-    }
+    // USBで接続されたデバイスを取得
+    detect_device();
 
     // バイナリ用ディレクトリのチェック
     if let Err(e) = init_binaries() {
