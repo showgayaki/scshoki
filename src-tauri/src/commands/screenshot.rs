@@ -30,10 +30,12 @@ pub async fn take_screenshot(
     }
 
     info!("Taking screenshot of {}", url);
-    let driver = create_webdriver("safari").await?;
+    let driver = create_webdriver("chrome").await?;
 
     let formatted_url = if url.starts_with("http://") || url.starts_with("https://") {
         url
+        // url.replace("https://", "googlechrome://")
+        //     .replace("http://", "googlechrome://")
     } else {
         format!("http://{}", url)
     };
@@ -44,7 +46,9 @@ pub async fn take_screenshot(
         .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
 
     // ページの完全読み込みを待つ
-    wait_for_page_load(&driver, &formatted_url).await?;
+    if let Err(e) = wait_for_page_load(&driver, &formatted_url).await {
+        error!("{}", e);
+    }
 
     // スクロールしながらスクリーンショットを撮影
     let screenshots = capture_full_page(&driver, &hidden_elements).await?;

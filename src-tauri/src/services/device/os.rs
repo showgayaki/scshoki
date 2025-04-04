@@ -50,8 +50,10 @@ pub fn ios_version() -> Result<String, String> {
         .map_err(|e| format!("Failed to execute command: {}", e))?;
 
     let version = String::from_utf8(output.stdout)
-        .map_err(|e| format!("Failed to convert output to string: {}", e))?;
-    info!("iOS version: {}", version);
+        .map_err(|e| format!("Failed to convert output to string: {}", e))?
+        .trim()
+        .to_string();
 
+    info!("iOS version: {}", version);
     Ok(version.trim().to_string())
 }

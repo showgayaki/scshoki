@@ -7,7 +7,6 @@ use std::time::Duration;
 pub const HOST_OS: &str = env::consts::OS;
 pub const HOST_ARCH: &str = env::consts::ARCH;
 
-pub const IDENTIFIER: &str = "world.kanke.scshoki";
 pub static DEVELOPMENT_TEAM: LazyLock<String> =
     LazyLock::new(|| env::var("DEVELOPMENT_TEAM").unwrap_or_else(|_| "Unknown".to_string()));
 
