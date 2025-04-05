@@ -4,6 +4,7 @@ use thirtyfour::prelude::*;
 use crate::config::constants::{APPIUM_SERVER_URL, DEVICE_OS, DEVICE_UDID, IOS_VERSION};
 use crate::services::capabilities::android::capabilities as android_capabilities;
 use crate::services::capabilities::ios::capabilities as ios_capabilities;
+use crate::services::capabilities::ios::capabilities_first_open as ios_capabilities_first_open;
 
 pub async fn create_webdriver(browser: &str) -> Result<WebDriver, String> {
     info!("Creating WebDriver for {}", browser);
@@ -27,6 +28,24 @@ pub async fn create_webdriver(browser: &str) -> Result<WebDriver, String> {
     };
 
     debug!("WebDriver capabilities: {:?}", caps);
+    webrdiver(caps).await
+}
+
+pub async fn create_webdriver_first_open() -> Result<WebDriver, String> {
+    info!("Creating WebDriver for first open");
+    let device_os = DEVICE_OS.lock().unwrap().clone();
+    let device_udid = DEVICE_UDID.lock().unwrap().clone();
+    let ios_version = IOS_VERSION.lock().unwrap().clone();
+
+    let caps = ios_capabilities_first_open(device_os, device_udid, ios_version)
+        .await
+        .map_err(|e| format!("Failed to create iOS capabilities: {}", e))?;
+
+    debug!("WebDriver capabilities: {:?}", caps);
+    webrdiver(caps).await
+}
+
+async fn webrdiver(caps: Capabilities) -> Result<WebDriver, String> {
     WebDriver::new(&*APPIUM_SERVER_URL, caps)
         .await
         .map_err(|e| format!("Failed to start WebDriver: {}", e))

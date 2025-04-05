@@ -15,7 +15,7 @@ pub async fn capabilities(
     caps.insert("appium:automationName".to_string(), json!("XCUITest"));
     caps.insert("platformName".to_string(), json!(device_os));
     caps.insert("port".to_string(), json!(APPIUM_PORT));
-    // caps.insert("startIWDP".to_string(), json!(true));
+    caps.insert("startIWDP".to_string(), json!(true));
     caps.insert("appium:udid".to_string(), json!(device_udid));
     caps.insert("appium:deviceName".to_string(), json!("iPhone"));
     caps.insert("appium:platformVersion".to_string(), json!(ios_version));
@@ -26,7 +26,7 @@ pub async fn capabilities(
         json!("Developer ID Application"),
     );
     // com.facebook.WebDriverAgentRunner.xctrunner
-    caps.insert("appium:useNewWDA".to_string(), json!(true));
+    caps.insert("appium:useNewWDA".to_string(), json!(false));
     caps.insert(
         "appium:updatedWDABundleId".to_string(),
         json!("com.facebook.WebDriverAgentRunner"),
@@ -41,6 +41,20 @@ pub async fn capabilities(
         ]),
     );
     caps.insert("appium:autoWebview".to_string(), json!(true));
+
+    debug!("WebDriver capabilities: {:?}", caps);
+    Ok(caps)
+}
+
+pub async fn capabilities_first_open(
+    device_os: Option<String>,
+    device_udid: Option<String>,
+    ios_version: Option<String>,
+) -> Result<Capabilities, String> {
+    let mut caps = capabilities(device_os, device_udid, ios_version).await?;
+    caps.insert("appium:autoWebview".to_string(), json!(false));
+    caps.insert("appium:useNewWDA".to_string(), json!(true));
+    caps.insert("appium:clearSystemFiles".to_string(), json!(true));
 
     debug!("WebDriver capabilities: {:?}", caps);
     Ok(caps)

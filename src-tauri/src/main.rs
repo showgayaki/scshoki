@@ -11,13 +11,14 @@ use tauri::{Manager, State, WindowEvent};
 
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
-use config::constants::{BINARY_DIR, HOST_ARCH, HOST_OS};
+use config::constants::{APPIUM_TIMEOUT, BINARY_DIR, HOST_ARCH, HOST_OS};
 use config::env::add_to_path;
 use infrastructure::binaries::init_binaries;
 use infrastructure::logger::init_logger;
 use services::appium::AppiumState;
 use services::device::detect::detect_device;
 use setup::ensure::{ensure_appium, ensure_chromedriver, ensure_geckodriver, ensure_node};
+use utils::wait::wait_for_appium_ready;
 
 fn main() {
     init_logger(); // ロガーの初期化
@@ -59,11 +60,25 @@ fn main() {
         .manage(AppiumState {
             process: Arc::new(Mutex::new(None)),
         })
+        .setup(|app| {
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let state: State<AppiumState> = app_handle.state();
+                // Appiumサーバーの起動
+                if let Err(e) = state.start_appium().await {
+                    error!("{}", e);
+                } else if let Err(e) = wait_for_appium_ready(APPIUM_TIMEOUT).await {
+                    // Appiumサーバーの起動チェック
+                    error!("{}", e);
+                }
+            });
+            Ok(())
+        })
         .on_window_event(|app, event| {
             if let WindowEvent::CloseRequested { .. } = event {
                 let state: State<AppiumState> = app.state();
                 if let Err(e) = state.stop_appium() {
-                    error!("Failed to stop Appium: {}", e);
+                    error!("{}", e);
                 }
             }
         })
