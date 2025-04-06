@@ -7,7 +7,7 @@ use crate::setup::ensure::ensure_chromedriver;
 
 pub async fn capabilities(
     browser: &str,
-    device_os: Option<String>,
+    device_os: &Option<String>,
 ) -> Result<Capabilities, String> {
     info!("Creating WebDriver Android capabilities for {}", browser);
 

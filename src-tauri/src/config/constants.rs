@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 use std::path::PathBuf;
 use std::sync::LazyLock;
@@ -61,3 +62,11 @@ pub static DEVICE_OS: Mutex<Option<String>> = Mutex::new(None);
 pub static DEVICE_DENSITY: Mutex<Option<f64>> = Mutex::new(None);
 pub static DEVICE_UDID: Mutex<Option<String>> = Mutex::new(None);
 pub static IOS_VERSION: Mutex<Option<String>> = Mutex::new(None);
+
+pub static BROWSER_SCHEMES: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
+    let mut schemes = HashMap::new();
+    schemes.insert("chrome", "googlechrome://");
+    schemes.insert("firefox", "firefox://open-url?url=");
+    schemes.insert("edge", "microsoft-edge://");
+    schemes
+});

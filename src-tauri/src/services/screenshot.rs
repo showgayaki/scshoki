@@ -98,7 +98,7 @@ pub async fn capture_full_page(
 }
 
 // スクリーンショットを結合する関数
-pub fn combine_screenshots(screenshots: Vec<Vec<u8>>) -> Result<Vec<u8>, String> {
+pub fn combine_screenshots(screenshots: &[Vec<u8>]) -> Result<Vec<u8>, String> {
     info!("Combining screenshots...");
     if screenshots.is_empty() {
         return Err("No screenshots to combine".to_string());

@@ -1,4 +1,4 @@
-use log::info;
+use log::{debug, info};
 use rusb::{Context, UsbContext};
 
 pub fn detect_device_os() -> Result<String, String> {
@@ -9,9 +9,11 @@ pub fn detect_device_os() -> Result<String, String> {
 
     if let Some(device) = context.devices().unwrap().iter().next() {
         let device_desc = device.device_descriptor().unwrap();
+        let vendor_id = device_desc.vendor_id();
+        debug!("Vendor ID: {}", vendor_id);
 
         // デバイスタイプの判別
-        match device_desc.vendor_id() {
+        match vendor_id {
             0x18D1 => {
                 os = "Android".to_string();
             }
