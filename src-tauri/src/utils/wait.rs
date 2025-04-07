@@ -2,7 +2,7 @@ use log::{debug, info};
 use thirtyfour::prelude::*;
 use tokio::time::{sleep, Duration, Instant};
 
-use crate::config::constants::APPIUM_SERVER_URL;
+use crate::config::constants::appium::APPIUM_SERVER_URL;
 
 // Appiumが起動完了するまで `/status` をポーリング
 pub async fn wait_for_appium_ready(timeout: Duration) -> Result<(), String> {

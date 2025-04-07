@@ -1,7 +1,8 @@
 use log::{debug, error, info};
 use thirtyfour::prelude::*;
 
-use crate::config::constants::{APPIUM_SERVER_URL, DEVICE_OS, DEVICE_UDID, IOS_VERSION};
+use crate::config::constants::appium::APPIUM_SERVER_URL;
+use crate::config::constants::device::{DEVICE_OS, DEVICE_UDID, IOS_VERSION};
 use crate::services::capabilities::android::capabilities as android_capabilities;
 use crate::services::capabilities::ios::capabilities as ios_capabilities;
 use crate::services::capabilities::ios::capabilities_first_open as ios_capabilities_first_open;
@@ -27,7 +28,7 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, Str
             let formated_url = format_url(url, browser);
             info!("Formatted URL: {}", formated_url);
             driver_first_open
-                .get(&formated_url)
+                .goto(&formated_url)
                 .await
                 .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
 
@@ -36,7 +37,7 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, Str
                 error!("{}", e);
             }
 
-            // セッションを終了
+            // Appiumセッションを終了
             if let Err(e) = driver_first_open.quit().await {
                 error!("Failed to quit session: {}", e);
             }

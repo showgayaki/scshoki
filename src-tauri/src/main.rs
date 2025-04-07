@@ -2,7 +2,6 @@ mod commands;
 mod config;
 mod infrastructure;
 mod services;
-mod setup;
 mod utils;
 
 use log::{error, info};
@@ -11,13 +10,13 @@ use tauri::{Manager, State, WindowEvent};
 
 use commands::appium::{start_appium, stop_appium};
 use commands::screenshot::take_screenshot;
-use config::constants::{APPIUM_TIMEOUT, BINARY_DIR, HOST_ARCH, HOST_OS};
-use config::env::add_to_path;
-use infrastructure::binaries::init_binaries;
+use config::constants::appium::APPIUM_TIMEOUT;
+use config::constants::paths::BINARY_DIR;
+use config::env::{add_to_path, HOST_ARCH, HOST_OS};
+use infrastructure::dependencies::setup::check_or_install;
 use infrastructure::logger::init_logger;
 use services::appium::AppiumState;
 use services::device::detect::detect_device;
-use setup::ensure::{ensure_appium, ensure_chromedriver, ensure_geckodriver, ensure_node};
 use utils::wait::wait_for_appium_ready;
 
 fn main() {
@@ -30,31 +29,8 @@ fn main() {
     // USBで接続されたデバイスを取得
     detect_device();
 
-    // バイナリ用ディレクトリのチェック
-    if let Err(e) = init_binaries() {
-        error!("Failed to create binaries directory: {}", e);
-    }
-
-    // Node.jsのチェック＆ダウンロード
-    if let Err(e) = ensure_node() {
-        error!("Failed to setup Node.js: {}", e);
-        std::process::exit(1);
-    }
-
-    // Appiumのチェック＆ダウンロード
-    if let Err(e) = ensure_appium() {
-        error!("Failed to install Appium: {}", e);
-    }
-
-    // ChromeDriverのチェック＆ダウンロード
-    if let Err(e) = ensure_chromedriver() {
-        error!("Failed to ensure ChromeDriver: {}", e);
-    }
-
-    //  GeckoDriverのチェック＆ダウンロード
-    if let Err(e) = ensure_geckodriver() {
-        error!("Failed to ensure GeckoDriver: {}", e);
-    }
+    // バイナリのチェック＆インストール
+    check_or_install();
 
     tauri::Builder::default()
         .manage(AppiumState {

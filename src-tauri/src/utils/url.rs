@@ -1,4 +1,4 @@
-use crate::config::constants::BROWSER_SCHEMES;
+use crate::config::constants::browser::BROWSER_SCHEMES;
 
 pub fn format_url(url: &str, browser_name: &str) -> String {
     // Safariの場合はURLをそのまま返す

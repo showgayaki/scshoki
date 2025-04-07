@@ -2,7 +2,9 @@ use log::{debug, info};
 use serde_json::json;
 use thirtyfour::prelude::*;
 
-use crate::config::constants::{APPIUM_PORT, DEVELOPMENT_TEAM};
+use crate::config::constants::appium::APPIUM_PORT;
+use crate::config::constants::appium::WDA_IDENTIFIER;
+use crate::config::env::DEVELOPMENT_TEAM;
 
 pub async fn capabilities(
     device_os: &Option<String>,
@@ -25,12 +27,10 @@ pub async fn capabilities(
         "appium:xcodeSigningId".to_string(),
         json!("Developer ID Application"),
     );
-    // com.facebook.WebDriverAgentRunner.xctrunner
     caps.insert("appium:useNewWDA".to_string(), json!(false));
     caps.insert(
         "appium:updatedWDABundleId".to_string(),
-        json!("com.facebook.WebDriverAgentRunner"),
-        // json!("com.google.chrome.ios"),
+        json!(&WDA_IDENTIFIER),
     );
     caps.insert(
         "appium:additionalWebviewBundleIds".to_string(),

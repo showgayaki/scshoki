@@ -3,7 +3,7 @@ use serde_json::json;
 use std::fs;
 use tauri::command;
 
-use crate::config::constants::SCREENSHOT_DIR;
+use crate::config::constants::paths::SCREENSHOT_DIR;
 use crate::services::screenshot::{capture_full_page, combine_screenshots};
 use crate::services::webrdiver::create_webdriver;
 use crate::utils::wait::wait_for_page_load;

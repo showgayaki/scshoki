@@ -1,6 +1,6 @@
 use log::{error, info};
 
-use crate::config::constants::{DEVICE_DENSITY, DEVICE_OS, DEVICE_UDID, IOS_VERSION};
+use crate::config::constants::device::{DEVICE_DENSITY, DEVICE_OS, DEVICE_UDID, IOS_VERSION};
 use crate::services::device::density::get_physical_density;
 use crate::services::device::os::{detect_device_os, ios_version};
 use crate::services::device::udid::get_udid;

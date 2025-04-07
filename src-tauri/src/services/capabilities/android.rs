@@ -2,8 +2,8 @@ use log::{debug, info};
 use serde_json::json;
 use thirtyfour::prelude::*;
 
-use crate::config::constants::HOST_OS;
-use crate::setup::ensure::ensure_chromedriver;
+use crate::config::env::HOST_OS;
+use crate::infrastructure::dependencies::binaries::chromedriver::check_or_install;
 
 pub async fn capabilities(
     browser: &str,
@@ -16,7 +16,7 @@ pub async fn capabilities(
 
     match browser {
         "chrome" => {
-            let chromedriver_path = ensure_chromedriver()?;
+            let chromedriver_path = check_or_install()?;
             let chromedriver_str = chromedriver_path
                 .to_str()
                 .ok_or("Invalid chromedriver path")?;

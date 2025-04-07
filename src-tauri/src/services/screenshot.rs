@@ -3,7 +3,7 @@ use log::{debug, info};
 use std::fs;
 use thirtyfour::prelude::*;
 
-use crate::config::constants::SCREENSHOT_DIR;
+use crate::config::constants::paths::SCREENSHOT_DIR;
 use crate::services::dom::{
     get_page_metrics, get_scroll_position, hide_elements, scroll_by, show_elements,
 };
