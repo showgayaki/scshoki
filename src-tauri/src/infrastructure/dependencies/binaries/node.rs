@@ -20,7 +20,7 @@ pub fn check_or_install() -> Result<(), String> {
         return Ok(());
     }
 
-    let url = get_nodejs_url()?;
+    let url = download_url()?;
     info!("Downloading and installing Node.js from {}", url);
     let dest_path = BINARY_DIR.join(url.split('/').last().unwrap());
 
@@ -50,7 +50,7 @@ pub fn check_or_install() -> Result<(), String> {
     Ok(())
 }
 
-fn get_nodejs_url() -> Result<String, String> {
+fn download_url() -> Result<String, String> {
     let (os, arch, ext) = match (HOST_OS, HOST_ARCH) {
         ("windows", "x86_64") => ("win", "x64", "zip"),
         ("macos", "x86_64") => ("darwin", "x64", "tar.gz"),

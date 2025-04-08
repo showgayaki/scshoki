@@ -9,6 +9,7 @@ use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
 
 use commands::appium::{start_appium, stop_appium};
+use commands::ios_dependencies::is_ios_dependencies_installed;
 use commands::screenshot::take_screenshot;
 use config::constants::appium::APPIUM_TIMEOUT;
 use config::constants::paths::BINARY_DIR;
@@ -33,6 +34,7 @@ fn main() {
     check_or_install();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppiumState {
             process: Arc::new(Mutex::new(None)),
         })
@@ -61,6 +63,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             start_appium,
             stop_appium,
+            is_ios_dependencies_installed,
             take_screenshot,
         ])
         .run(tauri::generate_context!())
