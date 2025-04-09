@@ -9,22 +9,12 @@ use crate::infrastructure::network::download_file;
 const NODE_VER: &str = "v22.14.0";
 
 /// Node.js のバイナリをダウンロードして展開
-pub fn check_or_install() -> Result<(), String> {
-    let node_bin_path = NODE_DIR.join("bin/node");
-
-    if node_bin_path.exists() {
-        info!(
-            "Node.js is already installed at: {}",
-            node_bin_path.display()
-        );
-        return Ok(());
-    }
-
+pub async fn install() -> Result<(), String> {
     let url = download_url()?;
     info!("Downloading and installing Node.js from {}", url);
     let dest_path = BINARY_DIR.join(url.split('/').last().unwrap());
 
-    match download_file(&url, &dest_path) {
+    match download_file(&url, &dest_path).await {
         Ok(archive_path) => {
             info!("Successfully downloaded Node.js to {:?}", archive_path);
             if let Err(e) = extract(&archive_path, &BINARY_DIR) {

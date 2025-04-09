@@ -2,8 +2,8 @@ use log::{debug, info};
 use serde_json::json;
 use thirtyfour::prelude::*;
 
+use crate::config::constants::paths::CHROME_DRIVER_PATH;
 use crate::config::env::HOST_OS;
-use crate::infrastructure::dependencies::binaries::chromedriver::check_or_install;
 
 pub async fn capabilities(
     browser: &str,
@@ -16,16 +16,11 @@ pub async fn capabilities(
 
     match browser {
         "chrome" => {
-            let chromedriver_path = check_or_install()?;
-            let chromedriver_str = chromedriver_path
-                .to_str()
-                .ok_or("Invalid chromedriver path")?;
-
             caps.insert("platformName".to_string(), json!(device_os));
             caps.insert("appium:automationName".to_string(), json!("UiAutomator2"));
             caps.insert(
                 "appium:chromedriverExecutable".to_string(),
-                json!(chromedriver_str),
+                json!(*CHROME_DRIVER_PATH),
             );
         }
         "firefox" => {

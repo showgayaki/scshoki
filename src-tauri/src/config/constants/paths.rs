@@ -18,3 +18,5 @@ pub static SCREENSHOT_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
 });
 
 pub static NODE_DIR: LazyLock<PathBuf> = LazyLock::new(|| BINARY_DIR.join("node"));
+pub static CHROME_DRIVER_PATH: LazyLock<PathBuf> =
+    LazyLock::new(|| BINARY_DIR.join("chromedriver"));

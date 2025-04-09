@@ -13,9 +13,6 @@ export default function DependenciesAlert() {
 
     // 依存関係の状態を取得する関数
     const checkDependencies = async () => {
-        if (isExecuted.current) return;
-        isExecuted.current = true;
-
         try {
             const installed = await invoke<{ [key: string]: boolean }[]>("is_ios_dependencies_installed");
             console.log("Dependencies:", installed);
@@ -35,7 +32,10 @@ export default function DependenciesAlert() {
     };
 
     // 初回レンダリング時にデータ取得
-    checkDependencies();
+    if (!isExecuted.current) {
+        checkDependencies();
+        isExecuted.current = true;
+    };
 
     return (
         <Modal open={open} onClose={() => setOpen(false)}>

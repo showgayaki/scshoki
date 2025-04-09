@@ -1,13 +1,25 @@
-use crate::services::appium::AppiumState;
+use log::error;
 use tauri::{command, State};
 
-// Appium を起動する（Tauri コマンド）
+use crate::config::constants::appium::APPIUM_TIMEOUT;
+use crate::services::appium::AppiumState;
+use crate::utils::wait::wait_for_appium_ready;
+
 #[command]
 pub async fn start_appium(state: State<'_, AppiumState>) -> Result<(), String> {
-    state.start_appium().await
+    state.start_appium().await.map_err(|e| {
+        error!("{}", e);
+        e
+    })?;
+
+    // Appium サーバーの起動を待機
+    wait_for_appium_ready(APPIUM_TIMEOUT).await.map_err(|e| {
+        error!("{}", e);
+        e
+    })?;
+    Ok(())
 }
 
-// Appium を停止する（Tauri コマンド）
 #[command]
 pub fn stop_appium(state: State<'_, AppiumState>) -> Result<(), String> {
     state.stop_appium()

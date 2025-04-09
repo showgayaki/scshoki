@@ -1,7 +1,6 @@
 use log::{error, info};
-use reqwest::blocking::Client;
+use reqwest::Client;
 use serde_json::Value;
-use std::path::PathBuf;
 
 use crate::config::constants::paths::BINARY_DIR;
 use crate::config::env::{HOST_ARCH, HOST_OS};
@@ -10,19 +9,14 @@ use crate::infrastructure::fs::{remove_file, set_executable};
 use crate::infrastructure::network::download_file;
 
 /// `geckodriver` があるか確認し、なければダウンロード
-pub fn check_or_install() -> Result<PathBuf, String> {
+pub async fn install() -> Result<(), String> {
     let geckodriver_path = BINARY_DIR.join("geckodriver");
 
-    if geckodriver_path.exists() {
-        info!("GeckoDriver is already installed: {:?}", geckodriver_path);
-        return Ok(geckodriver_path);
-    }
-
-    let url = download_url()?;
+    let url = download_url().await?;
+    info!("Downloading ChromeDriver from {:?}", url);
     let dest_path = BINARY_DIR.join(url.split('/').last().unwrap());
-    info!("Downloading GeckoDriver from {:?}", url);
 
-    match download_file(&url, &dest_path) {
+    match download_file(&url, &dest_path).await {
         Ok(archive_path) => {
             info!("Successfully downloaded GeckoDriver to {:?}", archive_path);
 
@@ -45,11 +39,11 @@ pub fn check_or_install() -> Result<PathBuf, String> {
         Err(e) => return Err(format!("Failed to download GeckoDriver: {}", e)),
     }
 
-    Ok(geckodriver_path)
+    Ok(())
 }
 
 /// GeckoDriverの最新バージョンを取得
-fn get_latest_version() -> Result<String, String> {
+async fn get_latest_version() -> Result<String, String> {
     const GECKODRIVER_LATEST_RELEASE_URL: &str =
         "https://api.github.com/repos/mozilla/geckodriver/releases/latest";
 
@@ -58,10 +52,12 @@ fn get_latest_version() -> Result<String, String> {
         .get(GECKODRIVER_LATEST_RELEASE_URL)
         .header("User-Agent", "scshoki-app") // GitHub API には User-Agent が必須
         .send()
+        .await
         .map_err(|e| format!("Failed to fetch GeckoDriver version: {}", e))?;
 
     let json: Value = response
         .json()
+        .await
         .map_err(|e| format!("Failed to parse JSON: {}", e))?;
     let latest_version = json["tag_name"]
         .as_str()
@@ -72,8 +68,8 @@ fn get_latest_version() -> Result<String, String> {
 }
 
 /// Doanload URLを取得
-fn download_url() -> Result<String, String> {
-    let latest_version = get_latest_version()?;
+async fn download_url() -> Result<String, String> {
+    let latest_version = get_latest_version().await?;
     let (platform, ext) = match (HOST_OS, HOST_ARCH) {
         ("windows", "x86_64") => ("win64", "zip"),
         ("macos", "x86_64") => ("macos", "tar.gz"),

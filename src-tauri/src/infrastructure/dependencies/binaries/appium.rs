@@ -4,14 +4,8 @@ use std::process::Command;
 use crate::config::constants::appium::{APPIUM_VER, DRIVER_LIST};
 use crate::config::constants::paths::NODE_DIR;
 
-pub fn check_or_install() -> Result<(), String> {
+pub fn install() -> Result<(), String> {
     let npm_bin = NODE_DIR.join("bin/npm");
-
-    if NODE_DIR.join("node_modules/appium").is_dir() {
-        info!("Appium is already installed");
-        return Ok(());
-    }
-
     info!("Installing Appium using {:?}", npm_bin);
 
     let mut child = Command::new(npm_bin)
