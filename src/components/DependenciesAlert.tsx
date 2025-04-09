@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Modal, Box, Typography, List, ListItem, ListItemIcon, ListItemText, Button } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -11,29 +11,31 @@ export default function DependenciesAlert() {
     const isExecuted = useRef(false);
     const theme = useTheme(); // テーマ取得
 
-    useEffect(() => {
-        if (isExecuted.current) return; // 2回目以降はスキップ
+    // 依存関係の状態を取得する関数
+    const checkDependencies = async () => {
+        if (isExecuted.current) return;
         isExecuted.current = true;
 
-        invoke<{ [key: string]: boolean }[]>("is_ios_dependencies_installed")
-            .then((installed) => {
-                console.log("Dependencies:", installed);
-                const formattedList = installed.map(obj => {
-                    const [name, installed] = Object.entries(obj)[0];
-                    return { name, installed };
-                });
+        try {
+            const installed = await invoke<{ [key: string]: boolean }[]>("is_ios_dependencies_installed");
+            console.log("Dependencies:", installed);
 
-                setDependencies(formattedList);
+            const formattedList = installed.map(obj => {
+                const [name, installed] = Object.entries(obj)[0];
+                return { name, installed };
+            });
 
-                // Check if all dependencies are installed
-                if (formattedList.every(dep => dep.installed)) {
-                    setOpen(false); // Close modal if all dependencies are installed
-                } else {
-                    setOpen(true); // モーダルを開く
-                }
-            })
-            .catch((err) => console.error("invoke error:", err));
-    }, []);
+            setDependencies(formattedList);
+
+            // すべてインストール済みならモーダルを開かない
+            setOpen(!formattedList.every(dep => dep.installed));
+        } catch (err) {
+            console.error("invoke error:", err);
+        }
+    };
+
+    // 初回レンダリング時にデータ取得
+    checkDependencies();
 
     return (
         <Modal open={open} onClose={() => setOpen(false)}>
