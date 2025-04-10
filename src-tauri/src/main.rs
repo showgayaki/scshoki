@@ -1,24 +1,22 @@
-mod commands;
-mod config;
-mod infrastructure;
-mod services;
+mod constants;
+mod features;
 mod utils;
 
 use log::{error, info};
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
 
-use commands::appium::{start_appium, stop_appium};
-use commands::ios_dependencies::is_ios_dependencies_installed;
-use commands::screenshot::take_screenshot;
-use commands::setup::{
+use constants::{BINARY_DIR, HOST_ARCH, HOST_OS};
+use features::appium::commands::{start_appium, stop_appium};
+use features::appium::services::AppiumState;
+use features::dependencies::commands::is_ios_dependencies_installed;
+use features::dependencies::commands::{
     check_installed_binaries, setup_appium, setup_chromedriver, setup_geckodriver, setup_node,
 };
-use config::constants::paths::BINARY_DIR;
-use config::env::{add_to_path, HOST_ARCH, HOST_OS};
-use infrastructure::logger::init_logger;
-use services::appium::AppiumState;
-use services::device::detect::detect_device;
+use features::dependencies::infrastructure::add_to_path;
+use features::device::detect::detect_device;
+use features::screenshot::commands::take_screenshot;
+use utils::logger::init_logger;
 
 fn main() {
     init_logger(); // ロガーの初期化
