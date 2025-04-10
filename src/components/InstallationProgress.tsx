@@ -4,6 +4,8 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { invoke } from "@tauri-apps/api/core";
 
+import DependenciesAlert from "./DependenciesAlert";
+
 
 function delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -21,6 +23,7 @@ export const InstallationProgress = () => {
     const [currentTask, setCurrentTask] = useState<string | null>(null);
     const [isInstalling, setIsInstalling] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [showDependenciesAlert, setShowDependenciesAlert] = useState(false);
     const isExecuted = useRef(false);
 
     const checkInstalledBinaries = async () => {
@@ -37,6 +40,8 @@ export const InstallationProgress = () => {
                 setCurrentTask(missing[0].label); // 最初の未インストールタスクをセット
                 setIsInstalling(true);
             } else {
+                // DependenciesAlert を開く
+                setShowDependenciesAlert(true);
                 // Rust に通知を送ってAppiumを起動
                 console.log("All binaries are already installed.");
                 await invoke("start_appium");
@@ -48,6 +53,7 @@ export const InstallationProgress = () => {
 
     const startInstallation = async () => {
         console.log("startInstallation called!");
+
         for (const task of tasks) {
             if (completedTasks.includes(task.label)) continue; // すでにインストール済みならスキップ
 
@@ -70,13 +76,16 @@ export const InstallationProgress = () => {
 
         // Rust に通知を送ってAppiumを起動
         console.log("Installation completed, starting Appium...");
-        await invoke("start_appium");
+        invoke("start_appium");
 
         setSuccess(true);
         setCurrentTask(null);
         // 「インストールが完了しました！」が見えるように、ちょっと待機
         await delay(3000);
         setIsInstalling(false);
+
+        // DependenciesAlert を開く
+        setShowDependenciesAlert(true);
     };
 
     // アプリ起動時にインストール済みのバイナリをチェック
@@ -130,6 +139,7 @@ export const InstallationProgress = () => {
                     </List>
                 </Box>
             )}
+            {showDependenciesAlert && <DependenciesAlert />}
         </>
     );
 };
