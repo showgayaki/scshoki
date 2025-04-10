@@ -1,5 +1,6 @@
 use log::{debug, info};
 use thirtyfour::prelude::*;
+use thirtyfour::By;
 use tokio::time::{sleep, Duration, Instant};
 
 use crate::config::constants::appium::APPIUM_SERVER_URL;
@@ -79,33 +80,48 @@ pub async fn wait_for_scroll_complete(driver: &WebDriver) -> Result<(), String> 
     Err("Timed out waiting for scroll to complete".to_string())
 }
 
-pub async fn wait_for_elements_hidden(driver: &WebDriver, selectors: &str) -> Result<(), String> {
-    let timeout = std::time::Duration::from_secs(5); // 最大5秒待つ
-    let start_time = std::time::Instant::now();
-
-    let script = format!(
-        r#"
-        return Array.from(document.querySelectorAll("{}"))
-            .every(e => getComputedStyle(e).visibility === "hidden");
-        "#,
-        selectors
-    );
+pub async fn wait_for_elements_hidden(driver: &WebDriver, selector: &str) -> Result<(), String> {
+    let timeout = Duration::from_secs(5); // 最大5秒待つ
+    let start_time = Instant::now();
 
     while start_time.elapsed() < timeout {
-        let result = driver
-            .execute(&script, vec![])
+        let elements = driver
+            .find_all(By::Css(selector))
             .await
-            .map_err(|e| format!("Failed to check element visibility: {}", e))?
-            .json()
-            .as_bool()
-            .unwrap_or(false);
+            .map_err(|e| format!("Failed to find elements: {}", e))?;
 
-        if result {
-            return Ok(());
+        // 非同期処理の手動チェック
+        let mut all_hidden = true;
+        for el in &elements {
+            let hidden = !el.is_displayed().await.unwrap_or(true);
+            let children = el.find_all(By::Css("*")).await.unwrap_or(vec![]);
+
+            let children_hidden = {
+                let mut children_all_hidden = true;
+                for child in &children {
+                    if child.is_displayed().await.unwrap_or(true) {
+                        children_all_hidden = false;
+                        break;
+                    }
+                }
+                children_all_hidden
+            };
+
+            if !(hidden && children_hidden) {
+                all_hidden = false;
+                break;
+            }
         }
 
-        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        if all_hidden {
+            return Ok(()); // すべて hidden になった
+        }
+
+        sleep(Duration::from_millis(100)).await; // 少し待って再試行
     }
 
-    Err("Timed out waiting for elements to become hidden".to_string())
+    Err(format!(
+        "Timeout: Elements with selector '{}' did not become hidden",
+        selector
+    ))
 }

@@ -21,16 +21,16 @@ pub async fn take_screenshot(url: String, hidden_elements: String) -> Result<(),
     // スクロールしながらスクリーンショットを撮影
     let screenshots = capture_full_page(&driver, &hidden_elements).await?;
 
-    // WDAのアプリを終了
-    if let Err(e) = driver
-        .execute(
-            "mobile: terminateApp",
-            vec![json!({"bundleId": "com.facebook.WebDriverAgentRunner"})],
-        )
-        .await
-    {
-        error!("Failed to terminate app: {}", e);
-    }
+    // // WDAのアプリを終了
+    // if let Err(e) = driver
+    //     .execute(
+    //         "mobile: terminateApp",
+    //         vec![json!({"bundleId": "com.facebook.WebDriverAgentRunner"})],
+    //     )
+    //     .await
+    // {
+    //     error!("Failed to terminate app: {}", e);
+    // }
 
     // セッションを終了
     if let Err(e) = driver.quit().await {

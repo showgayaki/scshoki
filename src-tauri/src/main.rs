@@ -35,20 +35,6 @@ fn main() {
         .manage(AppiumState {
             process: Arc::new(Mutex::new(None)),
         })
-        // .setup(|app| {
-        //     let app_handle = app.handle().clone();
-        //     tauri::async_runtime::spawn(async move {
-        //         let state: State<AppiumState> = app_handle.state();
-        //         // Appiumサーバーの起動
-        //         if let Err(e) = state.start_appium().await {
-        //             error!("{}", e);
-        //         } else if let Err(e) = wait_for_appium_ready(APPIUM_TIMEOUT).await {
-        //             // Appiumサーバーの起動チェック
-        //             error!("{}", e);
-        //         }
-        //     });
-        //     Ok(())
-        // })
         .on_window_event(|app, event| {
             if let WindowEvent::CloseRequested { .. } = event {
                 let state: State<AppiumState> = app.state();
