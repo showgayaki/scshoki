@@ -13,7 +13,8 @@ use features::appium::commands::{start_appium, stop_appium};
 use features::appium::services::AppiumState;
 use features::dependencies::commands::is_ios_dependencies_installed;
 use features::dependencies::commands::{
-    check_installed_binaries, setup_appium, setup_chromedriver, setup_geckodriver, setup_node,
+    check_installed_binaries, install_appium, install_chromedriver, install_geckodriver,
+    install_nodejs,
 };
 use features::device::detect::detect_device;
 use features::screenshot::commands::take_screenshot;
@@ -44,10 +45,10 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             check_installed_binaries,
-            setup_node,
-            setup_appium,
-            setup_chromedriver,
-            setup_geckodriver,
+            install_nodejs,
+            install_appium,
+            install_chromedriver,
+            install_geckodriver,
             is_ios_dependencies_installed,
             start_appium,
             stop_appium,

@@ -4,9 +4,9 @@ use thirtyfour::prelude::*;
 use super::capabilities::android::capabilities as android_capabilities;
 use super::capabilities::ios::capabilities as ios_capabilities;
 use super::capabilities::ios::capabilities_first_open as ios_capabilities_first_open;
+use super::url::format_url;
 use crate::features::appium::constants::APPIUM_SERVER_URL;
 use crate::features::device::constants::{DEVICE_OS, DEVICE_UDID, IOS_VERSION};
-use crate::utils::url::format_url;
 use crate::utils::wait::wait_for_page_load;
 
 pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, String> {

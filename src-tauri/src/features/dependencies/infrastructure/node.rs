@@ -1,45 +1,20 @@
-use log::{error, info};
+use tokio::task::spawn_blocking;
 
-use crate::constants::{BINARY_DIR, HOST_ARCH, HOST_OS, NODE_DIR};
-use crate::utils::archive::extract;
-use crate::utils::fs::{remove_file, set_executable};
-use crate::utils::network::download_file;
+use super::super::infrastructure::install_binary;
+use crate::constants::{HOST_ARCH, HOST_OS};
 
-const NODE_VER: &str = "v22.14.0";
-
-/// Node.js のバイナリをダウンロードして展開
 pub async fn install() -> Result<(), String> {
+    let binary_name = "Node.js";
     let url = download_url()?;
-    info!("Downloading and installing Node.js from {}", url);
-    let dest_path = BINARY_DIR.join(url.split('/').last().unwrap());
 
-    match download_file(&url, &dest_path).await {
-        Ok(archive_path) => {
-            info!("Successfully downloaded Node.js to {:?}", archive_path);
-            if let Err(e) = extract(&archive_path, &BINARY_DIR) {
-                return Err(format!("Failed to extract Node.js: {}", e));
-            } else {
-                info!("Node.js installed at {:?}", archive_path);
-                // アーカイブ削除
-                match remove_file(&archive_path) {
-                    Ok(()) => info!("Removed: {:?}", archive_path),
-                    Err(ref e) => error!("Failed to remove {:?}: {}", archive_path, e),
-                }
-            }
-        }
-        Err(e) => return Err(format!("Failed to download Node.js: {}", e)),
-    }
-
-    // macOS の場合は `bin/node` を chmod +x
-    if HOST_OS != "windows" {
-        let node_exec = NODE_DIR.join("bin/node");
-        set_executable(&node_exec).expect("Failed to set executable permissions");
-    }
-
-    Ok(())
+    return spawn_blocking(move || install_binary(binary_name.to_string(), url))
+        .await
+        .map_err(|e| format!("Task failed: {:?}", e))?
+        .await;
 }
 
 fn download_url() -> Result<String, String> {
+    const NODE_VER: &str = "v22.14.0";
     let (os, arch, ext) = match (HOST_OS, HOST_ARCH) {
         ("windows", "x86_64") => ("win", "x64", "zip"),
         ("macos", "x86_64") => ("darwin", "x64", "tar.gz"),

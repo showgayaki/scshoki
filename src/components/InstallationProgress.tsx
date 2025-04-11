@@ -13,10 +13,10 @@ function delay(ms: number) {
 
 export const InstallationProgress = () => {
     const tasks = [
-        { key: "setup_node", label: "Node.js" },
-        { key: "setup_appium", label: "Appium" },
-        { key: "setup_chromedriver", label: "ChromeDriver" },
-        { key: "setup_geckodriver", label: "GeckoDriver" },
+        { key: "install_nodejs", label: "Node.js" },
+        { key: "install_appium", label: "Appium" },
+        { key: "install_chromedriver", label: "ChromeDriver" },
+        { key: "install_geckodriver", label: "GeckoDriver" },
     ];
 
     const [completedTasks, setCompletedTasks] = useState<string[]>([]);

@@ -1,10 +1,17 @@
 use log::{error, info};
 use std::process::Command;
+use tokio::task::spawn_blocking;
 
 use super::super::super::super::constants::NODE_DIR;
 use crate::features::appium::constants::{APPIUM_VER, DRIVER_LIST};
 
-pub fn install() -> Result<(), String> {
+pub async fn install() -> Result<(), String> {
+    return spawn_blocking(install_appium)
+        .await
+        .map_err(|e| format!("Task failed: {:?}", e))?;
+}
+
+fn install_appium() -> Result<(), String> {
     let npm_bin = NODE_DIR.join("bin/npm");
     info!("Installing Appium using {:?}", npm_bin);
 

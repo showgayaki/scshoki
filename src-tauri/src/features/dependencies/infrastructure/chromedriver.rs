@@ -1,43 +1,19 @@
-use log::{debug, error, info};
+use log::debug;
 use reqwest::Client;
 use serde_json::Value;
+use tokio::task::spawn_blocking;
 
-use crate::constants::{BINARY_DIR, CHROME_DRIVER_PATH, HOST_ARCH, HOST_OS};
-use crate::utils::archive::extract;
-use crate::utils::fs::{remove_file, set_executable};
-use crate::utils::network::download_file;
+use super::super::infrastructure::install_binary;
+use crate::constants::{HOST_ARCH, HOST_OS};
 
-/// `chromedriver` があるか確認し、なければダウンロード
 pub async fn install() -> Result<(), String> {
+    let binary_name = "chromedriver";
     let url = download_url().await?;
-    info!("Downloading ChromeDriver from {:?}", url);
-    let dest_path = BINARY_DIR.join(url.split('/').last().unwrap());
 
-    match download_file(&url, &dest_path).await {
-        Ok(archive_path) => {
-            info!("Successfully downloaded ChromeDriver to {:?}", archive_path);
-
-            if let Err(e) = extract(&archive_path, &BINARY_DIR) {
-                let error = format!("Failed to extract ChromeDriver: {}", e);
-                return Err(error);
-            } else {
-                // macOS の場合は chmod +x
-                if HOST_OS != "windows" {
-                    let exec_path = BINARY_DIR.join("chromedriver");
-                    set_executable(&exec_path).expect("Failed to set executable permissions");
-                }
-                info!("ChromeDriver installed at {:?}", &CHROME_DRIVER_PATH);
-                // アーカイブ削除
-                match remove_file(&archive_path) {
-                    Ok(()) => info!("Removed: {:?}", archive_path),
-                    Err(ref e) => error!("Failed to remove {:?}: {}", archive_path, e),
-                }
-            }
-        }
-        Err(e) => return Err(format!("Failed to download ChromeDriver: {}", e)),
-    }
-
-    Ok(())
+    return spawn_blocking(move || install_binary(binary_name.to_string(), url))
+        .await
+        .map_err(|e| format!("Task failed: {:?}", e))?
+        .await;
 }
 
 /// Doanload URLを取得
@@ -91,8 +67,6 @@ async fn download_url() -> Result<String, String> {
             }
         })
         .ok_or_else(|| format!("No matching download URL found for platform: {}", platform))?;
-
-    info!("Download URL: {}", download_url);
 
     Ok(download_url)
 }

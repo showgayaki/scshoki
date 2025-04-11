@@ -1,44 +1,35 @@
-use log::{error, info};
+use log::debug;
 use reqwest::Client;
 use serde_json::Value;
+use tokio::task::spawn_blocking;
 
-use crate::constants::{BINARY_DIR, HOST_ARCH, HOST_OS};
-use crate::utils::archive::extract;
-use crate::utils::fs::{remove_file, set_executable};
-use crate::utils::network::download_file;
+use super::super::infrastructure::install_binary;
+use crate::constants::{HOST_ARCH, HOST_OS};
 
-/// `geckodriver` があるか確認し、なければダウンロード
 pub async fn install() -> Result<(), String> {
-    let geckodriver_path = BINARY_DIR.join("geckodriver");
-
+    let binary_name = "geckodriver";
     let url = download_url().await?;
-    info!("Downloading ChromeDriver from {:?}", url);
-    let dest_path = BINARY_DIR.join(url.split('/').last().unwrap());
 
-    match download_file(&url, &dest_path).await {
-        Ok(archive_path) => {
-            info!("Successfully downloaded GeckoDriver to {:?}", archive_path);
+    return spawn_blocking(move || install_binary(binary_name.to_string(), url))
+        .await
+        .map_err(|e| format!("Task failed: {:?}", e))?
+        .await;
+}
 
-            if let Err(e) = extract(&archive_path, &BINARY_DIR) {
-                return Err(format!("Failed to extract GeckoDriver: {}", e));
-            } else {
-                // macOS の場合は chmod +x
-                if HOST_OS != "windows" {
-                    let exec_path = BINARY_DIR.join("geckodriver");
-                    set_executable(&exec_path).expect("Failed to set executable permissions");
-                }
-                info!("GeckoDriver installed at {:?}", geckodriver_path);
-                // アーカイブ削除
-                match remove_file(&archive_path) {
-                    Ok(()) => info!("Removed: {:?}", archive_path),
-                    Err(ref e) => error!("Failed to remove {:?}: {}", archive_path, e),
-                }
-            }
-        }
-        Err(e) => return Err(format!("Failed to download GeckoDriver: {}", e)),
-    }
+/// Doanload URLを取得
+async fn download_url() -> Result<String, String> {
+    let latest_version = get_latest_version().await?;
+    let (platform, ext) = match (HOST_OS, HOST_ARCH) {
+        ("windows", "x86_64") => ("win64", "zip"),
+        ("macos", "x86_64") => ("macos", "tar.gz"),
+        ("macos", "aarch64") => ("macos-aarch64", "tar.gz"),
+        _ => return Err("Unsupported platform".to_string()),
+    };
 
-    Ok(())
+    Ok(format!(
+        "https://github.com/mozilla/geckodriver/releases/download/{}/geckodriver-{}-{}.{}",
+        latest_version, latest_version, platform, ext
+    ))
 }
 
 /// GeckoDriverの最新バージョンを取得
@@ -46,7 +37,10 @@ async fn get_latest_version() -> Result<String, String> {
     const GECKODRIVER_LATEST_RELEASE_URL: &str =
         "https://api.github.com/repos/mozilla/geckodriver/releases/latest";
 
+    debug!("Creating HTTP client...");
     let client = Client::new();
+    debug!("Fetching data from {}", GECKODRIVER_LATEST_RELEASE_URL);
+
     let response = client
         .get(GECKODRIVER_LATEST_RELEASE_URL)
         .header("User-Agent", "scshoki-app") // GitHub API には User-Agent が必須
@@ -64,20 +58,4 @@ async fn get_latest_version() -> Result<String, String> {
         .to_string();
 
     Ok(latest_version)
-}
-
-/// Doanload URLを取得
-async fn download_url() -> Result<String, String> {
-    let latest_version = get_latest_version().await?;
-    let (platform, ext) = match (HOST_OS, HOST_ARCH) {
-        ("windows", "x86_64") => ("win64", "zip"),
-        ("macos", "x86_64") => ("macos", "tar.gz"),
-        ("macos", "aarch64") => ("macos-aarch64", "tar.gz"),
-        _ => return Err("Unsupported platform".to_string()),
-    };
-
-    Ok(format!(
-        "https://github.com/mozilla/geckodriver/releases/download/{}/geckodriver-{}-{}.{}",
-        latest_version, latest_version, platform, ext
-    ))
 }
