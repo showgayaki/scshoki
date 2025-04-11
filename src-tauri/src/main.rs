@@ -1,4 +1,5 @@
 mod constants;
+mod env;
 mod features;
 mod utils;
 
@@ -7,13 +8,13 @@ use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
 
 use constants::{BINARY_DIR, HOST_ARCH, HOST_OS};
+use env::add_to_path;
 use features::appium::commands::{start_appium, stop_appium};
 use features::appium::services::AppiumState;
 use features::dependencies::commands::is_ios_dependencies_installed;
 use features::dependencies::commands::{
     check_installed_binaries, setup_appium, setup_chromedriver, setup_geckodriver, setup_node,
 };
-use features::dependencies::infrastructure::add_to_path;
 use features::device::detect::detect_device;
 use features::screenshot::commands::take_screenshot;
 use utils::logger::init_logger;
