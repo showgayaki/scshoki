@@ -52,6 +52,9 @@ fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<(), String> {
         }
     }
 
+    // Node.jsの場合は解凍されたディレクトリを node にリネーム
+    check_or_rename_extracted_node(dest_dir)?;
+
     info!("Extract ZIP completed: {:?}", dest_dir);
     Ok(())
 }
@@ -83,13 +86,13 @@ fn extract_tar_gz(tar_gz_path: &Path, dest_dir: &Path) -> Result<(), String> {
         );
     }
 
-    // `node-*` を `node` にリネーム
-    rename_extracted_node(dest_dir)?;
+    // Node.jsの場合は解凍されたディレクトリを node にリネーム
+    check_or_rename_extracted_node(dest_dir)?;
 
     Ok(())
 }
 
-fn rename_extracted_node(dest_dir: &Path) -> Result<(), String> {
+fn check_or_rename_extracted_node(dest_dir: &Path) -> Result<(), String> {
     for entry in fs::read_dir(dest_dir).map_err(|e| format!("Failed to read dir: {}", e))? {
         let entry = entry.map_err(|e| format!("Failed to access entry: {}", e))?;
         let path = entry.path();
