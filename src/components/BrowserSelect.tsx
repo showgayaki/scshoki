@@ -1,8 +1,8 @@
 const browsers = [
-    { name: "Chrome", colorImg: "/images/chrome--active.png", grayImg: "/images/chrome--inactive.png" },
-    { name: "Firefox", colorImg: "/images/firefox--active.png", grayImg: "/images/firefox--inactive.png" },
-    { name: "Safari", colorImg: "/images/safari--active.png", grayImg: "/images/safari--inactive.png" },
-    { name: "Edge", colorImg: "/images/edge--active.png", grayImg: "/images/edge--inactive.png" },
+    { name: "Chrome", colorImg: "/images/chrome--checked.png", grayImg: "/images/chrome--unchecked.png" },
+    { name: "Firefox", colorImg: "/images/firefox--checked.png", grayImg: "/images/firefox--unchecked.png" },
+    { name: "Safari", colorImg: "/images/safari--checked.png", grayImg: "/images/safari--unchecked.png" },
+    { name: "Edge", colorImg: "/images/edge--checked.png", grayImg: "/images/edge--unchecked.png" },
 ];
 
 interface BrowserSelectProps {
