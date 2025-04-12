@@ -3,10 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 
 interface ScreenshotButtonProps {
     url: string;
-    hiddenElements: string; // 非表示にする要素のセレクタを追加
+    hiddenElements: string;
+    selectedBrowsers: Record<string, boolean>;
 }
 
-export default function ScreenshotButton({ url, hiddenElements }: ScreenshotButtonProps) {
+export default function ScreenshotButton({ url, hiddenElements, selectedBrowsers }: ScreenshotButtonProps) {
     const [status, setStatus] = useState<string | null>(null);
 
     const handleScreenshot = async () => {
@@ -17,10 +18,12 @@ export default function ScreenshotButton({ url, hiddenElements }: ScreenshotButt
 
         setStatus("スクリーンショットを取得中...");
 
+        const selectedBrowsersArray = Object.keys(selectedBrowsers).filter(browser => selectedBrowsers[browser]);
+
         try {
             const response = await invoke<{ success: boolean; path: string; error?: string }>(
                 "take_screenshot",
-                { url, hiddenElements }
+                { url, hiddenElements, selectedBrowsers: selectedBrowsersArray }
             );
 
             if (response.success) {

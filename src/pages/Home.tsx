@@ -11,7 +11,11 @@ export default function Home() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [hiddenElements, setHiddenElements] = useState("");
-    const [selectedBrowser, setSelectedBrowser] = useState("Chrome");
+    const [selectedBrowsers, setSelectedBrowsers] = useState<Record<string, boolean>>({
+        Chrome: false,
+        Firefox: false,
+        Safari: false,
+    });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,7 +24,7 @@ export default function Home() {
             useAuth,
             username,
             password,
-            selectedBrowser,
+            selectedBrowsers,
         });
         // TauriのRust側に送信する処理をここに追加予定
     };
@@ -39,8 +43,8 @@ export default function Home() {
                     setPassword={setPassword}
                 />
                 <HiddenElementsForm hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
-                <BrowserSelect selectedBrowser={selectedBrowser} setSelectedBrowser={setSelectedBrowser} />
-                <ScreenshotButton url={url} hiddenElements={hiddenElements} />
+                <BrowserSelect selectedBrowsers={selectedBrowsers} setSelectedBrowsers={setSelectedBrowsers} />
+                <ScreenshotButton url={url} hiddenElements={hiddenElements} selectedBrowsers={selectedBrowsers} />
             </form>
         </div>
     );
