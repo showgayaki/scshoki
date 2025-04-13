@@ -23,7 +23,7 @@ pub fn detect_device_info() -> Result<(String, String, String), String> {
                 os = "iOS".to_string();
             }
             _ => {
-                os = "Unknown".to_string();
+                os = return Ok(("Unknown".to_string(), "".to_string(), "".to_string()));
             }
         }
 

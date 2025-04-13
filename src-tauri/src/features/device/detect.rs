@@ -48,20 +48,13 @@ impl<T: UsbContext> Hotplug<T> for UsbEventHandler {
 
     fn device_left(&mut self, device: Device<T>) {
         if let Ok(_desc) = device.device_descriptor() {
-            info!(
-                "{}({}) {} disconnected",
-                DEVICE_OS.lock().unwrap().as_deref().unwrap_or("Unknown"),
-                DEVICE_PRODUCT_NAME
-                    .lock()
-                    .unwrap()
-                    .as_deref()
-                    .unwrap_or("Unknown"),
-                DEVICE_MANUFACTURE
-                    .lock()
-                    .unwrap()
-                    .as_deref()
-                    .unwrap_or("Unknown")
-            );
+            let os = DEVICE_OS.lock().unwrap();
+            let name = DEVICE_PRODUCT_NAME.lock().unwrap();
+            let manufacturer = DEVICE_MANUFACTURE.lock().unwrap();
+
+            if let (Some(os), Some(name), Some(manufacturer)) = (&*os, &*name, &*manufacturer) {
+                info!("{}({}) {} disconnected", os, name, manufacturer);
+            }
         }
     }
 }
