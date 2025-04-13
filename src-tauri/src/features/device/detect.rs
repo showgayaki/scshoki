@@ -1,8 +1,10 @@
 use log::{error, info};
 
-use super::constants::{DEVICE_DENSITY, DEVICE_OS, DEVICE_UDID, IOS_VERSION};
+use super::constants::{
+    DEVICE_DENSITY, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME, DEVICE_UDID, IOS_VERSION,
+};
 use super::density::get_physical_density;
-use super::os::{detect_device_os, ios_version};
+use super::info::{detect_device_info, ios_version};
 use super::udid::get_udid;
 
 use rusb::{Context, Device, Hotplug, HotplugBuilder, UsbContext};
@@ -39,26 +41,43 @@ struct UsbEventHandler;
 
 impl<T: UsbContext> Hotplug<T> for UsbEventHandler {
     fn device_arrived(&mut self, device: Device<T>) {
-        if let Ok(desc) = device.device_descriptor() {
-            info!("{:?} connected", DEVICE_OS);
+        if let Ok(_desc) = device.device_descriptor() {
             detect_device();
         }
     }
 
     fn device_left(&mut self, device: Device<T>) {
-        if let Ok(desc) = device.device_descriptor() {
-            info!("{:?} disconnected", DEVICE_OS);
+        if let Ok(_desc) = device.device_descriptor() {
+            info!(
+                "{}({}) {} disconnected",
+                DEVICE_OS.lock().unwrap().as_deref().unwrap_or("Unknown"),
+                DEVICE_PRODUCT_NAME
+                    .lock()
+                    .unwrap()
+                    .as_deref()
+                    .unwrap_or("Unknown"),
+                DEVICE_MANUFACTURE
+                    .lock()
+                    .unwrap()
+                    .as_deref()
+                    .unwrap_or("Unknown")
+            );
         }
     }
 }
 
 fn detect_device() {
     // USBで接続されたデバイスを取得
-    match detect_device_os() {
-        Ok(os) => {
-            // デバイスOSを更新
+    match detect_device_info() {
+        Ok((os, product_name, manufacturer)) => {
+            // デバイス情報を更新
             let mut device_os_lock = DEVICE_OS.lock().unwrap();
+            let mut device_product_name_lock = DEVICE_PRODUCT_NAME.lock().unwrap();
+            let mut device_manufacturer_lock = DEVICE_MANUFACTURE.lock().unwrap();
+
             *device_os_lock = Some(os.clone());
+            *device_product_name_lock = Some(product_name.clone());
+            *device_manufacturer_lock = Some(manufacturer.clone());
 
             // DPIスケールを取得
             let mut density_cache = DEVICE_DENSITY.lock().unwrap();

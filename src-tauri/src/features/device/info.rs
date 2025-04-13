@@ -3,7 +3,7 @@ use rusb::UsbContext;
 
 use super::constants::USB_CONTEXT;
 
-pub fn detect_device_os() -> Result<String, String> {
+pub fn detect_device_info() -> Result<(String, String, String), String> {
     let context = USB_CONTEXT.get().expect("USB context not initialized");
     let mut os = "Unknown".to_string();
     let mut product_name = "Unknown".to_string();
@@ -40,10 +40,10 @@ pub fn detect_device_os() -> Result<String, String> {
         }
 
         info!("Device detected: {}({}) {}", product_name, os, manufacturer);
-        return Ok(os);
+        return Ok((os, product_name, manufacturer));
     }
 
-    Ok(os)
+    Ok((os, product_name, manufacturer))
 }
 
 pub fn ios_version() -> Result<String, String> {
