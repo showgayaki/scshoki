@@ -4,6 +4,7 @@ mod features;
 mod utils;
 
 use log::{error, info};
+use rusb::Context;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
 
@@ -16,7 +17,8 @@ use features::dependencies::commands::{
     check_installed_binaries, install_appium, install_chromedriver, install_geckodriver,
     install_nodejs,
 };
-use features::device::detect::detect_device;
+use features::device::constants::USB_CONTEXT;
+use features::device::detect::start_usb_hotplug_monitor;
 use features::screenshot::commands::take_screenshot;
 use utils::logger::init_logger;
 
@@ -27,8 +29,10 @@ fn main() {
     // `~/.scshoki/bin` をPATHに設定
     add_to_path(&BINARY_DIR);
 
+    // USE_CONTEXTを初期化
+    USB_CONTEXT.set(Context::new().unwrap()).ok();
     // USBで接続されたデバイスを取得
-    detect_device();
+    start_usb_hotplug_monitor();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())

@@ -1,8 +1,10 @@
 use log::{debug, info};
-use rusb::{Context, UsbContext};
+use rusb::UsbContext;
+
+use super::constants::USB_CONTEXT;
 
 pub fn detect_device_os() -> Result<String, String> {
-    let context = Context::new().unwrap();
+    let context = USB_CONTEXT.get().expect("USB context not initialized");
     let mut os = "Unknown".to_string();
     let mut product_name = "Unknown".to_string();
     let mut manufacturer = "Unknown".to_string();

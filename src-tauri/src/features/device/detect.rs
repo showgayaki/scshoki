@@ -5,7 +5,54 @@ use super::density::get_physical_density;
 use super::os::{detect_device_os, ios_version};
 use super::udid::get_udid;
 
-pub fn detect_device() {
+use rusb::{Context, Device, Hotplug, HotplugBuilder, UsbContext};
+use std::thread;
+
+pub fn start_usb_hotplug_monitor() {
+    // USBのHotplug監視を別スレッドで実行（非同期イベント処理）
+    thread::spawn(move || {
+        let context = Context::new().expect("Failed to create libusb context");
+
+        if !rusb::has_hotplug() {
+            println!("Hotplug not supported on this platform.");
+            return;
+        }
+
+        // Hotplug イベントハンドラを登録
+        let callback = Box::new(UsbEventHandler);
+        let _registration: rusb::Registration<rusb::Context> = HotplugBuilder::new()
+            .enumerate(true)
+            .register(&context, callback)
+            .expect("Failed to register hotplug callback");
+
+        // イベントループ
+        loop {
+            if let Err(e) = context.handle_events(None) {
+                eprintln!("Hotplug event error: {}", e);
+            }
+        }
+    });
+}
+
+// コールバック実装
+struct UsbEventHandler;
+
+impl<T: UsbContext> Hotplug<T> for UsbEventHandler {
+    fn device_arrived(&mut self, device: Device<T>) {
+        if let Ok(desc) = device.device_descriptor() {
+            info!("{:?} connected", DEVICE_OS);
+            detect_device();
+        }
+    }
+
+    fn device_left(&mut self, device: Device<T>) {
+        if let Ok(desc) = device.device_descriptor() {
+            info!("{:?} disconnected", DEVICE_OS);
+        }
+    }
+}
+
+fn detect_device() {
     // USBで接続されたデバイスを取得
     match detect_device_os() {
         Ok(os) => {
