@@ -1,4 +1,6 @@
 use log::{error, info};
+use rusb::{Context, Device, Hotplug, HotplugBuilder, UsbContext};
+use std::thread;
 
 use super::constants::{
     DEVICE_DENSITY, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME, DEVICE_UDID, IOS_VERSION,
@@ -6,9 +8,6 @@ use super::constants::{
 use super::density::get_physical_density;
 use super::info::{detect_device_info, ios_version};
 use super::udid::get_udid;
-
-use rusb::{Context, Device, Hotplug, HotplugBuilder, UsbContext};
-use std::thread;
 
 pub fn start_usb_hotplug_monitor() {
     // USBのHotplug監視を別スレッドで実行（非同期イベント処理）

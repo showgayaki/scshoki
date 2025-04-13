@@ -16,15 +16,9 @@ pub fn detect_device_info() -> Result<(String, String, String), String> {
 
         // デバイスタイプの判別
         match vendor_id {
-            0x18D1 => {
-                os = "Android".to_string();
-            }
-            0x05AC => {
-                os = "iOS".to_string();
-            }
-            _ => {
-                os = return Ok(("Unknown".to_string(), "".to_string(), "".to_string()));
-            }
+            0x18D1 => os = "Android".to_string(),
+            0x05AC => os = "iOS".to_string(),
+            _ => return Ok(("Unknown".to_string(), "".to_string(), "".to_string())),
         }
 
         // 製品名を取得
