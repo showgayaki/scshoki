@@ -7,10 +7,7 @@ use super::wait::wait_for_appium_ready;
 
 #[command]
 pub async fn start_appium(state: State<'_, AppiumState>) -> Result<(), String> {
-    state.start_appium().await.map_err(|e| {
-        error!("{}", e);
-        e
-    })?;
+    state.start_appium().await?;
 
     // Appium サーバーの起動を待機
     wait_for_appium_ready(APPIUM_TIMEOUT).await.map_err(|e| {

@@ -1,4 +1,4 @@
-use log::{debug, info};
+use log::info;
 use rusb::UsbContext;
 
 use super::constants::USB_CONTEXT;
@@ -12,13 +12,12 @@ pub fn detect_device_info() -> Result<(String, String, String), String> {
     if let Some(device) = context.devices().unwrap().iter().next() {
         let device_desc = device.device_descriptor().unwrap();
         let vendor_id = device_desc.vendor_id();
-        debug!("Vendor ID: {}", vendor_id);
 
         // デバイスタイプの判別
         match vendor_id {
             0x18D1 => os = "Android".to_string(),
             0x05AC => os = "iOS".to_string(),
-            _ => return Ok(("Unknown".to_string(), "".to_string(), "".to_string())),
+            _ => return Err("Unsupported device detected".to_string()),
         }
 
         // 製品名を取得
@@ -37,21 +36,5 @@ pub fn detect_device_info() -> Result<(String, String, String), String> {
         return Ok((os, product_name, manufacturer));
     }
 
-    Ok((os, product_name, manufacturer))
-}
-
-pub fn ios_version() -> Result<String, String> {
-    let output = std::process::Command::new("ideviceinfo")
-        .arg("-k")
-        .arg("ProductVersion")
-        .output()
-        .map_err(|e| format!("Failed to execute command: {}", e))?;
-
-    let version = String::from_utf8(output.stdout)
-        .map_err(|e| format!("Failed to convert output to string: {}", e))?
-        .trim()
-        .to_string();
-
-    info!("iOS version: {}", version);
-    Ok(version.trim().to_string())
+    Err("Failed to get device info".to_string())
 }
