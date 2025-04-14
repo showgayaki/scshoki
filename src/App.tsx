@@ -1,14 +1,19 @@
-// src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import { InstallationProgress } from "./components/InstallationProgress";
+import { DeviceToast } from "./components/DeviceToast";
 
 function App() {
     return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<Home />} />
-            </Routes>
-        </Router>
+        <>
+            <InstallationProgress />
+            <DeviceToast />
+            <Router>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                </Routes>
+            </Router>
+        </>
     );
 }
 
