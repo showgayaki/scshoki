@@ -29,12 +29,14 @@ fn main() {
     // `~/.scshoki/bin` をPATHに設定
     add_to_path(&BINARY_DIR);
 
-    // USE_CONTEXTを初期化
-    USB_CONTEXT.set(Context::new().unwrap()).ok();
-    // USBで接続されたデバイスを取得
-    start_usb_hotplug_monitor();
-
     tauri::Builder::default()
+        .setup(|app| {
+            // USE_CONTEXTを初期化
+            USB_CONTEXT.set(Context::new().unwrap()).ok();
+            // USBで接続されたデバイスを取得
+            start_usb_hotplug_monitor(app.handle().clone());
+            Ok(())
+        })
         .plugin(tauri_plugin_dialog::init())
         .manage(AppiumState {
             process: Arc::new(Mutex::new(None)),
