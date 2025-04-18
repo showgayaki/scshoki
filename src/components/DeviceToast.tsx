@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { Snackbar, IconButton } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
@@ -11,6 +12,9 @@ export function DeviceToast() {
     const [color, setColor] = useState<"primary" | "warning">("primary");
 
     useEffect(() => {
+        // USBデバイスの監視をスタート
+        invoke("start_usb_monitor");
+
         const unlistenConnected = listen<string>("device_connected", (event) => {
             setMessage(event.payload);
             setColor("primary");
@@ -41,6 +45,11 @@ export function DeviceToast() {
                     <CloseIcon />
                 </IconButton>
             }
+            onTransitionEnd={() => {
+                if (color === "warning") {
+                    invoke("toast_shown_ack");
+                }
+            }}
         >
             {message}
         </Snackbar>

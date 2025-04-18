@@ -1,0 +1,25 @@
+use log::debug;
+use tauri::{command, AppHandle};
+
+use crate::features::device::constants::{
+    DEFAULT_DEVICE_VALUE, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME,
+};
+
+use super::detect::start_usb_hotplug_monitor;
+
+#[command]
+pub fn start_usb_monitor(app: AppHandle) {
+    start_usb_hotplug_monitor(app);
+}
+
+#[command]
+pub fn toast_shown_ack() {
+    debug!("toast_shown_ack called!!!");
+    let mut os = DEVICE_OS.lock().unwrap();
+    let mut product_name = DEVICE_PRODUCT_NAME.lock().unwrap();
+    let mut manufacturer = DEVICE_MANUFACTURE.lock().unwrap();
+
+    *os = Some(DEFAULT_DEVICE_VALUE.to_string());
+    *product_name = Some(DEFAULT_DEVICE_VALUE.to_string());
+    *manufacturer = Some(DEFAULT_DEVICE_VALUE.to_string());
+}

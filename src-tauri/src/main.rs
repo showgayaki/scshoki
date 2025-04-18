@@ -17,8 +17,8 @@ use features::dependencies::commands::{
     check_installed_binaries, install_appium, install_chromedriver, install_geckodriver,
     install_nodejs,
 };
+use features::device::commands::{start_usb_monitor, toast_shown_ack};
 use features::device::constants::USB_CONTEXT;
-use features::device::detect::start_usb_hotplug_monitor;
 use features::screenshot::commands::take_screenshot;
 use utils::logger::init_logger;
 
@@ -30,11 +30,9 @@ fn main() {
     add_to_path(&BINARY_DIR);
 
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(|_| {
             // USE_CONTEXTを初期化
             USB_CONTEXT.set(Context::new().unwrap()).ok();
-            // USBで接続されたデバイスを取得
-            start_usb_hotplug_monitor(app.handle().clone());
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
@@ -58,7 +56,9 @@ fn main() {
             is_ios_dependencies_installed,
             start_appium,
             stop_appium,
+            start_usb_monitor,
             take_screenshot,
+            toast_shown_ack,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Scshoki");

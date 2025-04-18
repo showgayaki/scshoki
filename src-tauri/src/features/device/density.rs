@@ -1,32 +1,13 @@
-use log::{error, info};
 use std::process::Command;
 
 const MDPI_BASE_DENSITY: f64 = 160.0; // Androidの基準密度（mdpi）
 
 /// OSを指定してdensityを取得する関数
-pub fn get_physical_density(os: &str) -> Result<f64, f64> {
+pub fn get_physical_density(os: &str) -> Result<f64, String> {
     match os {
-        "Android" => match get_android_density() {
-            Ok(density) => {
-                info!("{} Physical Density: {:.1}", os, density);
-                Ok(density)
-            }
-            Err(e) => {
-                error!("Failed to get {} density", os);
-                Err(e)
-            }
-        },
-        "iOS" => match get_ios_density() {
-            Ok(density) => {
-                info!("{} Physical Density: {:.1}", os, density);
-                Ok(density)
-            }
-            Err(e) => {
-                error!("Failed to get {} density", os);
-                Err(e)
-            }
-        },
-        _ => Err(1.0), // 不明なOSの場合はデフォルト値（mdpi相当）
+        "Android" => get_android_density().map_err(|_| "Failed to get Android density".into()),
+        "iOS" => get_ios_density().map_err(|_| "Failed to get iOS density".into()),
+        _ => Err(format!("Unsupported OS: {}", os)),
     }
 }
 
