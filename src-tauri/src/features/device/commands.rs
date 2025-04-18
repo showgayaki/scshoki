@@ -13,7 +13,7 @@ pub fn start_usb_monitor(app: AppHandle) {
 }
 
 #[command]
-pub fn toast_shown_ack() {
+pub fn init_devive_info() {
     debug!("toast_shown_ack called!!!");
     let mut os = DEVICE_OS.lock().unwrap();
     let mut product_name = DEVICE_PRODUCT_NAME.lock().unwrap();

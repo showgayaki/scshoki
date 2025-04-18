@@ -1,18 +1,22 @@
 use log::{error, info};
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
+use tauri::{AppHandle, Emitter};
 
 use super::super::super::constants::NODE_DIR;
+use super::constants::APPIUM_TIMEOUT;
+use super::wait::wait_for_appium_ready;
 
 pub struct AppiumState {
     pub(crate) process: Arc<Mutex<Option<Child>>>,
 }
 
 impl AppiumState {
-    pub async fn start_appium(&self) -> Result<(), String> {
+    pub async fn start_appium(&self, app: AppHandle) -> Result<(), String> {
         let mut lock = self.process.lock().unwrap();
         if lock.is_some() {
             error!("Appium is already running.");
+            let _ = app.emit("appium_ready", ());
             return Err("Appium is already running.".to_string());
         }
 
@@ -29,6 +33,9 @@ impl AppiumState {
             .map_err(|e| format!("Failed to start Appium: {}", e))?;
 
         *lock = Some(process);
+
+        // wait for Appium and emit event
+        tokio::spawn(wait_for_appium_ready(app, APPIUM_TIMEOUT));
 
         Ok(())
     }

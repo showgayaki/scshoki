@@ -47,7 +47,7 @@ export function DeviceToast() {
             }
             onTransitionEnd={() => {
                 if (color === "warning") {
-                    invoke("toast_shown_ack");
+                    invoke("init_devive_info");
                 }
             }}
         >
