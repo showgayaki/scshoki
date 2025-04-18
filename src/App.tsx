@@ -13,7 +13,9 @@ function App() {
     useEffect(() => {
         const unlisten = listen("appium_ready", () => {
             console.log("Appium is ready!");
-            setAppiumReady(true);
+            setTimeout(() => {
+                setAppiumReady(true);
+            }, 1000); // ← 1秒だけ表示してから消す
         });
 
         return () => {
