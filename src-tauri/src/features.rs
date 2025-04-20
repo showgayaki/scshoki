@@ -1,3 +1,4 @@
+pub mod api;
 pub mod appium;
 pub mod dependencies;
 pub mod device;
