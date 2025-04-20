@@ -17,5 +17,3 @@ pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
 });
 pub static BINARY_DIR: LazyLock<PathBuf> = LazyLock::new(|| HOME_DIR.join(BASE_DIR).join("bin"));
 pub static NODE_DIR: LazyLock<PathBuf> = LazyLock::new(|| BINARY_DIR.join("node"));
-pub static CHROME_DRIVER_PATH: LazyLock<PathBuf> =
-    LazyLock::new(|| BINARY_DIR.join("chromedriver"));

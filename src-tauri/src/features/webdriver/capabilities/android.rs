@@ -2,7 +2,8 @@ use log::{debug, info};
 use serde_json::json;
 use thirtyfour::prelude::*;
 
-use crate::constants::{CHROME_DRIVER_PATH, HOST_OS};
+use super::super::constants::CHROME_DRIVER_PATH;
+use crate::constants::HOST_OS;
 
 pub async fn capabilities(
     browser: &str,
