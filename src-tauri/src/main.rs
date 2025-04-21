@@ -6,7 +6,7 @@ mod utils;
 use log::{error, info};
 use rusb::Context;
 use std::sync::{Arc, Mutex};
-use tauri::{Manager, State, WindowEvent};
+use tauri::{Listener, Manager, State, WindowEvent};
 
 use constants::{BINARY_DIR, HOST_ARCH, HOST_OS};
 use env::add_to_path;
@@ -19,6 +19,7 @@ use features::dependencies::commands::{
 };
 use features::device::commands::{init_devive_info, start_usb_monitor};
 use features::device::constants::USB_CONTEXT;
+use features::device::density::get_physical_density;
 use features::screenshot::commands::take_screenshot;
 use utils::logger::init_logger;
 
@@ -30,9 +31,15 @@ fn main() {
     add_to_path(&BINARY_DIR);
 
     tauri::Builder::default()
-        .setup(|_| {
+        .setup(|app| {
             // USE_CONTEXTを初期化
             USB_CONTEXT.set(Context::new().unwrap()).ok();
+            // "get_density" イベントをリッスン
+            app.listen("get_density", |event| {
+                // ダブルクオーテーション付きでくるので取り除く
+                let os = event.payload().trim_matches('"').to_string();
+                tauri::async_runtime::spawn(async move { get_physical_density(&os).await });
+            });
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())

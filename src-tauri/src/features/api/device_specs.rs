@@ -1,3 +1,5 @@
+use log::info;
+
 use super::client::fetch_data;
 use super::types::DeviceSpecs;
 
@@ -8,6 +10,7 @@ pub async fn fetch_device_specs(product_type: Option<&str>) -> Result<DeviceSpec
         Some(pt) => format!("{}?productType={}", BASE_URL, pt),
         None => BASE_URL.to_string(),
     };
+    info!("Fetch idevice specs from: {}", url);
 
     fetch_data(&url).await.map_err(|e| e.to_string())
 }

@@ -1,16 +1,12 @@
-use log::{debug, error, info};
+use log::{debug, info};
 use rusb::{Context, Device, Hotplug, HotplugBuilder, UsbContext};
 use std::thread;
 use tauri::{AppHandle, Emitter};
 
 use super::constants::{
-    DEFAULT_DEVICE_VALUE, DEVICE_DENSITY, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME,
-    DEVICE_UDID, IOS_VERSION,
+    DEFAULT_DEVICE_VALUE, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME, IDEVICE_PRODUCT_TYPE,
 };
-use super::density::get_physical_density;
-use super::info::detect_device_info;
-use super::ios::{get_udid, ios_version};
-use crate::utils::retry::retry;
+use super::info::{detect_device_info, get_idevice_info};
 
 pub fn start_usb_hotplug_monitor(app_handle: tauri::AppHandle) {
     thread::spawn(move || {
@@ -45,7 +41,7 @@ struct UsbEventHandler {
 impl<T: UsbContext> Hotplug<T> for UsbEventHandler {
     fn device_arrived(&mut self, device: Device<T>) {
         debug!("device_arrived called!!!");
-        if let Ok(()) = detect_device(&device) {
+        if let Ok(()) = detect_device(&self.app_handle, &device) {
             emit_device_event(&self.app_handle, "connected");
         }
     }
@@ -78,7 +74,7 @@ fn emit_device_event(app_handle: &AppHandle, event_type: &str) {
     }
 }
 
-fn detect_device<T: UsbContext>(device: &Device<T>) -> Result<(), String> {
+fn detect_device<T: UsbContext>(app_handle: &AppHandle, device: &Device<T>) -> Result<(), String> {
     match detect_device_info(device) {
         Ok((os, product_name, manufacturer)) => {
             let mut device_os_lock = DEVICE_OS.lock().unwrap();
@@ -89,30 +85,15 @@ fn detect_device<T: UsbContext>(device: &Device<T>) -> Result<(), String> {
             *device_product_name_lock = Some(product_name.clone());
             *device_manufacturer_lock = Some(manufacturer.clone());
 
-            let mut density_cache = DEVICE_DENSITY.lock().unwrap();
-            match get_physical_density(&os) {
-                Ok(density) => *density_cache = Some(density),
-                Err(e) => {
-                    *density_cache = Some(1.0);
-                    error!("{}. Set default density {:?}", e, &density_cache);
-                }
-            }
-
             if os == "iOS" {
-                match retry(ios_version, 5, 300) {
-                    Ok(version) => {
-                        let mut ios_version_lock = IOS_VERSION.lock().unwrap();
-                        *ios_version_lock = Some(version.clone());
-                    }
-                    Err(ref e) => error!("Failed to get iOS version: {}", e),
+                get_idevice_info();
+
+                let product_type = IDEVICE_PRODUCT_TYPE.lock().unwrap();
+                if let Some(_product_type) = &*product_type {
+                    let _ = app_handle.emit("get_density", &os);
                 }
-                match retry(get_udid, 5, 300) {
-                    Ok(udid) => {
-                        let mut udid_cache = DEVICE_UDID.lock().unwrap();
-                        *udid_cache = Some(udid.clone());
-                    }
-                    Err(ref e) => error!("Failed to get UDID: {}", e),
-                }
+            } else {
+                let _ = app_handle.emit("get_density", &os);
             }
 
             Ok(())

@@ -6,7 +6,7 @@ use super::capabilities::ios::capabilities as ios_capabilities;
 use super::capabilities::ios::capabilities_first_open as ios_capabilities_first_open;
 use super::url::format_url;
 use crate::features::appium::constants::APPIUM_SERVER_URL;
-use crate::features::device::constants::{DEVICE_OS, DEVICE_UDID, IOS_VERSION};
+use crate::features::device::constants::{DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
 use crate::utils::wait::wait_for_page_load;
 
 pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, String> {
@@ -18,8 +18,8 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, Str
         // iOSの場合は最初にページを開いておく必要がある
         Some("iOS") => {
             // UDIDとiOSバージョンを取得
-            let device_udid = DEVICE_UDID.lock().unwrap().clone();
-            let ios_version = IOS_VERSION.lock().unwrap().clone();
+            let device_udid = IDEVICE_UDID.lock().unwrap().clone();
+            let ios_version = IDEVICE_OS_VERSION.lock().unwrap().clone();
 
             // 最初にWebDriverAgentを起動、ページを開いておく
             let driver_first_open =

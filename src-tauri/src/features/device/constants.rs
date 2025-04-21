@@ -10,8 +10,9 @@ pub static DEVICE_PRODUCT_NAME: LazyLock<Mutex<Option<String>>> =
 pub static DEVICE_MANUFACTURE: LazyLock<Mutex<Option<String>>> =
     LazyLock::new(|| Mutex::new(Some(DEFAULT_DEVICE_VALUE.to_string())));
 pub static DEVICE_DENSITY: Mutex<Option<f64>> = Mutex::new(None);
-pub static DEVICE_UDID: Mutex<Option<String>> = Mutex::new(None);
-pub static IOS_VERSION: Mutex<Option<String>> = Mutex::new(None);
+pub static IDEVICE_UDID: Mutex<Option<String>> = Mutex::new(None);
+pub static IDEVICE_OS_VERSION: Mutex<Option<String>> = Mutex::new(None);
+pub static IDEVICE_PRODUCT_TYPE: Mutex<Option<String>> = Mutex::new(None);
 
 pub static USB_CONTEXT: OnceLock<Context> = OnceLock::new();
 // pub const SMARTPHONE_VENDOR_IDS: [u16; 5] = [0x18D1, 0x05AC, 0x2717, 0x22D9, 0x04E8];

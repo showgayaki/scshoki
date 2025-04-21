@@ -11,7 +11,7 @@ pub struct DisplaySpec {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct DeviceSpec {
-    pub model: String,
+    pub model_name: String,
     pub display: DisplaySpec,
 }
 

@@ -1,6 +1,22 @@
 use log::info;
 use std::process::Command;
 
+pub fn product_type() -> Result<String, String> {
+    let output = std::process::Command::new("ideviceinfo")
+        .arg("-k")
+        .arg("ProductType")
+        .output()
+        .map_err(|e| format!("Failed to execute command: {}", e))?;
+
+    let version = String::from_utf8(output.stdout)
+        .map_err(|e| format!("Failed to convert output to string: {}", e))?
+        .trim()
+        .to_string();
+
+    info!("ProductType: {}", version);
+    Ok(version.trim().to_string())
+}
+
 pub fn ios_version() -> Result<String, String> {
     let output = std::process::Command::new("ideviceinfo")
         .arg("-k")
