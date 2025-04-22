@@ -11,6 +11,9 @@ use crate::utils::wait::{wait_for_elements_hidden, wait_for_scroll_complete};
 pub async fn capture_full_page(
     driver: &WebDriver,
     hidden_elements: &str,
+    datetime_now: &str,
+    os: &str,
+    browser: &str,
 ) -> Result<Vec<Vec<u8>>, String> {
     info!("Capturing full page screenshot...");
 
@@ -61,7 +64,7 @@ pub async fn capture_full_page(
 
         screenshots.push(cropped_screenshot.clone());
 
-        let filename = format!("screenshot_{}.png", index);
+        let filename = format!("{}_{}_{}_{}.png", datetime_now, os, browser, index);
         fs::write(SCREENSHOT_DIR.join(filename), &cropped_screenshot)
             .map_err(|e| format!("Failed to save screenshot_{}: {}", index, e))?;
         info!("Saved screenshot_{}.png", index);

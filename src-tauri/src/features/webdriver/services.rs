@@ -7,7 +7,6 @@ use super::capabilities::ios::capabilities_first_open as ios_capabilities_first_
 use super::url::format_url;
 use crate::features::appium::constants::APPIUM_SERVER_URL;
 use crate::features::device::constants::{DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
-use crate::utils::wait::wait_for_page_load;
 
 pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, String> {
     info!("Creating WebDriver for {}", browser);
@@ -31,11 +30,6 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, Str
                 .goto(&formated_url)
                 .await
                 .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
-
-            // ページの完全読み込みを待つ
-            if let Err(e) = wait_for_page_load(&driver_first_open, &formated_url).await {
-                error!("{}", e);
-            }
 
             // Appiumセッションを終了
             if let Err(e) = driver_first_open.quit().await {

@@ -1,9 +1,11 @@
+use chrono::Local;
 use log::{error, info};
 use std::fs;
 use tauri::command;
 
 use super::constants::SCREENSHOT_DIR;
 use super::services::{capture_full_page, combine_screenshots};
+use crate::features::device::constants::DEVICE_OS;
 use crate::features::webdriver::services::create_webdriver;
 use crate::utils::wait::wait_for_page_load;
 
@@ -22,6 +24,10 @@ pub async fn take_screenshot(
         return Err("No browsers selected for screenshot".to_string());
     }
 
+    let datetime_now = Local::now().format("%Y%m%d-%H%M%S").to_string();
+    let os = DEVICE_OS.lock().unwrap().clone().unwrap();
+
+    // datetime取得
     for browser in selected_browsers {
         info!("Starting screenshot process for {}", browser);
         let browser_lowercased = browser.to_lowercase();
@@ -35,7 +41,9 @@ pub async fn take_screenshot(
                 }
 
                 // スクロールしながらスクリーンショットを撮影
-                match capture_full_page(&driver, &hidden_elements).await {
+                match capture_full_page(&driver, &hidden_elements, &datetime_now, &os, &browser)
+                    .await
+                {
                     Ok(screenshots) => {
                         let final_screenshot = match combine_screenshots(&screenshots) {
                             Ok(img) => img,
@@ -45,8 +53,10 @@ pub async fn take_screenshot(
                             }
                         };
 
-                        let screenshot_path =
-                            SCREENSHOT_DIR.join(format!("screenshot_{}.png", browser_lowercased));
+                        let screenshot_path = SCREENSHOT_DIR.join(format!(
+                            "{}_{}_{}_full.png",
+                            datetime_now, os, browser_lowercased
+                        ));
                         if let Err(e) = fs::write(&screenshot_path, final_screenshot) {
                             error!("[{}] Failed to save screenshot: {}", browser, e);
                         } else {
