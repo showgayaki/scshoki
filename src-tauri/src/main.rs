@@ -6,7 +6,7 @@ mod utils;
 use log::{error, info};
 use rusb::Context;
 use std::sync::{Arc, Mutex};
-use tauri::{Listener, Manager, State, WindowEvent};
+use tauri::{Manager, State, WindowEvent};
 
 use constants::{BINARY_DIR, HOST_ARCH, HOST_OS};
 use env::add_to_path;
@@ -30,7 +30,7 @@ fn main() {
     add_to_path(&BINARY_DIR);
 
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(|_app| {
             // USE_CONTEXTを初期化
             USB_CONTEXT.set(Context::new().unwrap()).ok();
             Ok(())

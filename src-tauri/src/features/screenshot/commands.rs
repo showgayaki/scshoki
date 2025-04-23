@@ -7,9 +7,7 @@ use super::constants::SCREENSHOT_DIR;
 use super::services::{capture_full_page, combine_screenshots};
 use crate::features::device::constants::DEVICE_OS;
 use crate::features::device::display::get_display_info;
-use crate::features::screenshot::dom::{get_scroll_position, scroll_by};
 use crate::features::webdriver::services::create_webdriver;
-use crate::utils::wait::wait_for_page_load;
 
 #[command]
 pub async fn take_screenshot(
