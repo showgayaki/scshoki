@@ -1,7 +1,7 @@
 use image::GenericImageView;
 use log::debug;
 
-use crate::features::device::constants::DEVICE_DENSITY;
+use crate::features::device::constants::{DEVICE_DENSITY, DEVICE_OS, IDEVICE_STATUSBAR_HEIGHT};
 
 // innerHieght分の高さでtrimして、画像の下の余白をカットする関数
 pub fn trim_extra_space(image_data: &[u8], inner_height: f64) -> Result<Vec<u8>, String> {
@@ -16,9 +16,19 @@ pub fn trim_extra_space(image_data: &[u8], inner_height: f64) -> Result<Vec<u8>,
         return Err("Image height is smaller than navigation bar height, cannot crop.".to_string());
     }
 
-    let physical_density = DEVICE_DENSITY.lock().unwrap().unwrap_or(1.0); // デフォルト1.0
+    let physical_density = *DEVICE_DENSITY.lock().unwrap();
+    let os = DEVICE_OS.lock().unwrap().clone();
+
+    let start_y = match os.as_str() {
+        "iOS" => *IDEVICE_STATUSBAR_HEIGHT.lock().unwrap(),
+        _ => 0.0,
+    };
+    debug!("start_y: {}", start_y);
+    let start_y_physical = (start_y * physical_density) as u32;
+
+    let crop_height = (inner_height * physical_density) as u32;
     let cropped_image = image
-        .view(0, 0, width, (inner_height * physical_density) as u32)
+        .view(0, start_y_physical, width, crop_height)
         .to_image();
 
     let mut output = std::io::Cursor::new(Vec::new());
@@ -41,7 +51,7 @@ pub fn cut_scroll_overlap(
         image::load_from_memory(image_data).map_err(|e| format!("Failed to load image: {}", e))?;
     let (width, height) = image.dimensions();
 
-    let physical_density = DEVICE_DENSITY.lock().unwrap().unwrap_or(1.0); // デフォルト1.0
+    let physical_density = *DEVICE_DENSITY.lock().unwrap();
 
     let scroll_overlap_height = (scroll_overlap_height * physical_density) as u32;
     if height <= scroll_overlap_height {

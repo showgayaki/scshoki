@@ -52,21 +52,21 @@ pub fn get_idevice_info() {
     match retry(product_type, RETRY, DELAY_MS) {
         Ok(product_type) => {
             let mut product_type_lock = IDEVICE_PRODUCT_TYPE.lock().unwrap();
-            *product_type_lock = Some(product_type.clone());
+            *product_type_lock = product_type.clone();
         }
         Err(ref e) => error!("Failed to get ProductType: {}", e),
     }
     match retry(ios_version, RETRY, DELAY_MS) {
         Ok(version) => {
             let mut ios_version_lock = IDEVICE_OS_VERSION.lock().unwrap();
-            *ios_version_lock = Some(version.clone());
+            *ios_version_lock = version.clone();
         }
         Err(ref e) => error!("Failed to get iOS version: {}", e),
     }
     match retry(get_udid, 5, 300) {
         Ok(udid) => {
             let mut udid_cache = IDEVICE_UDID.lock().unwrap();
-            *udid_cache = Some(udid.clone());
+            *udid_cache = udid.clone();
         }
         Err(ref e) => error!("Failed to get UDID: {}", e),
     }

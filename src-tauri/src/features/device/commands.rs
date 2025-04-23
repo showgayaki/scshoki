@@ -19,7 +19,7 @@ pub fn init_devive_info() {
     let mut product_name = DEVICE_PRODUCT_NAME.lock().unwrap();
     let mut manufacturer = DEVICE_MANUFACTURE.lock().unwrap();
 
-    *os = Some(DEFAULT_DEVICE_VALUE.to_string());
-    *product_name = Some(DEFAULT_DEVICE_VALUE.to_string());
-    *manufacturer = Some(DEFAULT_DEVICE_VALUE.to_string());
+    *os = DEFAULT_DEVICE_VALUE.to_string();
+    *product_name = DEFAULT_DEVICE_VALUE.to_string();
+    *manufacturer = DEFAULT_DEVICE_VALUE.to_string();
 }

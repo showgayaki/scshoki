@@ -1,18 +1,17 @@
 use log::{debug, error, info};
 use std::process::Command;
+use thirtyfour::prelude::*;
 
-use super::constants::{DEVICE_DENSITY, IDEVICE_PRODUCT_TYPE};
-use crate::features::api::device_specs::fetch_device_specs;
-use crate::utils::retry::retry_async;
+use super::constants::{DEVICE_DENSITY, IDEVICE_STATUSBAR_HEIGHT};
 
 const MDPI_BASE_DENSITY: f64 = 160.0; // Androidの基準密度（mdpi）
 
 /// OSを指定してdensityを取得する関数
-pub async fn get_physical_density(os: &str) {
+pub async fn get_display_info(driver: &WebDriver, os: &str) {
     debug!("get_physical_density(OS: {}) called!!!", os);
     let density = match os {
         "Android" => get_android_density().map_err(|_| "Failed to get Android density"),
-        "iOS" => get_ios_density()
+        "iOS" => get_ios_screen_info(driver)
             .await
             .map_err(|_| "Failed to get iOS density"),
         _ => {
@@ -23,10 +22,10 @@ pub async fn get_physical_density(os: &str) {
 
     let mut density_cache = DEVICE_DENSITY.lock().unwrap();
     if let Ok(val) = density {
-        *density_cache = density.ok();
+        *density_cache = val;
         info!("{} density: {:.1}", os, val);
     } else {
-        *density_cache = Some(2.0);
+        *density_cache = 2.0;
         error!("{} density: failed to retrieve", os);
     }
 }
@@ -58,26 +57,34 @@ fn get_android_density() -> Result<f64, f64> {
 }
 
 /// iOSのdensity取得
-async fn get_ios_density() -> Result<f64, f64> {
-    debug!("get_ios_density called!!!");
-    const RETRY: u8 = 3;
-    const DELAY_MS: u64 = 1000;
+async fn get_ios_screen_info(driver: &WebDriver) -> Result<f64, String> {
+    debug!("get_ios_screen_info called!!!");
 
-    let product_type = {
-        let lock = IDEVICE_PRODUCT_TYPE.lock().unwrap();
-        match lock.as_deref() {
-            Some(pt) => pt.to_string(),
-            None => return Err(2.0),
-        }
-    };
+    let script = "mobile: deviceScreenInfo";
+    let screen_info = driver
+        .execute(script, vec![])
+        .await
+        .map_err(|e| format!("[{}] script error: {}", script, e))?;
 
-    let result = retry_async(|| fetch_device_specs(Some(&product_type)), RETRY, DELAY_MS).await;
+    let json_value = screen_info.json();
+    debug!("json_value: {:?}", json_value);
 
-    match result {
-        Ok(specs) => specs
-            .get(&product_type)
-            .map(|spec| spec.display.scale_factor)
-            .ok_or(2.0),
-        Err(_) => Err(2.0),
-    }
+    // statusBarSize.height を取得
+    let statusbar_height = json_value
+        .get("statusBarSize")
+        .and_then(|s| s.get("height"))
+        .and_then(|h| h.as_f64())
+        .ok_or_else(|| "Failed to extract 'statusBarSize.height'".to_string())?;
+    let mut statusbar_height_lock = IDEVICE_STATUSBAR_HEIGHT.lock().unwrap();
+    *statusbar_height_lock = statusbar_height;
+
+    // scale を取得
+    let scale = json_value
+        .get("scale")
+        .and_then(|s| s.as_f64())
+        .ok_or_else(|| "Failed to extract 'scale'".to_string())?;
+    let mut device_density_lock = DEVICE_DENSITY.lock().unwrap();
+    *device_density_lock = scale;
+
+    Ok(scale)
 }

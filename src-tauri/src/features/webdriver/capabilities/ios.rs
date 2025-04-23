@@ -6,9 +6,9 @@ use crate::constants::DEVELOPMENT_TEAM;
 use crate::features::appium::constants::{APPIUM_PORT, WDA_IDENTIFIER};
 
 pub async fn capabilities(
-    device_os: &Option<String>,
-    device_udid: &Option<String>,
-    ios_version: &Option<String>,
+    device_os: &str,
+    device_udid: &str,
+    ios_version: &str,
 ) -> Result<Capabilities, String> {
     info!("Creating WebDriver iOS capabilities");
     let mut caps = Capabilities::new();
@@ -46,9 +46,9 @@ pub async fn capabilities(
 }
 
 pub async fn capabilities_first_open(
-    device_os: &Option<String>,
-    device_udid: &Option<String>,
-    ios_version: &Option<String>,
+    device_os: &str,
+    device_udid: &str,
+    ios_version: &str,
 ) -> Result<Capabilities, String> {
     let mut caps = capabilities(device_os, device_udid, ios_version).await?;
     caps.insert("appium:autoWebview".to_string(), json!(false));

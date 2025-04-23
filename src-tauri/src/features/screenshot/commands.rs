@@ -6,6 +6,8 @@ use tauri::command;
 use super::constants::SCREENSHOT_DIR;
 use super::services::{capture_full_page, combine_screenshots};
 use crate::features::device::constants::DEVICE_OS;
+use crate::features::device::display::get_display_info;
+use crate::features::screenshot::dom::{get_scroll_position, scroll_by};
 use crate::features::webdriver::services::create_webdriver;
 use crate::utils::wait::wait_for_page_load;
 
@@ -25,7 +27,7 @@ pub async fn take_screenshot(
     }
 
     let datetime_now = Local::now().format("%Y%m%d-%H%M%S").to_string();
-    let os = DEVICE_OS.lock().unwrap().clone().unwrap();
+    let device_os = DEVICE_OS.lock().unwrap().clone();
 
     // datetime取得
     for browser in selected_browsers {
@@ -34,15 +36,18 @@ pub async fn take_screenshot(
 
         match create_webdriver(&browser_lowercased, &url).await {
             Ok(driver) => {
-                // ページの完全読み込みを待つ
-                if let Err(e) = wait_for_page_load(&driver, &url).await {
-                    error!("[{}] Page load error: {}", browser, e);
-                    continue;
-                }
+                // Density取得
+                get_display_info(&driver, &device_os).await;
 
                 // スクロールしながらスクリーンショットを撮影
-                match capture_full_page(&driver, &hidden_elements, &datetime_now, &os, &browser)
-                    .await
+                match capture_full_page(
+                    &driver,
+                    &hidden_elements,
+                    &datetime_now,
+                    &device_os,
+                    &browser,
+                )
+                .await
                 {
                     Ok(screenshots) => {
                         let final_screenshot = match combine_screenshots(&screenshots) {
@@ -55,7 +60,7 @@ pub async fn take_screenshot(
 
                         let screenshot_path = SCREENSHOT_DIR.join(format!(
                             "{}_{}_{}_full.png",
-                            datetime_now, os, browser_lowercased
+                            datetime_now, device_os, browser_lowercased
                         ));
                         if let Err(e) = fs::write(&screenshot_path, final_screenshot) {
                             error!("[{}] Failed to save screenshot: {}", browser, e);

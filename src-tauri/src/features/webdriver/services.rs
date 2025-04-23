@@ -13,9 +13,9 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, Str
     let device_os = DEVICE_OS.lock().unwrap().clone();
 
     // OSごとのWebDriverを取得
-    let driver = match device_os.as_deref() {
+    let driver = match device_os.as_str() {
         // iOSの場合は最初にページを開いておく必要がある
-        Some("iOS") => {
+        "iOS" => {
             // UDIDとiOSバージョンを取得
             let device_udid = IDEVICE_UDID.lock().unwrap().clone();
             let ios_version = IDEVICE_OS_VERSION.lock().unwrap().clone();
@@ -40,7 +40,7 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, Str
             debug!("WebDriver capabilities: {:?}", caps);
             webrdiver(caps).await
         }
-        Some("Android") => {
+        "Android" => {
             let caps = android_capabilities(browser, &device_os).await?;
             debug!("WebDriver capabilities: {:?}", caps);
             let driver = webrdiver(caps).await?;
@@ -57,9 +57,9 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, Str
 }
 
 async fn create_webdriver_first_open(
-    device_os: &Option<String>,
-    device_udid: &Option<String>,
-    ios_version: &Option<String>,
+    device_os: &str,
+    device_udid: &str,
+    ios_version: &str,
 ) -> Result<WebDriver, String> {
     info!("Creating WebDriver for first open");
     let caps = ios_capabilities_first_open(device_os, device_udid, ios_version)

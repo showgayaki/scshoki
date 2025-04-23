@@ -3,9 +3,7 @@ use rusb::{Context, Device, Hotplug, HotplugBuilder, UsbContext};
 use std::thread;
 use tauri::{AppHandle, Emitter};
 
-use super::constants::{
-    DEFAULT_DEVICE_VALUE, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME, IDEVICE_PRODUCT_TYPE,
-};
+use super::constants::{DEFAULT_DEVICE_VALUE, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME};
 use super::info::{detect_device_info, get_idevice_info};
 
 pub fn start_usb_hotplug_monitor(app_handle: tauri::AppHandle) {
@@ -41,7 +39,7 @@ struct UsbEventHandler {
 impl<T: UsbContext> Hotplug<T> for UsbEventHandler {
     fn device_arrived(&mut self, device: Device<T>) {
         debug!("device_arrived called!!!");
-        if let Ok(()) = detect_device(&self.app_handle, &device) {
+        if let Ok(()) = detect_device(&device) {
             emit_device_event(&self.app_handle, "connected");
         }
     }
@@ -58,42 +56,30 @@ fn emit_device_event(app_handle: &AppHandle, event_type: &str) {
     let product_name = DEVICE_PRODUCT_NAME.lock().unwrap();
     let manufacturer = DEVICE_MANUFACTURE.lock().unwrap();
 
-    if os.as_deref() == Some("iOS")
-        && (product_name.as_deref() == Some(DEFAULT_DEVICE_VALUE)
-            || manufacturer.as_deref() == Some(DEFAULT_DEVICE_VALUE))
+    if *os == "iOS"
+        && (*product_name == DEFAULT_DEVICE_VALUE || *manufacturer == DEFAULT_DEVICE_VALUE)
     {
         return;
     }
 
-    if let (Some(os), Some(product_name), Some(manufacturer)) =
-        (&*os, &*product_name, &*manufacturer)
-    {
-        let message = format!("{}({}: {}) {}", os, manufacturer, product_name, event_type);
-        info!("{}", message);
-        let _ = app_handle.emit(&format!("device_{}", event_type), message);
-    }
+    let message = format!("{}({}: {}) {}", os, manufacturer, product_name, event_type);
+    info!("{}", message);
+    let _ = app_handle.emit(&format!("device_{}", event_type), message);
 }
 
-fn detect_device<T: UsbContext>(app_handle: &AppHandle, device: &Device<T>) -> Result<(), String> {
+fn detect_device<T: UsbContext>(device: &Device<T>) -> Result<(), String> {
     match detect_device_info(device) {
         Ok((os, product_name, manufacturer)) => {
             let mut device_os_lock = DEVICE_OS.lock().unwrap();
             let mut device_product_name_lock = DEVICE_PRODUCT_NAME.lock().unwrap();
             let mut device_manufacturer_lock = DEVICE_MANUFACTURE.lock().unwrap();
 
-            *device_os_lock = Some(os.clone());
-            *device_product_name_lock = Some(product_name.clone());
-            *device_manufacturer_lock = Some(manufacturer.clone());
+            *device_os_lock = os.clone();
+            *device_product_name_lock = product_name.clone();
+            *device_manufacturer_lock = manufacturer.clone();
 
             if os == "iOS" {
                 get_idevice_info();
-
-                let product_type = IDEVICE_PRODUCT_TYPE.lock().unwrap();
-                if let Some(_product_type) = &*product_type {
-                    let _ = app_handle.emit("get_density", &os);
-                }
-            } else {
-                let _ = app_handle.emit("get_density", &os);
             }
 
             Ok(())

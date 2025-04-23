@@ -65,9 +65,9 @@ pub async fn capture_full_page(
         screenshots.push(cropped_screenshot.clone());
 
         let filename = format!("{}_{}_{}_{}.png", datetime_now, os, browser, index);
-        fs::write(SCREENSHOT_DIR.join(filename), &cropped_screenshot)
-            .map_err(|e| format!("Failed to save screenshot_{}: {}", index, e))?;
-        info!("Saved screenshot_{}.png", index);
+        fs::write(SCREENSHOT_DIR.join(&filename), &cropped_screenshot)
+            .map_err(|e| format!("Failed to save {}: {}", &filename, e))?;
+        info!("Saved {}", &filename);
 
         // スクロール実行
         scroll_by(driver, inner_height)

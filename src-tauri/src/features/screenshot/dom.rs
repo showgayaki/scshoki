@@ -83,10 +83,10 @@ pub async fn get_scroll_position(driver: &WebDriver) -> Result<f64, Box<dyn Erro
     Ok(result.json().as_f64().unwrap_or(0.0))
 }
 
-// 指定したピクセル分スクロールする
+// 指定したピクセル分スクロールする（iOSのナビゲーションバーを隠すためタッチジェスチャーで実行）
 pub async fn scroll_by(driver: &WebDriver, pixels: f64) -> Result<(), Box<dyn Error>> {
-    debug!("scroll_by");
     let script = format!("window.scrollBy(0, {});", pixels);
+    debug!("{}", script);
     driver.execute(&script, vec![]).await?;
     Ok(())
 }

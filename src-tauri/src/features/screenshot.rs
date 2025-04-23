@@ -1,5 +1,5 @@
 pub(crate) mod commands;
 mod constants;
-mod dom;
+pub(crate) mod dom;
 mod image;
 mod services;

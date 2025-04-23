@@ -19,7 +19,6 @@ use features::dependencies::commands::{
 };
 use features::device::commands::{init_devive_info, start_usb_monitor};
 use features::device::constants::USB_CONTEXT;
-use features::device::density::get_physical_density;
 use features::screenshot::commands::take_screenshot;
 use utils::logger::init_logger;
 
@@ -34,12 +33,6 @@ fn main() {
         .setup(|app| {
             // USE_CONTEXTを初期化
             USB_CONTEXT.set(Context::new().unwrap()).ok();
-            // "get_density" イベントをリッスン
-            app.listen("get_density", |event| {
-                // ダブルクオーテーション付きでくるので取り除く
-                let os = event.payload().trim_matches('"').to_string();
-                tauri::async_runtime::spawn(async move { get_physical_density(&os).await });
-            });
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())

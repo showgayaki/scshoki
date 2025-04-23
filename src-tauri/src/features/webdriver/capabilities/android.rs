@@ -5,10 +5,7 @@ use thirtyfour::prelude::*;
 use super::super::constants::CHROME_DRIVER_PATH;
 use crate::constants::HOST_OS;
 
-pub async fn capabilities(
-    browser: &str,
-    device_os: &Option<String>,
-) -> Result<Capabilities, String> {
+pub async fn capabilities(browser: &str, device_os: &str) -> Result<Capabilities, String> {
     info!("Creating WebDriver Android capabilities for {}", browser);
 
     let mut caps = Capabilities::new();
