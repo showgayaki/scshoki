@@ -2,7 +2,7 @@ use log::{debug, info};
 use tauri::{AppHandle, Emitter};
 use tokio::time::{sleep, Duration, Instant};
 
-use super::constants::APPIUM_SERVER_URL;
+use crate::constants::APPIUM_SERVER_URL;
 
 // Appiumが起動完了するまで `/status` をポーリング
 pub async fn wait_for_appium_ready(app: AppHandle, timeout: Duration) -> Result<(), String> {

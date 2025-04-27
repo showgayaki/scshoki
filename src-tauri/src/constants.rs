@@ -1,6 +1,6 @@
 use std::env;
 use std::path::PathBuf;
-use std::sync::LazyLock;
+use std::sync::{LazyLock, Mutex};
 
 pub const HOST_OS: &str = env::consts::OS;
 pub const HOST_ARCH: &str = env::consts::ARCH;
@@ -17,3 +17,7 @@ pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
 });
 pub static BINARY_DIR: LazyLock<PathBuf> = LazyLock::new(|| HOME_DIR.join(BASE_DIR).join("bin"));
 pub static NODE_DIR: LazyLock<PathBuf> = LazyLock::new(|| BINARY_DIR.join("node"));
+
+pub const APPIUM_PORT: &str = "4723";
+pub static APPIUM_SERVER_URL: LazyLock<String> =
+    LazyLock::new(|| format!("http://127.0.0.1:{APPIUM_PORT}"));

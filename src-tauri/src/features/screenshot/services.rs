@@ -14,6 +14,7 @@ pub async fn capture_full_page(
     datetime_now: &str,
     os: &str,
     browser: &str,
+    navigationbar_height: f64,
 ) -> Result<Vec<Vec<u8>>, String> {
     info!("Capturing full page screenshot...");
 
@@ -37,11 +38,9 @@ pub async fn capture_full_page(
             .map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
     }
 
-    // 最初のスクリーンショット（ヘッダーあり）を撮影
-    info!("Taking first screenshot...");
+    // スクロールしながらスクリーンショット
     let mut screenshots = vec![];
 
-    // スクロールしながらスクリーンショット
     for index in 1..=scroll_steps {
         debug!("Starting scroll and caputure.");
 
@@ -56,10 +55,10 @@ pub async fn capture_full_page(
             // 被った部分を計算
             let scroll_overlap_height = (inner_height * index as f64) - total_scroll_height;
             // 余白をカットしてから被った部分をカット
-            let tmp = trim_extra_space(&screenshot, inner_height)?;
+            let tmp = trim_extra_space(&screenshot, browser, inner_height, navigationbar_height)?;
             cut_scroll_overlap(&tmp, scroll_overlap_height)?
         } else {
-            trim_extra_space(&screenshot, inner_height)?
+            trim_extra_space(&screenshot, browser, inner_height, navigationbar_height)?
         };
 
         screenshots.push(cropped_screenshot.clone());
@@ -131,6 +130,7 @@ pub fn combine_screenshots(screenshots: &[Vec<u8>]) -> Result<Vec<u8>, String> {
     for screenshot in screenshots.iter() {
         let image = image::load_from_memory(screenshot).map_err(|e| e.to_string())?;
         let (_, height) = image.dimensions();
+        debug!("image height: {}", height);
 
         for (x, y, pixel) in image.pixels() {
             combined_image.put_pixel(x, y + y_offset, pixel);

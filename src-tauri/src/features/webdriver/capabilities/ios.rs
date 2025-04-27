@@ -1,11 +1,45 @@
-use log::{debug, info};
+use log::info;
 use serde_json::json;
 use thirtyfour::prelude::*;
 
-use crate::constants::DEVELOPMENT_TEAM;
-use crate::features::appium::constants::{APPIUM_PORT, WDA_IDENTIFIER};
+use crate::constants::{APPIUM_PORT, DEVELOPMENT_TEAM};
+use crate::features::appium::constants::WDA_IDENTIFIER;
 
-pub async fn capabilities(
+pub fn capabilities(
+    device_os: &str,
+    device_udid: &str,
+    ios_version: &str,
+) -> Result<Capabilities, String> {
+    info!("Creating WebDriver iOS capabilities");
+    let mut caps = base_capabilities(device_os, device_udid, ios_version)?;
+    caps.insert("appium:autoWebview".to_string(), json!(true));
+    caps.insert("appium:useNewWDA".to_string(), json!(false));
+    caps.insert(
+        "appium:additionalWebviewBundleIds".to_string(),
+        json!([
+            "com.apple.mobilesafari",
+            "com.google.chrome.ios",
+            "org.mozilla.ios.Firefox",
+        ]),
+    );
+
+    Ok(caps)
+}
+
+pub fn capabilities_first_open(
+    device_os: &str,
+    device_udid: &str,
+    ios_version: &str,
+) -> Result<Capabilities, String> {
+    let mut caps = base_capabilities(device_os, device_udid, ios_version)?;
+    caps.insert("appium:autoWebview".to_string(), json!(false));
+    caps.insert("appium:useNewWDA".to_string(), json!(true));
+    caps.insert("appium:clearSystemFiles".to_string(), json!(true));
+
+    Ok(caps)
+}
+
+fn base_capabilities(
     device_os: &str,
     device_udid: &str,
     ios_version: &str,
@@ -26,35 +60,10 @@ pub async fn capabilities(
         "appium:xcodeSigningId".to_string(),
         json!("Developer ID Application"),
     );
-    caps.insert("appium:useNewWDA".to_string(), json!(false));
     caps.insert(
         "appium:updatedWDABundleId".to_string(),
         json!(&WDA_IDENTIFIER),
     );
-    caps.insert(
-        "appium:additionalWebviewBundleIds".to_string(),
-        json!([
-            "com.apple.mobilesafari",
-            "com.google.chrome.ios",
-            "org.mozilla.ios.Firefox",
-        ]),
-    );
-    caps.insert("appium:autoWebview".to_string(), json!(true));
 
-    debug!("WebDriver capabilities: {:?}", caps);
-    Ok(caps)
-}
-
-pub async fn capabilities_first_open(
-    device_os: &str,
-    device_udid: &str,
-    ios_version: &str,
-) -> Result<Capabilities, String> {
-    let mut caps = capabilities(device_os, device_udid, ios_version).await?;
-    caps.insert("appium:autoWebview".to_string(), json!(false));
-    caps.insert("appium:useNewWDA".to_string(), json!(true));
-    caps.insert("appium:clearSystemFiles".to_string(), json!(true));
-
-    debug!("WebDriver capabilities: {:?}", caps);
     Ok(caps)
 }

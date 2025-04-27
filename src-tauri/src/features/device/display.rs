@@ -67,7 +67,7 @@ async fn get_ios_screen_info(driver: &WebDriver) -> Result<f64, String> {
         .map_err(|e| format!("[{}] script error: {}", script, e))?;
 
     let json_value = screen_info.json();
-    debug!("json_value: {:?}", json_value);
+    debug!("screen_info: {:?}", json_value);
 
     // statusBarSize.height を取得
     let statusbar_height = json_value

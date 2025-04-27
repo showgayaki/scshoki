@@ -3,33 +3,59 @@ use log::debug;
 
 use crate::features::device::constants::{DEVICE_DENSITY, DEVICE_OS, IDEVICE_STATUSBAR_HEIGHT};
 
-// innerHieght分の高さでtrimして、画像の下の余白をカットする関数
-pub fn trim_extra_space(image_data: &[u8], inner_height: f64) -> Result<Vec<u8>, String> {
+/// 画像のいらない部分をカットする関数
+/// - iOS
+///   - Safari: ステータスバー(画面上部の時計とかWi-Fiとかのバー)からinner_height分を切り取る
+///   - Safari以外： ステータスバーの下にあるURLバーの下からinner_height分を切り取る
+///                 URLバーの高さは取得できない(Identifierの設定がない)が、ブラウザ下部のボタンの高さは取得できるので、
+///                 (画像のheight - ステータスバーのheight - ボタン(ナビゲーションバー)のheight)
+///                 で切り取る
+///                 あと、ナビゲーションバーの境界の線が入っちゃうので少し調整する
+pub fn trim_extra_space(
+    image_data: &[u8],
+    browser: &str,
+    inner_height: f64,
+    navigationbar_height: f64,
+) -> Result<Vec<u8>, String> {
     debug!("trim_extra_space");
 
     let image =
         image::load_from_memory(image_data).map_err(|e| format!("Failed to load image: {}", e))?;
     let (width, height) = image.dimensions();
-    let height = height as f64;
 
-    if height <= inner_height {
+    if height <= inner_height as u32 {
         return Err("Image height is smaller than navigation bar height, cannot crop.".to_string());
     }
 
+    // 必要な値をアレソレ
+    let device_os = DEVICE_OS.lock().unwrap().clone();
     let physical_density = *DEVICE_DENSITY.lock().unwrap();
-    let os = DEVICE_OS.lock().unwrap().clone();
+    let idevice_statusbar_height =
+        (*IDEVICE_STATUSBAR_HEIGHT.lock().unwrap() * physical_density).round() as u32;
+    let crop_height = (inner_height * physical_density).round() as u32;
+    let navigationbar_height = (navigationbar_height * physical_density).round() as u32;
 
-    let start_y = match os.as_str() {
-        "iOS" => *IDEVICE_STATUSBAR_HEIGHT.lock().unwrap(),
-        _ => 0.0,
+    let (start_y, crop_height) = match device_os.as_str() {
+        "iOS" => match browser {
+            "Chrome" => (
+                height - (crop_height + navigationbar_height) + 1,
+                crop_height - 2,
+            ),
+            "Firefox" => (
+                height - (crop_height + navigationbar_height),
+                crop_height - 1,
+            ),
+            _ => (idevice_statusbar_height, crop_height), // Safari
+        },
+        _ => (0, crop_height),
     };
-    debug!("start_y: {}", start_y);
-    let start_y_physical = (start_y * physical_density) as u32;
 
-    let crop_height = (inner_height * physical_density) as u32;
-    let cropped_image = image
-        .view(0, start_y_physical, width, crop_height)
-        .to_image();
+    debug!(
+        "[{}] start_y: {}, navigationbar_height: {}, crop_height: {}",
+        browser, start_y, navigationbar_height, crop_height
+    );
+
+    let cropped_image = image.view(0, start_y, width, crop_height).to_image();
 
     let mut output = std::io::Cursor::new(Vec::new());
     cropped_image

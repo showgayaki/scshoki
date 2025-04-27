@@ -1,9 +1,5 @@
-use std::sync::LazyLock;
 use std::time::Duration;
 
-pub const APPIUM_PORT: &str = "4723";
-pub static APPIUM_SERVER_URL: LazyLock<String> =
-    LazyLock::new(|| format!("http://127.0.0.1:{APPIUM_PORT}"));
 pub const APPIUM_TIMEOUT: Duration = Duration::from_secs(10);
 
 pub const APPIUM_VER: &str = "2.17.1";

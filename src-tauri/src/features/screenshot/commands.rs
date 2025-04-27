@@ -33,7 +33,8 @@ pub async fn take_screenshot(
         let browser_lowercased = browser.to_lowercase();
 
         match create_webdriver(&browser_lowercased, &url).await {
-            Ok(driver) => {
+            Ok(driver_context) => {
+                let driver = driver_context.driver;
                 // Density取得
                 get_display_info(&driver, &device_os).await;
 
@@ -44,6 +45,7 @@ pub async fn take_screenshot(
                     &datetime_now,
                     &device_os,
                     &browser,
+                    driver_context.navigationbar_height,
                 )
                 .await
                 {
@@ -58,7 +60,7 @@ pub async fn take_screenshot(
 
                         let screenshot_path = SCREENSHOT_DIR.join(format!(
                             "{}_{}_{}_full.png",
-                            datetime_now, device_os, browser_lowercased
+                            datetime_now, device_os, browser
                         ));
                         if let Err(e) = fs::write(&screenshot_path, final_screenshot) {
                             error!("[{}] Failed to save screenshot: {}", browser, e);

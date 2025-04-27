@@ -4,16 +4,24 @@ use thirtyfour::prelude::*;
 use super::capabilities::android::capabilities as android_capabilities;
 use super::capabilities::ios::capabilities as ios_capabilities;
 use super::capabilities::ios::capabilities_first_open as ios_capabilities_first_open;
+use super::constants::NAVIGATION_ELEMTNT_FOR_HEIGHT;
 use super::url::format_url;
-use crate::features::appium::constants::APPIUM_SERVER_URL;
-use crate::features::device::constants::{DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
 
-pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, String> {
+use crate::constants::APPIUM_SERVER_URL;
+use crate::features::device::constants::{DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
+use crate::utils::wait::wait_ms;
+
+pub struct DriverContext {
+    pub driver: WebDriver,
+    pub navigationbar_height: f64,
+}
+
+pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext, String> {
     info!("Creating WebDriver for {}", browser);
     let device_os = DEVICE_OS.lock().unwrap().clone();
 
     // OSごとのWebDriverを取得
-    let driver = match device_os.as_str() {
+    let (driver, navigationbar_height) = match device_os.as_str() {
         // iOSの場合は最初にページを開いておく必要がある
         "iOS" => {
             // UDIDとiOSバージョンを取得
@@ -31,29 +39,41 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<WebDriver, Str
                 .await
                 .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
 
+            // ブラウザ下部のナビゲーションバーの高さを取得
+            // ブラウザが開くまでちょっと待たないと取れない模様
+            wait_ms(500).await;
+            let navigationbar_height = get_navigationbar_height(&driver_first_open, browser).await;
+
             // Appiumセッションを終了
             if let Err(e) = driver_first_open.quit().await {
                 error!("Failed to quit session: {}", e);
             }
 
-            let caps = ios_capabilities(&device_os, &device_udid, &ios_version).await?;
+            let caps = ios_capabilities(&device_os, &device_udid, &ios_version)?;
             debug!("WebDriver capabilities: {:?}", caps);
-            webrdiver(caps).await
+
+            let driver = webrdiver(caps).await?;
+            (driver, navigationbar_height)
         }
         "Android" => {
             let caps = android_capabilities(browser, &device_os).await?;
             debug!("WebDriver capabilities: {:?}", caps);
             let driver = webrdiver(caps).await?;
+
             driver
                 .goto(url)
                 .await
                 .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
-            Ok(driver)
+
+            (driver, 0.0)
         }
         _ => return Err("Unsupported device OS".to_string()),
     };
 
-    driver
+    Ok(DriverContext {
+        driver,
+        navigationbar_height,
+    })
 }
 
 async fn create_webdriver_first_open(
@@ -63,7 +83,6 @@ async fn create_webdriver_first_open(
 ) -> Result<WebDriver, String> {
     info!("Creating WebDriver for first open");
     let caps = ios_capabilities_first_open(device_os, device_udid, ios_version)
-        .await
         .map_err(|e| format!("Failed to create iOS capabilities: {}", e))?;
 
     debug!("WebDriver capabilities: {:?}", caps);
@@ -74,4 +93,46 @@ async fn webrdiver(caps: Capabilities) -> Result<WebDriver, String> {
     WebDriver::new(&*APPIUM_SERVER_URL, caps)
         .await
         .map_err(|e| format!("Failed to start WebDriver: {}", e))
+}
+
+async fn get_navigationbar_height(driver: &WebDriver, browser: &str) -> f64 {
+    if let Some(identifier) = NAVIGATION_ELEMTNT_FOR_HEIGHT.get(browser) {
+        if let Ok(source) = driver.source().await {
+            debug!("Page Source:\n{}", source);
+        } else {
+            error!("Failed to get page source");
+        }
+        debug!("Get {} height on {}", identifier, browser);
+
+        match driver.find(By::Id(*identifier)).await {
+            // match driver
+            //     .find(By::Id("kToolbarToolsMenuButtonIdentifier"))
+            //     .await
+            // {
+            Ok(element) => match element.rect().await {
+                Ok(element_rect) => {
+                    debug!(
+                        "{} Rect - x: {}, y: {}, width: {}, height: {}",
+                        identifier,
+                        element_rect.x,
+                        element_rect.y,
+                        element_rect.width,
+                        element_rect.height,
+                    );
+                    element_rect.height
+                }
+                Err(e) => {
+                    error!("Error occurred while getting rect: {}", e);
+                    0.0
+                }
+            },
+            Err(e) => {
+                error!("Error occurred while finding element: {}", e);
+                0.0
+            }
+        }
+    } else {
+        error!("No identifier found for browser: {}", browser);
+        0.0
+    }
 }

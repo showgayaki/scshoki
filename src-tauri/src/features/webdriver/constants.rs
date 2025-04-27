@@ -14,3 +14,13 @@ pub static BROWSER_SCHEMES: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
     schemes.insert("edge", "microsoft-edge://");
     schemes
 });
+
+// iOSのSafari以外のブラウザ用
+// ページ下部のナビゲーションバーの高さを取るためのエレメントのIdentifier
+pub static NAVIGATION_ELEMTNT_FOR_HEIGHT: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
+    let mut element_name = HashMap::new();
+    element_name.insert("chrome", "kToolbarToolsMenuButtonIdentifier");
+    element_name.insert("firefox", "TabToolbar.homeButton");
+    element_name.insert("edge", "");
+    element_name
+});

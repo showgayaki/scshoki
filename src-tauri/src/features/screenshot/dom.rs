@@ -10,8 +10,8 @@ pub async fn get_page_metrics(driver: &WebDriver) -> Result<HashMap<String, f64>
         const innerHeight = window.innerHeight;
         const totalScrollHeight = document.documentElement.scrollHeight
         return {
-            innerHeight: window.innerHeight,
-            totalScrollHeight: document.documentElement.scrollHeight,
+            innerHeight: innerHeight,
+            totalScrollHeight: totalScrollHeight,
             scrollSteps: Math.ceil(totalScrollHeight / innerHeight),
         };
     "#;

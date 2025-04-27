@@ -3,6 +3,11 @@ use thirtyfour::prelude::*;
 use thirtyfour::By;
 use tokio::time::{sleep, Duration, Instant};
 
+pub async fn wait_ms(duration: u64) {
+    debug!("wait: {} ms", duration);
+    sleep(Duration::from_millis(duration)).await;
+}
+
 pub async fn wait_for_page_load(driver: &WebDriver, url: &str) -> Result<(), String> {
     debug!("wait_for_page_load");
 
