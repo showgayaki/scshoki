@@ -41,7 +41,6 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
 
             // ブラウザ下部のナビゲーションバーの高さを取得
             // ブラウザが開くまでちょっと待たないと取れない模様
-            wait_ms(500).await;
             let navigationbar_height = get_navigationbar_height(&driver_first_open, browser).await;
 
             // Appiumセッションを終了
@@ -96,41 +95,41 @@ async fn webrdiver(caps: Capabilities) -> Result<WebDriver, String> {
 }
 
 async fn get_navigationbar_height(driver: &WebDriver, browser: &str) -> f64 {
-    if let Some(identifier) = NAVIGATION_ELEMTNT_FOR_HEIGHT.get(browser) {
-        if let Ok(source) = driver.source().await {
-            debug!("Page Source:\n{}", source);
-        } else {
-            error!("Failed to get page source");
-        }
-        debug!("Get {} height on {}", identifier, browser);
+    const RETRY_COUNT: u32 = 3;
 
-        match driver.find(By::Id(*identifier)).await {
-            // match driver
-            //     .find(By::Id("kToolbarToolsMenuButtonIdentifier"))
-            //     .await
-            // {
-            Ok(element) => match element.rect().await {
-                Ok(element_rect) => {
-                    debug!(
-                        "{} Rect - x: {}, y: {}, width: {}, height: {}",
-                        identifier,
-                        element_rect.x,
-                        element_rect.y,
-                        element_rect.width,
-                        element_rect.height,
-                    );
-                    element_rect.height
-                }
-                Err(e) => {
-                    error!("Error occurred while getting rect: {}", e);
-                    0.0
-                }
-            },
-            Err(e) => {
-                error!("Error occurred while finding element: {}", e);
-                0.0
+    if let Some(element) = NAVIGATION_ELEMTNT_FOR_HEIGHT.get(browser) {
+        for _ in 0..RETRY_COUNT {
+            if let Ok(source) = driver.source().await {
+                debug!("Page Source:\n{}", source);
+            } else {
+                error!("Failed to get page source");
             }
+            debug!("Get {} height on {}", element.identifier, browser);
+
+            match driver.find(By::Id(element.identifier)).await {
+                Ok(found_element) => match found_element.rect().await {
+                    Ok(element_rect) => {
+                        debug!(
+                            "{} Rect - x: {}, y: {}, width: {}, height: {}",
+                            element.identifier,
+                            element_rect.x,
+                            element_rect.y,
+                            element_rect.width,
+                            element_rect.height,
+                        );
+                        return element_rect.height;
+                    }
+                    Err(e) => {
+                        error!("Error occurred while getting rect: {}", e);
+                    }
+                },
+                Err(e) => {
+                    error!("Error occurred while finding element: {}", e);
+                }
+            }
+            wait_ms(300).await;
         }
+        element.default_height
     } else {
         error!("No identifier found for browser: {}", browser);
         0.0

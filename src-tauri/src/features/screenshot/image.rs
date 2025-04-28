@@ -32,22 +32,22 @@ pub fn trim_extra_space(
     let physical_density = *DEVICE_DENSITY.lock().unwrap();
     let idevice_statusbar_height =
         (*IDEVICE_STATUSBAR_HEIGHT.lock().unwrap() * physical_density).round() as u32;
-    let crop_height = (inner_height * physical_density).round() as u32;
+    let inner_height = (inner_height * physical_density).round() as u32;
     let navigationbar_height = (navigationbar_height * physical_density).round() as u32;
 
     let (start_y, crop_height) = match device_os.as_str() {
         "iOS" => match browser {
             "Chrome" => (
-                height - (crop_height + navigationbar_height) + 1,
-                crop_height - 2,
+                height - (inner_height + navigationbar_height) + 1,
+                inner_height - 2,
             ),
-            "Firefox" => (
-                height - (crop_height + navigationbar_height),
-                crop_height - 1,
-            ),
-            _ => (idevice_statusbar_height, crop_height), // Safari
+            "Firefox" => {
+                let crop_height = inner_height - 2;
+                (height - (inner_height + navigationbar_height), crop_height)
+            }
+            _ => (idevice_statusbar_height, inner_height), // Safari
         },
-        _ => (0, crop_height),
+        _ => (0, inner_height),
     };
 
     debug!(
@@ -66,12 +66,9 @@ pub fn trim_extra_space(
 }
 
 // 最後のスクロールで、被った部分をカットする関数
-pub fn cut_scroll_overlap(
-    image_data: &[u8],
-    scroll_overlap_height: f64,
-) -> Result<Vec<u8>, String> {
+pub fn cut_scroll_overlap(image_data: &[u8], remaining_height: f64) -> Result<Vec<u8>, String> {
     debug!("cut_scroll_overlap");
-    debug!("scroll_overlap_height: {} px", scroll_overlap_height);
+    debug!("scroll_overlap_height: {} px", remaining_height);
 
     let image =
         image::load_from_memory(image_data).map_err(|e| format!("Failed to load image: {}", e))?;
@@ -79,14 +76,14 @@ pub fn cut_scroll_overlap(
 
     let physical_density = *DEVICE_DENSITY.lock().unwrap();
 
-    let scroll_overlap_height = (scroll_overlap_height * physical_density) as u32;
-    if height <= scroll_overlap_height {
+    let remaining_height = (remaining_height * physical_density) as u32;
+    if height <= remaining_height {
         return Err("Image height is smaller than crop height, cannot crop.".to_string());
     }
 
-    let new_height = height - scroll_overlap_height;
+    let scroll_overlap_height = height - remaining_height;
     let cropped_image = image
-        .view(0, scroll_overlap_height, width, new_height)
+        .view(0, scroll_overlap_height, width, remaining_height)
         .to_image();
 
     let mut output = std::io::Cursor::new(Vec::new());
@@ -95,4 +92,16 @@ pub fn cut_scroll_overlap(
         .map_err(|e| format!("Failed to save cropped image: {}", e))?;
 
     Ok(output.into_inner())
+}
+
+pub fn get_image_size(image_data: &[u8]) -> (f64, f64) {
+    let physical_density = *DEVICE_DENSITY.lock().unwrap();
+
+    let image = image::load_from_memory(image_data).unwrap();
+    let (widht, height) = image.dimensions();
+
+    (
+        (widht as f64 / physical_density).round(),
+        (height as f64 / physical_density).round(),
+    )
 }

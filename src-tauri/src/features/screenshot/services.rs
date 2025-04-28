@@ -5,14 +5,14 @@ use thirtyfour::prelude::*;
 
 use super::constants::SCREENSHOT_DIR;
 use super::dom::{get_page_metrics, get_scroll_position, hide_elements, scroll_by, show_elements};
-use super::image::{cut_scroll_overlap, trim_extra_space};
+use super::image::{cut_scroll_overlap, get_image_size, trim_extra_space};
 use crate::utils::wait::{wait_for_elements_hidden, wait_for_scroll_complete};
 
 pub async fn capture_full_page(
     driver: &WebDriver,
     hidden_elements: &str,
     datetime_now: &str,
-    os: &str,
+    device_os: &str,
     browser: &str,
     navigationbar_height: f64,
 ) -> Result<Vec<Vec<u8>>, String> {
@@ -40,9 +40,11 @@ pub async fn capture_full_page(
 
     // スクロールしながらスクリーンショット
     let mut screenshots = vec![];
+    let mut y_offset = 0.0;
+    let mut y_before_last_scroll = 0.0;
 
     for index in 1..=scroll_steps {
-        debug!("Starting scroll and caputure.");
+        debug!("Screenshot count: {}", index);
 
         // スクリーンショットを撮る
         let screenshot: Vec<u8> = driver
@@ -52,30 +54,44 @@ pub async fn capture_full_page(
 
         // 最後のスクロール時は、被った部分をカット
         let cropped_screenshot = if index == scroll_steps {
-            // 被った部分を計算
-            let scroll_overlap_height = (inner_height * index as f64) - total_scroll_height;
+            // 残りの部分を計算
+            // `前回のスクロール位置 - 今回のスクロール位置`が残りの部分の高さ
+            let remaining_height = y_offset - y_before_last_scroll;
+            debug!("Remaining height: {} px", remaining_height);
             // 余白をカットしてから被った部分をカット
             let tmp = trim_extra_space(&screenshot, browser, inner_height, navigationbar_height)?;
-            cut_scroll_overlap(&tmp, scroll_overlap_height)?
+            cut_scroll_overlap(&tmp, remaining_height)?
         } else {
             trim_extra_space(&screenshot, browser, inner_height, navigationbar_height)?
         };
 
         screenshots.push(cropped_screenshot.clone());
 
-        let filename = format!("{}_{}_{}_{}.png", datetime_now, os, browser, index);
+        let filename = format!("{}_{}_{}_{}.png", datetime_now, device_os, browser, index);
         fs::write(SCREENSHOT_DIR.join(&filename), &cropped_screenshot)
             .map_err(|e| format!("Failed to save {}: {}", &filename, e))?;
         info!("Saved {}", &filename);
 
+        // 最後のスクロールならあとの計算はもういらない
+        if index == scroll_steps {
+            break;
+        }
+
+        // スクショした画像の高さ分をスクロール
+        let (_, croped_height) = get_image_size(&cropped_screenshot);
         // スクロール実行
-        scroll_by(driver, inner_height)
+        scroll_by(driver, croped_height)
             .await
             .map_err(|e| format!("Failed to scroll: {}", e))?;
         wait_for_scroll_complete(driver).await?; // スクロール完了を待つ
 
+        // 最後から2番目のyの位置を保存しておく（残りの高さ計算用）
+        if index == scroll_steps - 1 {
+            y_before_last_scroll = y_offset;
+        }
+
         // 新しいスクロール位置を取得
-        let y_offset = get_scroll_position(driver)
+        y_offset = get_scroll_position(driver)
             .await
             .map_err(|e| format!("Failed to get scroll position: {}", e))?;
         info!("Scrolled to: {} px", y_offset);
