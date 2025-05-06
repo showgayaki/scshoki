@@ -3,8 +3,8 @@ use thirtyfour::prelude::*;
 
 use super::capabilities::android::capabilities as android_capabilities;
 use super::capabilities::ios::capabilities as ios_capabilities;
-use super::capabilities::ios::capabilities_first_open as ios_capabilities_first_open;
-use super::constants::NAVIGATION_ELEMTNT_FOR_HEIGHT;
+use super::constants::{NAVIGATION_ELEMTNT_FOR_HEIGHT, WEBVIEW_BUNDLE_IDS};
+use super::context::{get_contexts, set_context};
 use super::url::format_url;
 
 use crate::constants::APPIUM_SERVER_URL;
@@ -24,34 +24,69 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
     let (driver, navigationbar_height) = match device_os.as_str() {
         // iOSの場合は最初にページを開いておく必要がある
         "iOS" => {
-            // UDIDとiOSバージョンを取得
+            // UDIDとiOSバージョン、ブラウザのBundle IDを取得
             let device_udid = IDEVICE_UDID.lock().unwrap().clone();
             let ios_version = IDEVICE_OS_VERSION.lock().unwrap().clone();
+            let bundle_id = WEBVIEW_BUNDLE_IDS
+                .get(browser)
+                .ok_or_else(|| format!("No bundle ID found for browser: {}", browser))?;
 
-            // 最初にWebDriverAgentを起動、ページを開いておく
-            let driver_first_open =
-                create_webdriver_first_open(&device_os, &device_udid, &ios_version).await?;
+            let caps = ios_capabilities(&device_os, &device_udid, &ios_version, bundle_id)?;
+            debug!("WebDriver capabilities: {:?}", caps);
 
+            let mut driver = webrdiver(caps.clone()).await?;
             let formated_url = format_url(url, browser);
             info!("Formatted URL: {}", formated_url);
-            driver_first_open
+            driver
                 .goto(&formated_url)
                 .await
                 .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
 
             // ブラウザ下部のナビゲーションバーの高さを取得
-            // ブラウザが開くまでちょっと待たないと取れない模様
-            let navigationbar_height = get_navigationbar_height(&driver_first_open, browser).await;
+            let navigationbar_height = get_navigationbar_height(&driver, browser).await;
+            debug!("Navigation bar height: {}", navigationbar_height);
 
-            // Appiumセッションを終了
-            if let Err(e) = driver_first_open.quit().await {
-                error!("Failed to quit session: {}", e);
+            // コンテキストをWEBVIEWに切り替える
+            let mut session_id = driver.session_id().to_string();
+            let contexts = get_contexts(&session_id, &APPIUM_SERVER_URL)
+                .await
+                .map_err(|e| e.to_string())?;
+
+            // コンテキスト切り替えできるものがアクティブ
+            for context in contexts {
+                if context.starts_with("WEBVIEW_") {
+                    debug!("Context: {}", context);
+                    let caps_clone = caps.clone();
+
+                    // gotoでページを開いたばっかりなので、set_contextできたタブが
+                    // テストするページが開かれたタブのはず
+                    let is_error =
+                        match set_context(&session_id, &APPIUM_SERVER_URL, &context).await {
+                            Ok(()) => break,
+                            Err(e) => {
+                                error!("set_context failed for {}: {}", context, e);
+                                true
+                            }
+                        };
+
+                    if is_error {
+                        // コンテキスト切り替えに失敗した場合は、セッションを削除して再作成
+                        debug!("Deleting session: {}", session_id);
+                        if let Err(e) = driver.quit().await {
+                            error!("Failed to quit driver: {}", e);
+                        }
+                        driver = webrdiver(caps_clone).await?;
+                        session_id = driver.session_id().to_string();
+                        debug!("Sesssion recreated: {}", session_id);
+
+                        // 一度get_contextsを実行しないと、次のset_contextで失敗するっぽい
+                        let _ = get_contexts(&session_id, &APPIUM_SERVER_URL).await;
+
+                        continue;
+                    }
+                }
             }
 
-            let caps = ios_capabilities(&device_os, &device_udid, &ios_version)?;
-            debug!("WebDriver capabilities: {:?}", caps);
-
-            let driver = webrdiver(caps).await?;
             (driver, navigationbar_height)
         }
         "Android" => {
@@ -75,19 +110,6 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
     })
 }
 
-async fn create_webdriver_first_open(
-    device_os: &str,
-    device_udid: &str,
-    ios_version: &str,
-) -> Result<WebDriver, String> {
-    info!("Creating WebDriver for first open");
-    let caps = ios_capabilities_first_open(device_os, device_udid, ios_version)
-        .map_err(|e| format!("Failed to create iOS capabilities: {}", e))?;
-
-    debug!("WebDriver capabilities: {:?}", caps);
-    webrdiver(caps).await
-}
-
 async fn webrdiver(caps: Capabilities) -> Result<WebDriver, String> {
     WebDriver::new(&*APPIUM_SERVER_URL, caps)
         .await
@@ -100,7 +122,7 @@ async fn get_navigationbar_height(driver: &WebDriver, browser: &str) -> f64 {
     if let Some(element) = NAVIGATION_ELEMTNT_FOR_HEIGHT.get(browser) {
         for _ in 0..RETRY_COUNT {
             if let Ok(source) = driver.source().await {
-                debug!("Page Source:\n{}", source);
+                // debug!("Page Source:\n{}", source);
             } else {
                 error!("Failed to get page source");
             }

@@ -15,6 +15,15 @@ pub static BROWSER_SCHEMES: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
     schemes
 });
 
+pub static WEBVIEW_BUNDLE_IDS: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
+    let mut ids = HashMap::new();
+    ids.insert("safari", "com.apple.mobilesafari");
+    ids.insert("chrome", "com.google.chrome.ios");
+    ids.insert("firefox", "org.mozilla.ios.Firefox");
+    ids.insert("edge", "");
+    ids
+});
+
 // iOSのSafari以外のブラウザ用
 // ページ下部のナビゲーションバーの高さを取るためのエレメントのIdentifier
 pub struct NavigationElement {

@@ -6,7 +6,7 @@ use thirtyfour::prelude::*;
 use super::constants::SCREENSHOT_DIR;
 use super::dom::{get_page_metrics, get_scroll_position, hide_elements, scroll_by, show_elements};
 use super::image::{cut_scroll_overlap, get_image_size, trim_extra_space};
-use crate::utils::wait::{wait_for_elements_hidden, wait_for_scroll_complete};
+use crate::utils::wait::wait_for_elements_hidden;
 
 pub async fn capture_full_page(
     driver: &WebDriver,
@@ -37,6 +37,11 @@ pub async fn capture_full_page(
         fs::create_dir(&*SCREENSHOT_DIR)
             .map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
     }
+
+    // 既存タブを使うかもしれないので、0に戻しておく
+    scroll_by(driver, 0.0)
+        .await
+        .map_err(|e| format!("Failed to scroll: {}", e))?;
 
     // スクロールしながらスクリーンショット
     let mut screenshots = vec![];
@@ -83,7 +88,6 @@ pub async fn capture_full_page(
         scroll_by(driver, croped_height)
             .await
             .map_err(|e| format!("Failed to scroll: {}", e))?;
-        wait_for_scroll_complete(driver).await?; // スクロール完了を待つ
 
         // 最後から2番目のyの位置を保存しておく（残りの高さ計算用）
         if index == scroll_steps - 1 {

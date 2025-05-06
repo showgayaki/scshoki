@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use thirtyfour::prelude::*;
 
+use crate::utils::wait::wait_for_scroll_complete;
+
 pub async fn get_page_metrics(driver: &WebDriver) -> Result<HashMap<String, f64>, Box<dyn Error>> {
     debug!("Getting page metrics...");
 
@@ -88,5 +90,7 @@ pub async fn scroll_by(driver: &WebDriver, pixels: f64) -> Result<(), Box<dyn Er
     let script = format!("window.scrollBy(0, {});", pixels);
     debug!("{}", script);
     driver.execute(&script, vec![]).await?;
+
+    wait_for_scroll_complete(driver).await?; // スクロール完了を待つ
     Ok(())
 }

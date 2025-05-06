@@ -9,40 +9,7 @@ pub fn capabilities(
     device_os: &str,
     device_udid: &str,
     ios_version: &str,
-) -> Result<Capabilities, String> {
-    info!("Creating WebDriver iOS capabilities");
-    let mut caps = base_capabilities(device_os, device_udid, ios_version)?;
-    caps.insert("appium:autoWebview".to_string(), json!(true));
-    caps.insert("appium:useNewWDA".to_string(), json!(false));
-    caps.insert(
-        "appium:additionalWebviewBundleIds".to_string(),
-        json!([
-            "com.apple.mobilesafari",
-            "com.google.chrome.ios",
-            "org.mozilla.ios.Firefox",
-        ]),
-    );
-
-    Ok(caps)
-}
-
-pub fn capabilities_first_open(
-    device_os: &str,
-    device_udid: &str,
-    ios_version: &str,
-) -> Result<Capabilities, String> {
-    let mut caps = base_capabilities(device_os, device_udid, ios_version)?;
-    caps.insert("appium:autoWebview".to_string(), json!(false));
-    caps.insert("appium:useNewWDA".to_string(), json!(true));
-    caps.insert("appium:clearSystemFiles".to_string(), json!(true));
-
-    Ok(caps)
-}
-
-fn base_capabilities(
-    device_os: &str,
-    device_udid: &str,
-    ios_version: &str,
+    bundle_id: &str,
 ) -> Result<Capabilities, String> {
     info!("Creating WebDriver iOS capabilities");
     let mut caps = Capabilities::new();
@@ -64,6 +31,13 @@ fn base_capabilities(
         "appium:updatedWDABundleId".to_string(),
         json!(&WDA_IDENTIFIER),
     );
+    caps.insert(
+        "appium:additionalWebviewBundleIds".to_string(),
+        json!([bundle_id]),
+    );
+
+    caps.insert("appium:autoWebview".to_string(), json!(false));
+    caps.insert("appium:useNewWDA".to_string(), json!(true));
 
     Ok(caps)
 }
