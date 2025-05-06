@@ -1,6 +1,6 @@
 use std::env;
 use std::path::PathBuf;
-use std::sync::{LazyLock, Mutex};
+use std::sync::LazyLock;
 
 pub const HOST_OS: &str = env::consts::OS;
 pub const HOST_ARCH: &str = env::consts::ARCH;

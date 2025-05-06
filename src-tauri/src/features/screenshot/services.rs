@@ -38,14 +38,17 @@ pub async fn capture_full_page(
             .map_err(|e| format!("Failed to create screenshots directory: {}", e))?;
     }
 
-    // 既存タブを使うかもしれないので、0に戻しておく
-    scroll_by(driver, 0.0)
+    // 既存タブを使うかもしれないので、0の位置に戻しておく
+    let mut y_offset = get_scroll_position(driver)
+        .await
+        .map_err(|e| format!("Failed to get scroll position: {}", e))?;
+    scroll_by(driver, -y_offset)
         .await
         .map_err(|e| format!("Failed to scroll: {}", e))?;
 
     // スクロールしながらスクリーンショット
+    y_offset = 0.0;
     let mut screenshots = vec![];
-    let mut y_offset = 0.0;
     let mut y_before_last_scroll = 0.0;
 
     for index in 1..=scroll_steps {
