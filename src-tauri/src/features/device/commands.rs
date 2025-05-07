@@ -1,11 +1,9 @@
 use log::debug;
 use tauri::{command, AppHandle};
 
-use crate::features::device::constants::{
-    DEFAULT_DEVICE_VALUE, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME,
-};
+use crate::constants::{DEFAULT_DEVICE_VALUE, DEVICE_MANUFACTURE, DEVICE_OS, DEVICE_PRODUCT_NAME};
 
-use super::detect::start_usb_hotplug_monitor;
+use super::services::start_usb_hotplug_monitor;
 
 #[command]
 pub fn start_usb_monitor(app: AppHandle) {

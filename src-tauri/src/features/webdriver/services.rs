@@ -1,15 +1,14 @@
 use log::{debug, error, info};
 use thirtyfour::prelude::*;
 
-use super::capabilities::android::capabilities as android_capabilities;
-use super::capabilities::ios::capabilities as ios_capabilities;
-use super::constants::{NAVIGATION_ELEMTNT_FOR_HEIGHT, WEBVIEW_BUNDLE_IDS};
-use super::context::switch_to_target_context;
-use super::url::format_url;
-
-use crate::constants::APPIUM_SERVER_URL;
-use crate::features::device::constants::{DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
+use crate::constants::{APPIUM_SERVER_URL, DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
 use crate::utils::wait::wait_ms;
+
+use super::constants::{NAVIGATION_ELEMTNT_FOR_HEIGHT, WEBVIEW_BUNDLE_IDS};
+use super::infrastructure::capabilities::android::capabilities as android_capabilities;
+use super::infrastructure::capabilities::ios::capabilities as ios_capabilities;
+use super::infrastructure::context::switch_to_target_context;
+use super::infrastructure::url::format_url;
 
 pub struct DriverContext {
     pub driver: WebDriver,

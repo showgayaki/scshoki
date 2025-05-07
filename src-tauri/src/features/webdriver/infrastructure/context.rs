@@ -80,7 +80,6 @@ where
 
     let mut driver = driver.clone();
     let mut session_id = driver.session_id().to_string();
-    let mut context = "NATIVE_APP".to_string();
     let contexts = get_contexts(&session_id, appium_url)
         .await
         .map_err(|e| e.to_string())?;
@@ -127,7 +126,7 @@ where
         }
     } else {
         // Firefox 以外は新しいタブで開かれるので最大 page_id の WEBVIEW を使用
-        context = contexts
+        let context = contexts
             .iter()
             .filter(|c| c.starts_with("WEBVIEW_"))
             .max_by_key(|c| {

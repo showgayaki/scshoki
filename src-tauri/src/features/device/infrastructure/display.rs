@@ -1,37 +1,13 @@
-use log::{debug, error, info};
+use log::debug;
 use std::process::Command;
 use thirtyfour::prelude::*;
 
-use super::constants::{DEVICE_DENSITY, IDEVICE_STATUSBAR_HEIGHT};
+use crate::constants::{DEVICE_DENSITY, IDEVICE_STATUSBAR_HEIGHT};
 
 const MDPI_BASE_DENSITY: f64 = 160.0; // Androidの基準密度（mdpi）
 
-/// OSを指定してdensityを取得する関数
-pub async fn get_display_info(driver: &WebDriver, os: &str) {
-    debug!("get_physical_density(OS: {}) called!!!", os);
-    let density = match os {
-        "Android" => get_android_density().map_err(|_| "Failed to get Android density"),
-        "iOS" => get_ios_screen_info(driver)
-            .await
-            .map_err(|_| "Failed to get iOS density"),
-        _ => {
-            error!("Unsupported OS({}): Failed to get density", os);
-            Err("Unsupported OS")
-        }
-    };
-
-    let mut density_cache = DEVICE_DENSITY.lock().unwrap();
-    if let Ok(val) = density {
-        *density_cache = val;
-        info!("{} density: {:.1}", os, val);
-    } else {
-        *density_cache = 2.0;
-        error!("{} density: failed to retrieve", os);
-    }
-}
-
 /// Androidのdensity取得
-fn get_android_density() -> Result<f64, f64> {
+pub fn get_android_density() -> Result<f64, f64> {
     debug!("get_android_density called!!!");
     let output = Command::new("adb")
         .arg("shell")
@@ -57,7 +33,7 @@ fn get_android_density() -> Result<f64, f64> {
 }
 
 /// iOSのdensity取得
-async fn get_ios_screen_info(driver: &WebDriver) -> Result<f64, String> {
+pub async fn get_ios_screen_info(driver: &WebDriver) -> Result<f64, String> {
     debug!("get_ios_screen_info called!!!");
 
     let script = "mobile: deviceScreenInfo";

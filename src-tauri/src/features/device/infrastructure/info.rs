@@ -1,11 +1,13 @@
 use log::{debug, error};
 use rusb::{Device, UsbContext};
 
-use super::constants::{
-    DEFAULT_DEVICE_VALUE, IDEVICE_OS_VERSION, IDEVICE_PRODUCT_TYPE, IDEVICE_UDID, USB_CONTEXT,
+use crate::constants::USB_CONTEXT;
+use crate::constants::{
+    DEFAULT_DEVICE_VALUE, IDEVICE_OS_VERSION, IDEVICE_PRODUCT_TYPE, IDEVICE_UDID,
 };
-use super::ios::{get_udid, ios_version, product_type};
 use crate::utils::retry::retry;
+
+use super::ios::{get_udid, ios_version, product_type};
 
 pub fn detect_device_info<T: UsbContext>(
     device: &Device<T>,

@@ -1,5 +1,5 @@
-pub mod appium;
-pub mod dependencies;
-pub mod device;
-pub mod screenshot;
-pub mod webdriver;
+pub(crate) mod appium;
+pub(crate) mod dependencies;
+pub(crate) mod device;
+pub(crate) mod screenshot;
+pub(crate) mod webdriver;

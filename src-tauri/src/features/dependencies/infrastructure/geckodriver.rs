@@ -3,8 +3,9 @@ use reqwest::Client;
 use serde_json::Value;
 use tokio::task::spawn_blocking;
 
-use super::super::infrastructure::install_binary;
 use crate::constants::{HOST_ARCH, HOST_OS};
+
+use super::super::infrastructure::install_binary;
 
 pub async fn install() -> Result<(), String> {
     let binary_name = "geckodriver";

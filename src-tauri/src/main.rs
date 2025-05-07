@@ -1,14 +1,15 @@
-mod constants;
-mod env;
-mod features;
-mod utils;
-
 use log::{error, info};
 use rusb::Context;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
 
-use constants::{BINARY_DIR, HOST_ARCH, HOST_OS};
+mod constants;
+mod env;
+mod features;
+mod usecases;
+mod utils;
+
+use constants::{BINARY_DIR, HOST_ARCH, HOST_OS, USB_CONTEXT};
 use env::add_to_path;
 use features::appium::commands::{start_appium, stop_appium};
 use features::appium::services::AppiumState;
@@ -18,7 +19,6 @@ use features::dependencies::commands::{
     install_nodejs,
 };
 use features::device::commands::{init_devive_info, start_usb_monitor};
-use features::device::constants::USB_CONTEXT;
 use features::screenshot::commands::take_screenshot;
 use utils::logger::init_logger;
 

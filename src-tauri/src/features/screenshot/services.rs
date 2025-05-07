@@ -3,12 +3,15 @@ use log::{debug, info};
 use std::fs;
 use thirtyfour::prelude::*;
 
-use super::constants::SCREENSHOT_DIR;
-use super::dom::{get_page_metrics, get_scroll_position, hide_elements, scroll_by, show_elements};
-use super::image::{cut_scroll_overlap, get_image_size, trim_extra_space};
+use crate::constants::SCREENSHOT_DIR;
 use crate::utils::wait::wait_for_elements_hidden;
 
-pub async fn capture_full_page(
+use super::infrastructure::dom::{
+    get_page_metrics, get_scroll_position, hide_elements, scroll_by, show_elements,
+};
+use super::infrastructure::image::{cut_scroll_overlap, get_image_size, trim_extra_space};
+
+pub async fn screenshot_full_page(
     driver: &WebDriver,
     hidden_elements: &str,
     datetime_now: &str,
@@ -42,12 +45,16 @@ pub async fn capture_full_page(
     let mut y_offset = get_scroll_position(driver)
         .await
         .map_err(|e| format!("Failed to get scroll position: {}", e))?;
-    scroll_by(driver, -y_offset)
-        .await
-        .map_err(|e| format!("Failed to scroll: {}", e))?;
+
+    if y_offset != 0.0 {
+        info!("Scrolling to top...");
+        // スクロール位置を0に戻す
+        scroll_by(driver, -y_offset)
+            .await
+            .map_err(|e| format!("Failed to scroll: {}", e))?;
+    }
 
     // スクロールしながらスクリーンショット
-    y_offset = 0.0;
     let mut screenshots = vec![];
     let mut y_before_last_scroll = 0.0;
 

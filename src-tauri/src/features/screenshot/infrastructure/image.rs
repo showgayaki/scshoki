@@ -1,7 +1,7 @@
 use image::GenericImageView;
 use log::debug;
 
-use crate::features::device::constants::{DEVICE_DENSITY, DEVICE_OS, IDEVICE_STATUSBAR_HEIGHT};
+use crate::constants::{DEVICE_DENSITY, DEVICE_OS, IDEVICE_STATUSBAR_HEIGHT};
 
 /// 画像のいらない部分をカットする関数
 /// - iOS

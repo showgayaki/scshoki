@@ -1,9 +1,10 @@
 use log::info;
 use serde_json::json;
+use std::env;
+use std::sync::LazyLock;
 use thirtyfour::prelude::*;
 
-use crate::constants::{APPIUM_PORT, DEVELOPMENT_TEAM};
-use crate::features::appium::constants::WDA_IDENTIFIER;
+use crate::constants::APPIUM_PORT;
 
 pub fn capabilities(
     device_os: &str,
@@ -12,6 +13,11 @@ pub fn capabilities(
     bundle_id: &str,
 ) -> Result<Capabilities, String> {
     info!("Creating WebDriver iOS capabilities");
+
+    const WDA_IDENTIFIER: &str = "com.facebook.WebDriverAgentRunner";
+    static DEVELOPMENT_TEAM: LazyLock<String> =
+        LazyLock::new(|| env::var("DEVELOPMENT_TEAM").unwrap_or_else(|_| "Unknown".to_string()));
+
     let mut caps = Capabilities::new();
 
     caps.insert("appium:automationName".to_string(), json!("XCUITest"));

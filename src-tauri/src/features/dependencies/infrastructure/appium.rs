@@ -2,8 +2,10 @@ use log::{error, info};
 use std::process::Command;
 use tokio::task::spawn_blocking;
 
-use super::super::super::super::constants::NODE_DIR;
-use crate::features::appium::constants::{APPIUM_VER, DRIVER_LIST};
+use crate::constants::NODE_DIR;
+
+const APPIUM_VER: &str = "2.17.1";
+const DRIVER_LIST: [&str; 3] = ["uiautomator2@4.1.5", "gecko@1.4.3", "xcuitest@9.1.2"];
 
 pub async fn install() -> Result<(), String> {
     return spawn_blocking(install_appium)

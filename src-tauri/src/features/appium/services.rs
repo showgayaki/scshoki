@@ -1,17 +1,20 @@
 use log::{error, info};
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
-use super::super::super::constants::NODE_DIR;
-use super::constants::APPIUM_TIMEOUT;
-use super::wait::wait_for_appium_ready;
+use crate::constants::NODE_DIR;
+
+use super::infrastructure::wait::wait_for_appium_ready;
 
 pub struct AppiumState {
     pub(crate) process: Arc<Mutex<Option<Child>>>,
 }
 
 impl AppiumState {
+    const APPIUM_TIMEOUT: Duration = Duration::from_secs(10);
+
     pub async fn start_appium(&self, app: AppHandle) -> Result<(), String> {
         let mut lock = self.process.lock().unwrap();
         if lock.is_some() {
@@ -35,7 +38,7 @@ impl AppiumState {
         *lock = Some(process);
 
         // wait for Appium and emit event
-        tokio::spawn(wait_for_appium_ready(app, APPIUM_TIMEOUT));
+        tokio::spawn(wait_for_appium_ready(app, Self::APPIUM_TIMEOUT));
 
         Ok(())
     }

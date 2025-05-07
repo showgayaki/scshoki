@@ -2,7 +2,8 @@ use log::{debug, info};
 use serde_json::json;
 use thirtyfour::prelude::*;
 
-use super::super::constants::CHROME_DRIVER_PATH;
+use super::CHROME_DRIVER_PATH;
+
 use crate::constants::HOST_OS;
 
 pub async fn capabilities(browser: &str, device_os: &str) -> Result<Capabilities, String> {
