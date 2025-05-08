@@ -1,8 +1,10 @@
 use log::{debug, error, info};
 use serde_json::{Map, Value};
-use thirtyfour::prelude::*;
+use thirtyfour::error::WebDriverErrorInfo;
+use thirtyfour::prelude::*; // Import the missing type
 
 use crate::constants::{APPIUM_SERVER_URL, DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
+use crate::utils::wait::wait_for_page_load;
 
 use super::constants::WEBVIEW_BUNDLE_IDS;
 use super::infrastructure::capabilities::{android_capabilities, ios_capabilities};
@@ -14,6 +16,17 @@ use super::infrastructure::webdriver::webdriver;
 pub struct DriverContext {
     pub driver: WebDriver,
     pub navigationbar_height: f64,
+}
+
+pub async fn goto_and_wait(driver: &WebDriver, url: &str) -> WebDriverResult<()> {
+    driver.goto(url).await?;
+    if let Err(e) = wait_for_page_load(driver, url).await {
+        error!("Failed to wait for page load: {}", e);
+        return Err(WebDriverError::UnknownError(WebDriverErrorInfo::new(
+            e.to_string(),
+        )));
+    }
+    Ok(())
 }
 
 pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext, String> {
@@ -56,10 +69,9 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
             debug!("WebDriver capabilities: {:?}", caps);
             let driver = webdriver(&APPIUM_SERVER_URL, caps).await?;
 
-            driver
-                .goto(url)
-                .await
-                .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
+            if let Err(e) = goto_and_wait(&driver, url).await {
+                return Err(format!("Failed to navigate and wait for URL: {}", e));
+            }
 
             (driver, 0.0)
         }
