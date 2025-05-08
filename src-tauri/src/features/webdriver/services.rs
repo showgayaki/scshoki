@@ -1,14 +1,15 @@
 use log::{debug, error, info};
+use serde_json::{Map, Value};
 use thirtyfour::prelude::*;
 
 use crate::constants::{APPIUM_SERVER_URL, DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
-use crate::utils::wait::wait_ms;
 
-use super::constants::{NAVIGATION_ELEMTNT_FOR_HEIGHT, WEBVIEW_BUNDLE_IDS};
-use super::infrastructure::capabilities::android_capabilities;
-use super::infrastructure::capabilities::ios_capabilities;
-use super::infrastructure::context::switch_to_target_context;
+use super::constants::WEBVIEW_BUNDLE_IDS;
+use super::infrastructure::capabilities::{android_capabilities, ios_capabilities};
+use super::infrastructure::context::{get_contexts, set_context};
+use super::infrastructure::navigationbar::get_navigationbar_height;
 use super::infrastructure::url::format_url;
+use super::infrastructure::webdriver::webdriver;
 
 pub struct DriverContext {
     pub driver: WebDriver,
@@ -33,7 +34,7 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
             let caps = ios_capabilities(&device_os, &device_udid, &ios_version, bundle_id)?;
             debug!("WebDriver capabilities: {:?}", caps);
 
-            let mut driver = webrdiver(caps.clone()).await?;
+            let mut driver = webdriver(&APPIUM_SERVER_URL, caps.clone()).await?;
             let formated_url = format_url(url, browser);
             info!("Formatted URL: {}", formated_url);
             driver
@@ -46,16 +47,14 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
             debug!("Navigation bar height: {}", navigationbar_height);
 
             // コンテキストを適切なWEBVIEWに切り替える
-            driver =
-                switch_to_target_context(browser, &driver, &APPIUM_SERVER_URL, caps, webrdiver)
-                    .await?;
+            driver = switch_to_target_context(browser, &driver, &APPIUM_SERVER_URL, caps).await?;
 
             (driver, navigationbar_height)
         }
         "Android" => {
             let caps = android_capabilities(browser, &device_os).await?;
             debug!("WebDriver capabilities: {:?}", caps);
-            let driver = webrdiver(caps).await?;
+            let driver = webdriver(&APPIUM_SERVER_URL, caps).await?;
 
             driver
                 .goto(url)
@@ -73,50 +72,76 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
     })
 }
 
-async fn webrdiver(caps: Capabilities) -> Result<WebDriver, String> {
-    WebDriver::new(&*APPIUM_SERVER_URL, caps)
+/// 指定したURLに一致するWEBVIEW contextを優先的に選び、なければ最大IDのWEBVIEWを返す
+async fn switch_to_target_context(
+    browser: &str,
+    driver: &WebDriver,
+    appium_server_url: &str,
+    caps: Map<String, Value>,
+) -> Result<WebDriver, String> {
+    debug!("Selecting best context for browser: {}", browser);
+
+    let mut driver = driver.clone();
+    let mut session_id = driver.session_id().to_string();
+    let contexts = get_contexts(&session_id, appium_server_url)
         .await
-        .map_err(|e| format!("Failed to start WebDriver: {}", e))
-}
+        .map_err(|e| e.to_string())?;
+    info!("Available contexts: {:?}", contexts);
 
-async fn get_navigationbar_height(driver: &WebDriver, browser: &str) -> f64 {
-    const RETRY_COUNT: u32 = 3;
+    // Firefoxの場合は、同じURLが開かれているタブがあるときに
+    // 新しくタブを開かずにそのタブを使用されるため、今回開かれたアクティブなタブを探す
+    if browser == "firefox" {
+        // コンテキスト切り替えできるものがアクティブ
+        for context in contexts {
+            if context.starts_with("WEBVIEW_") {
+                debug!("Context: {}", context);
+                let caps_clone = caps.clone();
 
-    if let Some(element) = NAVIGATION_ELEMTNT_FOR_HEIGHT.get(browser) {
-        for _ in 0..RETRY_COUNT {
-            if let Ok(_source) = driver.source().await {
-                // debug!("Page Source:\n{}", source);
-            } else {
-                error!("Failed to get page source");
-            }
-            debug!("Get {} height on {}", element.identifier, browser);
-
-            match driver.find(By::Id(element.identifier)).await {
-                Ok(found_element) => match found_element.rect().await {
-                    Ok(element_rect) => {
-                        debug!(
-                            "{} Rect - x: {}, y: {}, width: {}, height: {}",
-                            element.identifier,
-                            element_rect.x,
-                            element_rect.y,
-                            element_rect.width,
-                            element_rect.height,
-                        );
-                        return element_rect.height;
+                // gotoでページを開いたばっかりなので、set_contextできたタブが
+                // テストするページが開かれたタブのはず
+                let is_error = match set_context(&session_id, &APPIUM_SERVER_URL, &context).await {
+                    Ok(()) => {
+                        break;
                     }
                     Err(e) => {
-                        error!("Error occurred while getting rect: {}", e);
+                        error!("set_context failed for {}: {}", context, e);
+                        true
                     }
-                },
-                Err(e) => {
-                    error!("Error occurred while finding element: {}", e);
+                };
+
+                if is_error {
+                    // コンテキスト切り替えに失敗した場合は、セッションを削除して再作成
+                    debug!("Deleting session: {}", session_id);
+                    if let Err(e) = driver.quit().await {
+                        error!("Failed to quit driver: {}", e);
+                    }
+                    let new_driver = webdriver(appium_server_url, caps_clone).await?;
+                    driver = new_driver;
+                    session_id = driver.session_id().to_string();
+                    debug!("Sesssion recreated: {}", session_id);
+
+                    // 一度get_contextsを実行しないと、次のset_contextで失敗するっぽい
+                    let _ = get_contexts(&session_id, &APPIUM_SERVER_URL).await;
+
+                    continue;
                 }
             }
-            wait_ms(300).await;
         }
-        element.default_height
     } else {
-        error!("No identifier found for browser: {}", browser);
-        0.0
+        // Firefox 以外は新しいタブで開かれるので最大 page_id の WEBVIEW を使用
+        let context = contexts
+            .iter()
+            .filter(|c| c.starts_with("WEBVIEW_"))
+            .max_by_key(|c| {
+                c.split('.')
+                    .nth(1)
+                    .and_then(|s| s.parse::<u32>().ok())
+                    .unwrap_or(0)
+            })
+            .cloned()
+            .ok_or("No valid WEBVIEW context found".to_string())?;
+
+        let _ = set_context(&session_id, &APPIUM_SERVER_URL, &context).await;
     }
+    Ok(driver)
 }
