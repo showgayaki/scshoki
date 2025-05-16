@@ -1,10 +1,9 @@
-import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import AppSnackbar from "@/components/AppSnackbar";
 
-export function DeviceToast() {
-    const autoHideDuration = 2000; // トーストの表示時間(ms)
+export function useDeviceSnackbar() {
+    const autoHideDuration = 2000; // スナックバーの表示時間(ms)
 
     const [open, setOpen] = useState(false);
     const [message, setMessage] = useState("");
@@ -31,18 +30,11 @@ export function DeviceToast() {
         };
     }, []);
 
-    return (
-        <AppSnackbar
-            open={open}
-            onClose={() => setOpen(false)}
-            message={message}
-            color={color}
-            autoHideDuration={autoHideDuration}
-            onTransitionEnd={() => {
-                if (color === "warning") {
-                    invoke("init_devive_info");
-                }
-            }}
-        />
-    );
+    return {
+        open,
+        message,
+        color,
+        autoHideDuration,
+        setOpen,
+    };
 }
