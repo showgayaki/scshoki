@@ -1,10 +1,10 @@
 import { useState } from "react";
 
-import UrlInputForm from "./UrlInputForm";
-import BasicAuthForm from "./BasicAuthForm";
-import HiddenElementsForm from "./HiddenElementsForm";
-import BrowserSelect from "./BrowserSelect";
-import ScreenshotButton from "./ScreenshotButton";
+import UrlInputForm from "./components/UrlInputForm";
+import BasicAuthForm from "./components/BasicAuthForm";
+import HiddenElementsForm from "./components/HiddenElementsForm";
+import BrowserSelect from "./components/BrowserSelect";
+import ScreenshotButton from "./components/ScreenshotButton";
 
 export default function Home() {
     const [url, setUrl] = useState("");
