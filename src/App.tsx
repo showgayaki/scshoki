@@ -3,19 +3,20 @@ import { listen } from "@tauri-apps/api/event";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
-import { InstallationProgress } from "./components/InstallationProgress";
+import { InstallationProgress } from "./features/installation/InstallationProgress";
 import { DeviceToast } from "./components/DeviceToast";
 import AppiumStartupOverlay from "./components/AppiumStartupOverlay";
 
 function App() {
     const [appiumReady, setAppiumReady] = useState(false);
+    const [installComplete, setInstallComplete] = useState(false);
 
     useEffect(() => {
         const unlisten = listen("appium_ready", () => {
             console.log("Appium is ready!");
             setTimeout(() => {
                 setAppiumReady(true);
-            }, 1000); // ← 1秒だけ表示してから消す
+            }, 1000);
         });
 
         return () => {
@@ -25,9 +26,9 @@ function App() {
 
     return (
         <>
-            <InstallationProgress />
+            {!installComplete && <InstallationProgress onComplete={() => setInstallComplete(true)} />}
             <DeviceToast />
-            {!appiumReady && <AppiumStartupOverlay />}
+            {installComplete && !appiumReady && <AppiumStartupOverlay />}
             <Router>
                 <Routes>
                     <Route path="/" element={<Home />} />

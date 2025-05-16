@@ -1,7 +1,7 @@
 use log::{debug, error, info};
 use serde_json::{Map, Value};
 use thirtyfour::error::WebDriverErrorInfo;
-use thirtyfour::prelude::*; // Import the missing type
+use thirtyfour::prelude::*;
 
 use crate::constants::{APPIUM_SERVER_URL, DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
 use crate::utils::wait::wait_for_page_load;
