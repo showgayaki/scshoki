@@ -1,8 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Snackbar, IconButton } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import CloseIcon from "@mui/icons-material/Close";
+import AppSnackbar from "@/components/AppSnackbar";
 
 export function DeviceToast() {
     const autoHideDuration = 2000; // トーストの表示時間(ms)
@@ -33,25 +32,17 @@ export function DeviceToast() {
     }, []);
 
     return (
-        <Snackbar
+        <AppSnackbar
             open={open}
             onClose={() => setOpen(false)}
-            autoHideDuration={autoHideDuration}
-            variant="soft"
+            message={message}
             color={color}
-            anchorOrigin={{ vertical: "top", horizontal: "center" }} // トップのセンターに配置
-            endDecorator={
-                <IconButton onClick={() => setOpen(false)} size="sm" variant="plain" color={color}>
-                    <CloseIcon />
-                </IconButton>
-            }
+            autoHideDuration={autoHideDuration}
             onTransitionEnd={() => {
                 if (color === "warning") {
                     invoke("init_devive_info");
                 }
             }}
-        >
-            {message}
-        </Snackbar>
+        />
     );
 }
