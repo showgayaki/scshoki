@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Home from "./pages/Home";
-import { InstallationProgress } from "./features/installation/InstallationProgress";
-import { DeviceToast } from "./components/DeviceToast";
-import AppiumStartupOverlay from "./features/appium/AppiumStartupOverlay";
-import { useDependencies } from "./features/dependencies/useDependencies";
-import DependenciesAlert from "./features/dependencies/DependenciesAlert";
+import Home from "@/pages/home/index";
+import { InstallationProgress } from "@/features/installation/InstallationProgress";
+import { DeviceToast } from "@/components/DeviceToast";
+import AppiumStartupOverlay from "@/features/appium/AppiumStartupOverlay";
+import { useDependencies } from "@/features/dependencies/useDependencies";
+import DependenciesAlert from "@/features/dependencies/DependenciesAlert";
 
 function App() {
     const [appiumReady, setAppiumReady] = useState(false);

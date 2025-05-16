@@ -1,5 +1,5 @@
 import { CircularProgress, Typography } from "@mui/material";
-import { FullscreenOverlay } from "../../components/FullscreenOverlay";
+import { FullscreenOverlay } from "@/components/FullscreenOverlay";
 
 export default function AppiumStartupOverlay() {
     return (

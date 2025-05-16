@@ -1,4 +1,3 @@
-// src/components/BasicAuthForm.tsx
 interface BasicAuthFormProps {
     useAuth: boolean;
     setUseAuth: (useAuth: boolean) => void;
