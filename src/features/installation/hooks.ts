@@ -24,6 +24,7 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
                 setIsInstalling(true);
             } else {
                 setShowDependenciesAlert(true);
+                setSuccess(true);
                 await startAppium();
             }
         } catch (error) {

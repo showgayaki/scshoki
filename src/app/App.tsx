@@ -1,43 +1,25 @@
-import { useState, useEffect } from "react";
-import { listen } from "@tauri-apps/api/event";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useState } from "react";
+import { useAppiumReady } from "@/features/appium/useAppiumReady";
 
-import Home from "@/pages/home/index";
 import { InstallationProgress } from "@/features/installation/InstallationProgress";
 import { DeviceSnackbar } from "@/features/detect/DeviceSnackbar";
 import AppiumStartupOverlay from "@/features/appium/AppiumStartupOverlay";
 import { useDependencies } from "@/features/dependencies/useDependencies";
 import DependenciesAlert from "@/features/dependencies/DependenciesAlert";
+import { AppRouter } from "./router";
 
 function App() {
-    const [appiumReady, setAppiumReady] = useState(false);
+    const appiumReady = useAppiumReady();
     const [installComplete, setInstallComplete] = useState(false);
     const { dependencies, open, setOpen } = useDependencies();
-
-    useEffect(() => {
-        const unlisten = listen("appium_ready", () => {
-            console.log("Appium is ready!");
-            setTimeout(() => {
-                setAppiumReady(true);
-            }, 1000);
-        });
-
-        return () => {
-            unlisten.then((f) => f());
-        };
-    }, []);
 
     return (
         <>
             {!installComplete && <InstallationProgress onComplete={() => setInstallComplete(true)} />}
+            {installComplete && !appiumReady && <AppiumStartupOverlay />}
             <DependenciesAlert open={open} dependencies={dependencies} onClose={() => setOpen(false)} />
             <DeviceSnackbar />
-            {installComplete && !appiumReady && <AppiumStartupOverlay />}
-            <Router>
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                </Routes>
-            </Router>
+            <AppRouter />
         </>
     );
 }
