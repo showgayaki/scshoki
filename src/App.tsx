@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import { InstallationProgress } from "./features/installation/InstallationProgress";
 import { DeviceToast } from "./components/DeviceToast";
-import AppiumStartupOverlay from "./components/AppiumStartupOverlay";
+import AppiumStartupOverlay from "./features/appium/AppiumStartupOverlay";
 import { useDependencies } from "./features/dependencies/useDependencies";
 import DependenciesAlert from "./features/dependencies/DependenciesAlert";
 

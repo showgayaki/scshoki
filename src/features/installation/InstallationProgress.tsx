@@ -1,10 +1,11 @@
-import { Box, CircularProgress, Typography, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import { useEffect } from "react";
+import { CircularProgress, Typography, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
-import { useInstallationTasks } from "./hooks";
-import { useEffect } from "react";
 import { INSTALL_TASKS } from "./constants";
+import { useInstallationTasks } from "./hooks";
+import { FullscreenOverlay } from "../../components/FullscreenOverlay";
 
 export const InstallationProgress = ({ onComplete }: { onComplete: () => void }) => {
     const {
@@ -23,21 +24,7 @@ export const InstallationProgress = ({ onComplete }: { onComplete: () => void })
     return (
         <>
             {isInstalling && (
-                <Box
-                    sx={{
-                        position: "fixed",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor: "rgba(0, 0, 0, 0.5)",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        flexDirection: "column",
-                        zIndex: 1000,
-                    }}
-                >
+                <FullscreenOverlay>
                     {success ? <CheckCircleIcon color="success" sx={{ width: 80, height: 80 }} /> : <CircularProgress size={80} />}
                     <Typography variant="h6" sx={{ mt: 2 }}>
                         {currentTask ? `${currentTask} をインストール中です...` : "インストールが完了しました！"}
@@ -56,7 +43,7 @@ export const InstallationProgress = ({ onComplete }: { onComplete: () => void })
                             </ListItem>
                         ))}
                     </List>
-                </Box>
+                </FullscreenOverlay>
             )}
         </>
     );
