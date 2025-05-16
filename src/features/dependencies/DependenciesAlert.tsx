@@ -1,44 +1,20 @@
-import { useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { Modal, Box, Typography, List, ListItem, ListItemIcon, ListItemText, Button } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useTheme } from "@mui/material/styles";
+import { Dependency } from "./useDependencies";
 
-export default function DependenciesAlert() {
-    const [dependencies, setDependencies] = useState<{ name: string; installed: boolean }[]>([]);
-    const [open, setOpen] = useState(false);
-    const isExecuted = useRef(false);
-    const theme = useTheme(); // テーマ取得
+type Props = {
+    open: boolean;
+    dependencies: Dependency[];
+    onClose: () => void;
+};
 
-    // 依存関係の状態を取得する関数
-    const checkDependencies = async () => {
-        try {
-            const installed = await invoke<{ [key: string]: boolean }[]>("is_ios_dependencies_installed");
-            console.log("Dependencies:", installed);
-
-            const formattedList = installed.map(obj => {
-                const [name, installed] = Object.entries(obj)[0];
-                return { name, installed };
-            });
-
-            setDependencies(formattedList);
-
-            // すべてインストール済みならモーダルを開かない
-            setOpen(!formattedList.every(dep => dep.installed));
-        } catch (err) {
-            console.error("invoke error:", err);
-        }
-    };
-
-    // 初回レンダリング時にデータ取得
-    if (!isExecuted.current) {
-        checkDependencies();
-        isExecuted.current = true;
-    };
+export default function DependenciesAlert({ open, dependencies, onClose }: Props) {
+    const theme = useTheme();
 
     return (
-        <Modal open={open} onClose={() => setOpen(false)}>
+        <Modal open={open} onClose={onClose}>
             <Box
                 sx={{
                     position: "absolute",
@@ -68,7 +44,7 @@ export default function DependenciesAlert() {
                         </ListItem>
                     ))}
                 </List>
-                <Button variant="contained" color="primary" onClick={() => setOpen(false)}>
+                <Button variant="contained" color="primary" onClick={onClose}>
                     OK
                 </Button>
             </Box>

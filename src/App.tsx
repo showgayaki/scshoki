@@ -6,10 +6,13 @@ import Home from "./pages/Home";
 import { InstallationProgress } from "./features/installation/InstallationProgress";
 import { DeviceToast } from "./components/DeviceToast";
 import AppiumStartupOverlay from "./components/AppiumStartupOverlay";
+import { useDependencies } from "./features/dependencies/useDependencies";
+import DependenciesAlert from "./features/dependencies/DependenciesAlert";
 
 function App() {
     const [appiumReady, setAppiumReady] = useState(false);
     const [installComplete, setInstallComplete] = useState(false);
+    const { dependencies, open, setOpen } = useDependencies();
 
     useEffect(() => {
         const unlisten = listen("appium_ready", () => {
@@ -27,6 +30,7 @@ function App() {
     return (
         <>
             {!installComplete && <InstallationProgress onComplete={() => setInstallComplete(true)} />}
+            <DependenciesAlert open={open} dependencies={dependencies} onClose={() => setOpen(false)} />
             <DeviceToast />
             {installComplete && !appiumReady && <AppiumStartupOverlay />}
             <Router>

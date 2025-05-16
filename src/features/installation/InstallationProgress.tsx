@@ -2,7 +2,6 @@ import { Box, CircularProgress, Typography, List, ListItem, ListItemIcon, ListIt
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
-import DependenciesAlert from "../../components/DependenciesAlert";
 import { useInstallationTasks } from "./hooks";
 import { useEffect } from "react";
 import { INSTALL_TASKS } from "./constants";
@@ -13,7 +12,6 @@ export const InstallationProgress = ({ onComplete }: { onComplete: () => void })
         currentTask,
         isInstalling,
         success,
-        showDependenciesAlert,
     } = useInstallationTasks(INSTALL_TASKS);
 
     useEffect(() => {
@@ -60,7 +58,6 @@ export const InstallationProgress = ({ onComplete }: { onComplete: () => void })
                     </List>
                 </Box>
             )}
-            {showDependenciesAlert && <DependenciesAlert />}
         </>
     );
 };
