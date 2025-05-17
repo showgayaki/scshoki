@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
-interface ScreenshotButtonProps {
-    url: string;
-    hiddenElements: string;
-    selectedBrowsers: Record<string, boolean>;
-}
+export function useScreenshot() {
+    const [status, setStatus] = useState<string | undefined>(undefined);
 
-export default function ScreenshotButton({ url, hiddenElements, selectedBrowsers }: ScreenshotButtonProps) {
-    const [status, setStatus] = useState<string | null>(null);
-
-    const handleScreenshot = async () => {
+    const takeScreenshot = async ({
+        url,
+        hiddenElements,
+        selectedBrowsers,
+    }: {
+        url: string;
+        hiddenElements: string;
+        selectedBrowsers: Record<string, boolean>;
+    }) => {
         if (!url) {
             setStatus("URLを入力してください");
             return;
@@ -18,7 +20,7 @@ export default function ScreenshotButton({ url, hiddenElements, selectedBrowsers
 
         setStatus("スクリーンショットを取得中...");
 
-        const selectedBrowsersArray = Object.keys(selectedBrowsers).filter(browser => selectedBrowsers[browser]);
+        const selectedBrowsersArray = Object.keys(selectedBrowsers).filter((browser) => selectedBrowsers[browser]);
 
         try {
             const response = await invoke<{ success: boolean; path: string; error?: string }>(
@@ -36,12 +38,5 @@ export default function ScreenshotButton({ url, hiddenElements, selectedBrowsers
         }
     };
 
-    return (
-        <div>
-            <button onClick={handleScreenshot} className="px-4 py-2 bg-blue-500 text-white rounded">
-                スクリーンショットを撮る
-            </button>
-            {status && <p className="mt-2 text-sm">{status}</p>}
-        </div>
-    );
+    return { status, takeScreenshot };
 }
