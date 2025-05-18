@@ -7,7 +7,7 @@ export function useAppiumReady() {
     useEffect(() => {
         const unlisten = listen<string>("appium_ready", () => {
             console.log("Appium is ready!");
-            setTimeout(() => setReady(true), 1000);
+            setReady(true);
         });
 
         return () => {
