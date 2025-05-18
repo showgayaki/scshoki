@@ -9,7 +9,7 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
     const [isInstalling, setIsInstalling] = useState(false);
     const [success, setSuccess] = useState(false);
     const [showDependenciesAlert, setShowDependenciesAlert] = useState(false);
-    const isExecuted = useRef(false);
+    const isExecuted = useRef(false); // StrictMode（開発時）での2回実行を回避
 
     const check = async () => {
         if (isExecuted.current) return;
