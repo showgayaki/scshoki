@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+
+import { startUsbMonitor } from "./api";
 
 export function useDeviceSnackbar() {
     const autoHideDuration = 2000; // スナックバーの表示時間(ms)
@@ -11,7 +12,7 @@ export function useDeviceSnackbar() {
 
     useEffect(() => {
         // USBデバイスの監視をスタート
-        invoke("start_usb_monitor");
+        startUsbMonitor();
 
         const unlistenConnected = listen<string>("device_connected", (event) => {
             setMessage(event.payload);

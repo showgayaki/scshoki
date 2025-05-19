@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-import { checkInstalledBinaries, installTask, startAppium } from "./api";
+import { checkInstalledBinaries, installTask } from "./api";
 import { delay } from "./utils";
 
 export function useInstallationTasks(tasks: { key: string; label: string }[]) {
@@ -25,14 +25,13 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
             } else {
                 setShowDependenciesAlert(true);
                 setSuccess(true);
-                await startAppium();
             }
         } catch (error) {
             console.error("Error checking installed binaries:", error);
         }
     };
 
-    const start = async () => {
+    const installedBinaries = async () => {
         for (const task of tasks) {
             if (completedTasks.includes(task.label)) continue;
             setCurrentTask(task.label);
@@ -46,7 +45,7 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
                 break;
             }
         }
-        await startAppium();
+
         setSuccess(true);
         setCurrentTask(null);
         await delay(3000);
@@ -60,7 +59,7 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
 
     useEffect(() => {
         if (isInstalling) {
-            start();
+            installedBinaries();
         }
     }, [isInstalling]);
 

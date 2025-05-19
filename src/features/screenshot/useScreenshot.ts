@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+
+import { takeScreenshot as scsho } from "./api";
 
 export function useScreenshot() {
     const [status, setStatus] = useState<string | undefined>(undefined);
@@ -23,10 +24,7 @@ export function useScreenshot() {
         const selectedBrowsersArray = Object.keys(selectedBrowsers).filter((browser) => selectedBrowsers[browser]);
 
         try {
-            const response = await invoke<{ success: boolean; path: string; error?: string }>(
-                "take_screenshot",
-                { url, hiddenElements, selectedBrowsers: selectedBrowsersArray }
-            );
+            const response = await scsho(url, hiddenElements, selectedBrowsersArray);
 
             if (response.success) {
                 setStatus(`スクリーンショットを保存しました: ${response.path}`);

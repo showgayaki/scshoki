@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/core";
+
+import { isIosDependenciesInstalled } from "./api";
 
 export type Dependency = { name: string; installed: boolean };
 
@@ -14,7 +15,7 @@ export function useDependencies() {
 
         const checkDependencies = async () => {
             try {
-                const installed = await invoke<{ [key: string]: boolean }[]>("is_ios_dependencies_installed");
+                const installed = await isIosDependenciesInstalled();
                 const formattedList = installed.map(obj => {
                     const [name, installed] = Object.entries(obj)[0];
                     return { name, installed };
