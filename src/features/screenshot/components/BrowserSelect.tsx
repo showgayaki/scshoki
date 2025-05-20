@@ -1,3 +1,5 @@
+import { Box } from "@mui/material";
+
 const browsers = [
     { name: "Chrome", colorImg: "/images/chrome--checked.png", grayImg: "/images/chrome--unchecked.png" },
     { name: "Firefox", colorImg: "/images/firefox--checked.png", grayImg: "/images/firefox--unchecked.png" },
@@ -19,9 +21,9 @@ export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers }:
     };
 
     return (
-        <div style={{ display: "flex", gap: "20px" }}>
+        <Box sx={{ display: "flex", gap: "20px" }}>
             {browsers.map((browser) => (
-                <div key={browser.name} onClick={() => toggleBrowser(browser.name)} style={{ cursor: "pointer", textAlign: "center" }}>
+                <Box key={browser.name} onClick={() => toggleBrowser(browser.name)} sx={{ cursor: "pointer", textAlign: "center" }}>
                     <img
                         src={selectedBrowsers[browser.name] ? browser.colorImg : browser.grayImg}
                         alt={browser.name}
@@ -30,8 +32,8 @@ export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers }:
                         style={{ display: "block", marginBottom: "5px" }}
                     />
                     <span style={{ display: "block", color: "#fff" }}>{browser.name}</span>
-                </div>
+                </Box>
             ))}
-        </div>
+        </Box>
     );
 }

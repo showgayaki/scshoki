@@ -1,3 +1,5 @@
+import { Box } from "@mui/material";
+
 import TextInput from "@/components/TextInput";
 
 interface UrlInputFormProps {
@@ -7,14 +9,14 @@ interface UrlInputFormProps {
 
 export default function UrlInputForm({ url, setUrl }: UrlInputFormProps) {
     return (
-        <div className="mb-4">
+        <Box>
             <TextInput
                 label="URL"
                 type="text"
                 value={url}
                 onChange={(e) => setUrl(e)}
-                placeholder="example.com/path"
+                placeholder="https://example.com/path"
             />
-        </div>
+        </Box>
     );
 }

@@ -1,4 +1,4 @@
-import { TextField } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 
 interface TextInputProps {
     label?: string;
@@ -28,6 +28,11 @@ export default function TextInput({
             variant="outlined"
             size="small"
             fullWidth
+            slotProps={{
+                inputLabel: {
+                    shrink: true,
+                },
+            }}
         />
     );
 }

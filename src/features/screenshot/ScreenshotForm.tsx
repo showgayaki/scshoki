@@ -30,8 +30,9 @@ export default function ScreenshotForm() {
     };
 
     return (
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
             <UrlInputForm url={url} setUrl={setUrl} />
+            <HiddenElementsForm hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
             <BasicAuthForm
                 useAuth={useAuth}
                 setUseAuth={setUseAuth}
@@ -40,7 +41,6 @@ export default function ScreenshotForm() {
                 password={password}
                 setPassword={setPassword}
             />
-            <HiddenElementsForm hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
             <BrowserSelect selectedBrowsers={selectedBrowsers} setSelectedBrowsers={setSelectedBrowsers} />
             <ScreenshotButton status={status} url={url} hiddenElements={hiddenElements} selectedBrowsers={selectedBrowsers} />
         </form>

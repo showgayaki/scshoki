@@ -1,4 +1,6 @@
-import Checkbox from "@/components/Checkbox";
+import { Box } from "@mui/material";
+
+import CheckboxWithLabel from "@/components/Checkbox";
 import TextInput from "@/components/TextInput";
 
 interface BasicAuthFormProps {
@@ -19,13 +21,13 @@ export default function BasicAuthForm({
     setPassword,
 }: BasicAuthFormProps) {
     return (
-        <div className="mb-4">
-            <Checkbox
+        <Box>
+            <CheckboxWithLabel
                 checked={useAuth}
                 onChange={setUseAuth}
-                label="BASIC認証を使用"
+                label="BASIC認証"
             />
-            <div className="mt-2">
+            <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
                 <TextInput
                     type="text"
                     value={username}
@@ -40,7 +42,7 @@ export default function BasicAuthForm({
                     disabled={!useAuth}
                     placeholder="パスワード"
                 />
-            </div>
-        </div>
+            </Box>
+        </Box>
     );
 }

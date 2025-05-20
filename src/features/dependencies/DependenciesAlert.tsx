@@ -26,7 +26,7 @@ export default function DependenciesAlert({ open, dependencies, onClose }: Props
                 }}
             >
                 <Typography variant="h6" gutterBottom>iOS Dependencies Status</Typography>
-                <List>
+                <List sx={{ py: 0, mb: 2 }}>
                     {dependencies.map(({ name, installed }) => (
                         <ListItem key={name} sx={{ px: 0 }}>
                             <ListItemIcon sx={{ minWidth: "40px" }}>
@@ -40,7 +40,7 @@ export default function DependenciesAlert({ open, dependencies, onClose }: Props
                         </ListItem>
                     ))}
                 </List>
-                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                     <Button variant="contained" color="primary" onClick={onClose}>
                         OK
                     </Button>

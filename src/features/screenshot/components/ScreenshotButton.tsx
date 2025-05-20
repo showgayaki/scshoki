@@ -1,3 +1,5 @@
+import { Box, Button } from "@mui/material";
+
 interface ScreenshotButtonProps {
     url: string;
     hiddenElements: string;
@@ -7,11 +9,13 @@ interface ScreenshotButtonProps {
 
 export default function ScreenshotButton({ status }: ScreenshotButtonProps) {
     return (
-        <div>
-            <button className="px-4 py-2 bg-blue-500 text-white rounded">
-                スクショ！
-            </button>
+        <>
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button type="submit" variant="contained" color="primary">
+                    スクショ！
+                </Button>
+            </Box>
             {status && <p className="mt-2 text-sm">{status}</p>}
-        </div>
+        </>
     );
 }

@@ -1,19 +1,26 @@
+import { FormControlLabel, Checkbox } from "@mui/material";
+
 interface CheckboxProps {
     checked: boolean;
     onChange: (checked: boolean) => void;
     label: string;
 }
 
-export default function Checkbox({ checked, onChange, label }: CheckboxProps) {
+export default function CheckboxWithLabel({ checked, onChange, label }: CheckboxProps) {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange(e.target.checked);
+    };
+
     return (
-        <label className="block text-sm font-medium text-gray-700">
-            <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => onChange(!checked)}
-                className="mr-2"
-            />
-            {label}
-        </label>
+        <FormControlLabel
+            label={label}
+            control={
+                <Checkbox
+                    sx={{ py: 0 }}
+                    checked={checked}
+                    onChange={handleChange}
+                />
+            }
+        />
     );
 }
