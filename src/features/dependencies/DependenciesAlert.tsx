@@ -15,25 +15,20 @@ export default function DependenciesAlert({ open, dependencies, onClose }: Props
     const theme = useTheme();
 
     return (
-        <Modal open={open} onClose={onClose}>
+        <Modal open={open} onClose={onClose} sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Box
                 sx={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    bgcolor: theme.palette.mode === "dark" ? theme.palette.background.paper : theme.palette.common.black,
+                    bgcolor: theme.palette.background.paper,
                     boxShadow: 24,
                     p: 4,
                     borderRadius: 2,
-                    minWidth: 250,
                     outline: "none",
                 }}
             >
                 <Typography variant="h6" gutterBottom>iOS Dependencies Status</Typography>
                 <List>
                     {dependencies.map(({ name, installed }) => (
-                        <ListItem key={name}>
+                        <ListItem key={name} sx={{ px: 0 }}>
                             <ListItemIcon sx={{ minWidth: "40px" }}>
                                 {installed ? (
                                     <CheckCircleIcon color="success" />
@@ -45,9 +40,11 @@ export default function DependenciesAlert({ open, dependencies, onClose }: Props
                         </ListItem>
                     ))}
                 </List>
-                <Button variant="contained" color="primary" onClick={onClose}>
-                    OK
-                </Button>
+                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                    <Button variant="contained" color="primary" onClick={onClose}>
+                        OK
+                    </Button>
+                </Box>
             </Box>
         </Modal>
     );
