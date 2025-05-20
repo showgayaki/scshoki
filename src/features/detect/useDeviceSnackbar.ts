@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 
+import { SnackbarSeverity } from "@/types/snackbar";
 import { startUsbMonitor } from "./api";
 
 export function useDeviceSnackbar() {
@@ -8,7 +9,7 @@ export function useDeviceSnackbar() {
 
     const [open, setOpen] = useState(false);
     const [message, setMessage] = useState("");
-    const [color, setColor] = useState<"primary" | "warning">("primary");
+    const [severity, setSeverity] = useState<SnackbarSeverity>("info");
 
     useEffect(() => {
         // USBデバイスの監視をスタート
@@ -16,12 +17,12 @@ export function useDeviceSnackbar() {
 
         const unlistenConnected = listen<string>("device_connected", (event) => {
             setMessage(event.payload);
-            setColor("primary");
+            setSeverity("info");
             setOpen(true);
         });
         const unlistenDisconnected = listen<string>("device_disconnected", (event) => {
             setMessage(event.payload);
-            setColor("warning");
+            setSeverity("warning");
             setOpen(true);
         });
 
@@ -34,7 +35,7 @@ export function useDeviceSnackbar() {
     return {
         open,
         message,
-        color,
+        severity,
         autoHideDuration,
         setOpen,
     };

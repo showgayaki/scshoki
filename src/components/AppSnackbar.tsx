@@ -1,41 +1,43 @@
-import Snackbar from "@mui/joy/Snackbar";
-import { IconButton } from "@mui/joy";
+import { Snackbar, Alert, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+
+import { SnackbarSeverity } from "@/types/snackbar";
 
 interface AppSnackbarProps {
     open: boolean;
     onClose: () => void;
     message: string;
     autoHideDuration?: number;
-    color?: "primary" | "neutral" | "danger" | "success" | "warning";
+    severity?: SnackbarSeverity;
     onTransitionEnd?: () => void;
 }
 
 const AppSnackbar: React.FC<AppSnackbarProps> = ({
-    open, onClose, message, autoHideDuration, color = 'neutral', onTransitionEnd
+    open,
+    onClose,
+    message,
+    autoHideDuration,
+    severity = "info",
+    onTransitionEnd,
 }) => {
     return (
         <Snackbar
             open={open}
             onClose={onClose}
             autoHideDuration={autoHideDuration}
-            variant="soft"
-            color={color}
             anchorOrigin={{ vertical: "top", horizontal: "center" }}
-            endDecorator={
-                <IconButton
-                    size="sm"
-                    aria-label="close"
-                    variant="plain"
-                    color={color}
-                    onClick={onClose}
-                >
-                    <CloseIcon fontSize="small" />
-                </IconButton>
-            }
             onTransitionEnd={onTransitionEnd}
         >
-            {message}
+            <Alert
+                severity={severity}
+                action={
+                    <IconButton size="small" aria-label="close" color="inherit" onClick={onClose}>
+                        <CloseIcon fontSize="small" />
+                    </IconButton>
+                }
+            >
+                {message}
+            </Alert>
         </Snackbar>
     );
 };
