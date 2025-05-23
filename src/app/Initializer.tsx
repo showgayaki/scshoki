@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppiumReady } from "@/features/appium/useAppiumReady";
 
-import { InstallationProgress } from "@/features/installation/InstallationProgress";
+import InstallationProgress from "@/features/installation/InstallationProgress";
 import { startAppium } from "@/features/appium/api";
 import AppiumStartupOverlay from "@/features/appium/AppiumStartupOverlay";
 import { useDependencies } from "@/features/dependencies/useDependencies";

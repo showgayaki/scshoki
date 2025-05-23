@@ -3,11 +3,11 @@ import { CircularProgress, Typography, List, ListItem, ListItemIcon, ListItemTex
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
-import { FullscreenOverlay } from "@/components/FullscreenOverlay";
+import FullscreenOverlay from "@/components/FullscreenOverlay";
 import { INSTALL_TASKS } from "./constants";
 import { useInstallationTasks } from "./hooks";
 
-export const InstallationProgress = ({ onComplete }: { onComplete: () => void }) => {
+export default function InstallationProgress({ onComplete }: { onComplete: () => void }) {
     const {
         completedTasks,
         currentTask,

@@ -12,14 +12,14 @@ interface AppSnackbarProps {
     onTransitionEnd?: () => void;
 }
 
-const AppSnackbar: React.FC<AppSnackbarProps> = ({
+export default function AppSnackbar({
     open,
     onClose,
     message,
     autoHideDuration,
     severity = "info",
     onTransitionEnd,
-}) => {
+}: AppSnackbarProps) {
     return (
         <Snackbar
             open={open}
@@ -41,5 +41,3 @@ const AppSnackbar: React.FC<AppSnackbarProps> = ({
         </Snackbar>
     );
 };
-
-export default AppSnackbar;

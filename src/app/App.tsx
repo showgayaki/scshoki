@@ -1,5 +1,5 @@
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import { DeviceSnackbar } from "@/features/detect/DeviceSnackbar";
+import DeviceSnackbar from "@/features/detect/DeviceSnackbar";
 
 import darkTheme from "./theme";
 import { AppInitializer } from "./Initializer";

@@ -2,7 +2,7 @@ import AppSnackbar from "@/components/AppSnackbar";
 import { useDeviceSnackbar } from "./useDeviceSnackbar";
 import { initDeviveInfo } from "./api";
 
-export function DeviceSnackbar() {
+export default function DeviceSnackbar() {
     const { open, setOpen, message, severity, autoHideDuration } = useDeviceSnackbar();
 
     return (
