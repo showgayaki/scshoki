@@ -10,11 +10,12 @@ export default function HiddenElementsForm({ hiddenElements, setHiddenElements }
     return (
         <Box>
             <TextInput
+                id="hiddenElementsInput"
+                label="スクロール中に非表示にする要素のセレクタ"
                 type="text"
                 value={hiddenElements}
                 onChange={(e) => setHiddenElements(e)}
-                placeholder="header, .sticky, .ads"
-                label="スクロール中に非表示にする要素のセレクタ"
+                placeholder="header, .sticky, #ads"
             />
         </Box>
     );

@@ -30,7 +30,7 @@ export default function ScreenshotForm() {
     };
 
     return (
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
             <UrlInputForm url={url} setUrl={setUrl} />
             <HiddenElementsForm hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
             <BasicAuthForm

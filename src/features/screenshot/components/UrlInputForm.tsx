@@ -11,6 +11,7 @@ export default function UrlInputForm({ url, setUrl }: UrlInputFormProps) {
     return (
         <Box>
             <TextInput
+                id="urlInput"
                 label="URL"
                 type="text"
                 value={url}

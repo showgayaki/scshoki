@@ -31,7 +31,7 @@ export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers }:
                         height={80}
                         style={{ display: "block", marginBottom: "5px" }}
                     />
-                    <span style={{ display: "block", color: "#fff" }}>{browser.name}</span>
+                    <span>{browser.name}</span>
                 </Box>
             ))}
         </Box>
