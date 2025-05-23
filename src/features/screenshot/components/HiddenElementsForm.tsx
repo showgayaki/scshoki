@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import TextInput from "@/components/TextInput";
+import TagsInput from "@/components/TagsInput";
 
 interface HiddenElementsFormProps {
     hiddenElements: string;
@@ -7,15 +7,27 @@ interface HiddenElementsFormProps {
 }
 
 export default function HiddenElementsForm({ hiddenElements, setHiddenElements }: HiddenElementsFormProps) {
+    const valueArray = hiddenElements.split(",").map((s) => s.trim()).filter(Boolean);
+    const options = [
+        "header",
+        ".header",
+        "#header",
+        "footer",
+        ".footer",
+        "#footer",
+        ".sticky",
+        ".fixed",
+    ]
+
     return (
         <Box>
-            <TextInput
-                id="hiddenElementsInput"
+            <TagsInput
+                id="tagsInput"
                 label="スクロール中に非表示にする要素のセレクタ"
-                type="text"
-                value={hiddenElements}
-                onChange={(e) => setHiddenElements(e)}
-                placeholder="header, .sticky, #ads"
+                placeholder="header, .sticky, #footer"
+                options={options}
+                value={valueArray}
+                onChange={(newValues) => setHiddenElements(newValues.join(", "))}
             />
         </Box>
     );

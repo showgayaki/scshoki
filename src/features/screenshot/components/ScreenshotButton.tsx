@@ -11,7 +11,7 @@ export default function ScreenshotButton({ status }: ScreenshotButtonProps) {
     return (
         <>
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                <Button type="submit" variant="contained" color="primary">
+                <Button type="submit" variant="contained" color="info">
                     スクショ！
                 </Button>
             </Box>

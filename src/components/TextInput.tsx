@@ -1,13 +1,14 @@
-import { FormControl, InputLabel, TextField } from "@mui/material";
+import { FormControl, InputLabel, TextField, TextFieldProps } from "@mui/material";
 
 interface TextInputProps {
     id?: string;
     label?: string;
-    value: string;
-    onChange: (value: string) => void;
+    value?: string;
+    onChange?: (value: string) => void;
     placeholder?: string;
     disabled?: boolean;
     type?: string;
+    textFieldProps?: Partial<TextFieldProps>;
 }
 
 export default function TextInput({
@@ -18,6 +19,7 @@ export default function TextInput({
     placeholder,
     disabled,
     type = "text",
+    textFieldProps,
 }: TextInputProps) {
     return (
         <FormControl fullWidth>
@@ -31,14 +33,15 @@ export default function TextInput({
             }
             <TextField
                 sx={{
-                    "& .MuiInputBase-input": {
+                    "& .MuiInputBase-input, & .MuiInputBase-root .MuiInputBase-input.MuiAutocomplete-input": {
                         backgroundColor: disabled ? "#1c1c1c" : undefined,
                         color: disabled ? "#333333" : undefined,
+                        padding: "8.5px 14px",
                     },
                 }}
-                id={id}
+                id={id?? id}
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(e) => onChange?.(e.target.value)}
                 placeholder={placeholder}
                 disabled={disabled}
                 type={type}
@@ -50,8 +53,8 @@ export default function TextInput({
                         shrink: true,
                     },
                 }}
+                {...textFieldProps}
             />
         </FormControl>
-
     );
 }

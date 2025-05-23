@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 
 import CheckboxWithLabel from "@/components/Checkbox";
 import TextInput from "@/components/TextInput";
@@ -27,7 +27,7 @@ export default function BasicAuthForm({
                 onChange={setUseAuth}
                 label="BASIC認証"
             />
-            <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
+            <Stack direction="row" spacing={1.5}>
                 <TextInput
                     type="text"
                     value={username}
@@ -42,7 +42,7 @@ export default function BasicAuthForm({
                     disabled={!useAuth}
                     placeholder="パスワード"
                 />
-            </Box>
+            </Stack>
         </Box>
     );
 }
