@@ -1,4 +1,5 @@
 import { Box } from "@mui/material";
+
 import TagsInput from "@/components/TagsInput";
 
 interface HiddenElementsFormProps {

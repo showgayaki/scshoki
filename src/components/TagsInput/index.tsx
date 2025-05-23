@@ -1,18 +1,42 @@
 import { useState } from "react";
 import { Autocomplete, Chip, Stack } from "@mui/material";
+
 import TextInput from "@/components/TextInput";
+import { useTagsInput } from "./useTagsInput";
 
 interface TagsInputProps {
     id: string;
     label: string;
     placeholder?: string;
     options?: string[];
-    value: string[];
-    onChange: (value: string[]) => void;
+    value?: string[];
+    onChange?: (value: string[]) => void;
+    useInternalState?: boolean;
 }
 
-export default function TagsInput({ id, label, placeholder, options = [], value, onChange }: TagsInputProps) {
+export default function TagsInput({
+    id,
+    label,
+    placeholder,
+    options = [],
+    value,
+    onChange,
+    useInternalState = false,
+}: TagsInputProps) {
     const [open, setOpen] = useState(false);
+    const { tags, setInputValue, handleAdd } = useTagsInput(value ?? []);
+
+    const currentTags = useInternalState ? tags : value ?? [];
+    const handleChange = (newValue: string[]) => {
+        if (useInternalState) {
+            setInputValue("");
+            newValue.forEach(tag => {
+                if (!tags.includes(tag)) handleAdd();
+            });
+        } else {
+            onChange?.(newValue);
+        }
+    };
 
     return (
         <>
@@ -41,8 +65,8 @@ export default function TagsInput({ id, label, placeholder, options = [], value,
                         option.toLowerCase().includes(inputValue.toLowerCase())
                     )
                 }
-                value={value}
-                onChange={(_, newValue) => onChange(newValue)}
+                value={currentTags}
+                onChange={(_, newValue) => handleChange(newValue)}
                 renderTags={() => null}
                 renderInput={(params) => (
                     <TextInput
@@ -61,8 +85,8 @@ export default function TagsInput({ id, label, placeholder, options = [], value,
                                 ) {
                                     e.preventDefault();
                                     const input = inputValue.trim();
-                                    if (input && !value.includes(input)) {
-                                        onChange([...value, input]);
+                                    if (input && !currentTags.includes(input)) {
+                                        handleChange([...currentTags, input]);
                                     }
                                 }
                             },
@@ -71,10 +95,10 @@ export default function TagsInput({ id, label, placeholder, options = [], value,
                 )}
             />
             <Stack direction="row" spacing={1.5}>
-                {value.map((option, index) => (
+                {currentTags.map((option, index) => (
                     <Chip key={index} label={option} color="primary" onDelete={() => {
-                            const newValues = value.filter((_, i) => i !== index);
-                            onChange(newValues);
+                            const newValues = currentTags.filter((_, i) => i !== index);
+                            handleChange(newValues);
                         }}
                     />
                 ))}
