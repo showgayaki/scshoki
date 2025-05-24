@@ -5,6 +5,7 @@ import BasicAuthForm from "./components/BasicAuthForm";
 import HiddenElementsForm from "./components/HiddenElementsForm";
 import BrowserSelect from "./components/BrowserSelect";
 import ScreenshotButton from "./components/ScreenshotButton";
+import ScreenshotOverlay from "./components/ScreenshotOverlay";
 
 export default function ScreenshotForm() {
     const {
@@ -22,7 +23,7 @@ export default function ScreenshotForm() {
         setSelectedBrowsers,
     } = useScreenshotFormState();
 
-    const { status, takeScreenshot } = useScreenshot();
+    const { status, isCapturing, takeScreenshot, cancelCapture } = useScreenshot();
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -30,6 +31,8 @@ export default function ScreenshotForm() {
     };
 
     return (
+        <>
+        {isCapturing && <ScreenshotOverlay />}
         <form className="space-y-4" onSubmit={handleSubmit}>
             <UrlInputForm url={url} setUrl={setUrl} />
             <HiddenElementsForm hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
@@ -44,5 +47,6 @@ export default function ScreenshotForm() {
             <BrowserSelect selectedBrowsers={selectedBrowsers} setSelectedBrowsers={setSelectedBrowsers} />
             <ScreenshotButton status={status} url={url} hiddenElements={hiddenElements} selectedBrowsers={selectedBrowsers} />
         </form>
+        </>
     );
 }

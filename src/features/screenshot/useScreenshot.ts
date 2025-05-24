@@ -4,6 +4,7 @@ import { takeScreenshot as scsho } from "./api";
 
 export function useScreenshot() {
     const [status, setStatus] = useState<string | undefined>(undefined);
+    const [isCapturing, setIsCapturing] = useState(false);
 
     const takeScreenshot = async ({
         url,
@@ -20,12 +21,14 @@ export function useScreenshot() {
         }
 
         setStatus("スクリーンショットを取得中...");
+        setIsCapturing(true);
 
-        const selectedBrowsersArray = Object.keys(selectedBrowsers).filter((browser) => selectedBrowsers[browser]);
+        const selectedBrowsersArray = Object.keys(selectedBrowsers).filter(
+            (browser) => selectedBrowsers[browser]
+        );
 
         try {
             const response = await scsho(url, hiddenElements, selectedBrowsersArray);
-
             if (response.success) {
                 setStatus(`スクリーンショットを保存しました: ${response.path}`);
             } else {
@@ -33,8 +36,16 @@ export function useScreenshot() {
             }
         } catch (error) {
             setStatus(`エラー: ${error}`);
+        } finally {
+            setIsCapturing(false);
         }
     };
 
-    return { status, takeScreenshot };
+    const cancelCapture = () => {
+        // ここでは単にフラグを落とすだけ。必要ならinvokeキャンセルなど追加検討
+        setStatus("スクリーンショット取得を中止しました");
+        setIsCapturing(false);
+    };
+
+    return { status, isCapturing, takeScreenshot, cancelCapture };
 }
