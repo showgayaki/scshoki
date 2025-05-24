@@ -8,7 +8,6 @@ interface HiddenElementsFormProps {
 }
 
 export default function HiddenElementsForm({ hiddenElements, setHiddenElements }: HiddenElementsFormProps) {
-    const valueArray = hiddenElements.split(",").map((s) => s.trim()).filter(Boolean);
     const options = [
         "header",
         ".header",
@@ -27,7 +26,7 @@ export default function HiddenElementsForm({ hiddenElements, setHiddenElements }
                 label="スクロール中に非表示にする要素のセレクタ"
                 placeholder="header, .sticky, #footer"
                 options={options}
-                value={valueArray}
+                value={hiddenElements}
                 onChange={(newValues) => setHiddenElements(newValues.join(", "))}
             />
         </Box>

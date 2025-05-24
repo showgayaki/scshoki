@@ -9,7 +9,7 @@ interface TagsInputProps {
     label: string;
     placeholder?: string;
     options?: string[];
-    value?: string[];
+    value: string;
     onChange?: (value: string[]) => void;
     useInternalState?: boolean;
 }
@@ -23,10 +23,12 @@ export default function TagsInput({
     onChange,
     useInternalState = false,
 }: TagsInputProps) {
-    const [open, setOpen] = useState(false);
-    const { tags, setInputValue, handleAdd } = useTagsInput(value ?? []);
+    const valueArray = value.split(",").map((s) => s.trim()).filter(Boolean);
 
-    const currentTags = useInternalState ? tags : value ?? [];
+    const [open, setOpen] = useState(false);
+    const { tags, setInputValue, handleAdd } = useTagsInput(valueArray ?? []);
+
+    const currentTags = useInternalState ? tags : valueArray ?? [];
     const handleChange = (newValue: string[]) => {
         if (useInternalState) {
             setInputValue("");
