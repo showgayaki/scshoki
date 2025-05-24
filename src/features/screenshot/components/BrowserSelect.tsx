@@ -21,7 +21,7 @@ export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers }:
     };
 
     return (
-        <Box sx={{ display: "flex", gap: "20px" }}>
+        <Box sx={{ display: "flex", gap: "30px" }}>
             {browsers.map((browser) => (
                 <Box key={browser.name} onClick={() => toggleBrowser(browser.name)} sx={{ cursor: "pointer", textAlign: "center" }}>
                     <img

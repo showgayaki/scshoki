@@ -3,7 +3,7 @@ import { Box, Stack } from "@mui/material";
 import CheckboxWithLabel from "@/components/Checkbox";
 import TextInput from "@/components/TextInput";
 
-interface BasicAuthFormProps {
+interface BasicAuthSectionProps {
     useAuth: boolean;
     setUseAuth: (useAuth: boolean) => void;
     username: string;
@@ -12,14 +12,14 @@ interface BasicAuthFormProps {
     setPassword: (password: string) => void;
 }
 
-export default function BasicAuthForm({
+export default function BasicAuthSection({
     useAuth,
     setUseAuth,
     username,
     setUsername,
     password,
     setPassword,
-}: BasicAuthFormProps) {
+}: BasicAuthSectionProps) {
     return (
         <Box>
             <CheckboxWithLabel

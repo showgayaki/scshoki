@@ -1,8 +1,9 @@
 import { useScreenshotFormState } from "./useScreenshotFormState";
 import { useScreenshot } from "./useScreenshot";
-import UrlInputForm from "./components/UrlInputForm";
-import BasicAuthForm from "./components/BasicAuthForm";
-import HiddenElementsForm from "./components/HiddenElementsForm";
+import BaseUrlInput from "./components/BaseUrlInput";
+import HiddenElementsSection from "./components/HiddenElementsSection";
+import TargetPagePathsSection from "./components/TargetPagePathsSection";
+import BasicAuthSection from "./components/BasicAuthSection";
 import BrowserSelect from "./components/BrowserSelect";
 import ScreenshotButton from "./components/ScreenshotButton";
 import ScreenshotOverlay from "./components/ScreenshotOverlay";
@@ -11,14 +12,16 @@ export default function ScreenshotForm() {
     const {
         url,
         setUrl,
+        hiddenElements,
+        setHiddenElements,
+        targetPagePaths,
+        settargetPagePaths,
         useAuth,
         setUseAuth,
         username,
         setUsername,
         password,
         setPassword,
-        hiddenElements,
-        setHiddenElements,
         selectedBrowsers,
         setSelectedBrowsers,
     } = useScreenshotFormState();
@@ -34,9 +37,11 @@ export default function ScreenshotForm() {
         <>
         {isCapturing && <ScreenshotOverlay />}
         <form className="space-y-4" onSubmit={handleSubmit}>
-            <UrlInputForm url={url} setUrl={setUrl} />
-            <HiddenElementsForm hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
-            <BasicAuthForm
+            <BaseUrlInput url={url} setUrl={setUrl} />
+            <HiddenElementsSection hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
+            <TargetPagePathsSection targetPages={targetPagePaths} setTargetPagesPaths={settargetPagePaths} />
+            {/* inputの下に無駄なmarginが入っている */}
+            <BasicAuthSection
                 useAuth={useAuth}
                 setUseAuth={setUseAuth}
                 username={username}

@@ -2,12 +2,12 @@ import { Box } from "@mui/material";
 
 import TagsInput from "@/components/TagsInput";
 
-interface HiddenElementsFormProps {
+interface HiddenElementsSectionProps {
     hiddenElements: string;
     setHiddenElements: (value: string) => void;
 }
 
-export default function HiddenElementsForm({ hiddenElements, setHiddenElements }: HiddenElementsFormProps) {
+export default function HiddenElementsSection({ hiddenElements, setHiddenElements }: HiddenElementsSectionProps) {
     const options = [
         "header",
         ".header",
@@ -22,7 +22,7 @@ export default function HiddenElementsForm({ hiddenElements, setHiddenElements }
     return (
         <Box>
             <TagsInput
-                id="tagsInput"
+                id="hiddenElements"
                 label="スクロール中に非表示にする要素のセレクタ"
                 placeholder="header, .sticky, #footer"
                 options={options}

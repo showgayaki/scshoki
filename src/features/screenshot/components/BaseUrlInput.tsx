@@ -2,12 +2,12 @@ import { Box } from "@mui/material";
 
 import TextInput from "@/components/TextInput";
 
-interface UrlInputFormProps {
+interface BaseUrlInputProps {
     url: string;
     setUrl: (url: string) => void;
 }
 
-export default function UrlInputForm({ url, setUrl }: UrlInputFormProps) {
+export default function BaseUrlInput({ url, setUrl }: BaseUrlInputProps) {
     return (
         <Box>
             <TextInput

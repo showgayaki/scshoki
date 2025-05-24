@@ -49,7 +49,7 @@ export default function TagsInput({
                     '& .MuiInputBase-root': {
                         p: 0,
                     },
-                    mb: 1,
+                    mb: currentTags.length > 0 ? 1 : 0,
                 }}
                 multiple
                 freeSolo
@@ -96,12 +96,19 @@ export default function TagsInput({
                     />
                 )}
             />
-            <Stack direction="row" spacing={1.5}>
+            <Stack direction="row" spacing={1} useFlexGap
+                sx={{
+                    flexWrap: 'wrap',
+                    maxHeight: '60px',
+                    overflowY: 'auto',
+                    pr: 1,
+                }}
+            >
                 {currentTags.map((option, index) => (
-                    <Chip key={index} label={option} color="primary" onDelete={() => {
-                            const newValues = currentTags.filter((_, i) => i !== index);
-                            handleChange(newValues);
-                        }}
+                    <Chip size="small" key={index} label={option} color="primary" onDelete={() => {
+                        const newValues = currentTags.filter((_, i) => i !== index);
+                        handleChange(newValues);
+                    }}
                     />
                 ))}
             </Stack>
