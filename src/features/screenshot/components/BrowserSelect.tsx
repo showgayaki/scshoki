@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Tooltip } from "@mui/material";
 
 const browsers = [
     { name: "Chrome", colorImg: "/images/chrome--checked.png", grayImg: "/images/chrome--unchecked.png" },
@@ -10,9 +10,10 @@ const browsers = [
 interface BrowserSelectProps {
     selectedBrowsers: Record<string, boolean>;
     setSelectedBrowsers: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+    error?: string;
 }
 
-export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers }: BrowserSelectProps) {
+export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers, error }: BrowserSelectProps) {
     const toggleBrowser = (name: string) => {
         setSelectedBrowsers((prev) => ({
             ...prev,
@@ -21,19 +22,24 @@ export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers }:
     };
 
     return (
-        <Box sx={{ display: "flex", gap: "30px" }}>
-            {browsers.map((browser) => (
-                <Box key={browser.name} onClick={() => toggleBrowser(browser.name)} sx={{ cursor: "pointer", textAlign: "center" }}>
-                    <img
-                        src={selectedBrowsers[browser.name] ? browser.colorImg : browser.grayImg}
-                        alt={browser.name}
-                        width={80}
-                        height={80}
-                        style={{ display: "block", marginBottom: "5px" }}
-                    />
-                    <span>{browser.name}</span>
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <label style={{ marginBottom: '5px' }}>ブラウザ選択</label>
+            <Tooltip title={error || ""} open={Boolean(error)} placement="bottom" arrow>
+                <Box sx={{ display: "flex", gap: "30px" }}>
+                    {browsers.map((browser) => (
+                        <Box key={browser.name} onClick={() => toggleBrowser(browser.name)} sx={{ cursor: "pointer", textAlign: "center" }}>
+                            <img
+                                src={selectedBrowsers[browser.name] ? browser.colorImg : browser.grayImg}
+                                alt={browser.name}
+                                width={80}
+                                height={80}
+                                style={{ display: "block", marginBottom: "5px" }}
+                            />
+                            <span>{browser.name}</span>
+                        </Box>
+                    ))}
                 </Box>
-            ))}
+            </Tooltip>
         </Box>
     );
 }

@@ -12,6 +12,41 @@ export function useScreenshotFormState() {
         Firefox: false,
         Safari: false,
     });
+    const [urlError, setUrlError] = useState<string | null>(null);
+    const [browserError, setBrowserError] = useState<string | undefined>(undefined);
+
+    const validate = () => {
+        let errorCleared = false;
+
+        if (!url) {
+            setUrlError("URLを入力してください");
+            errorCleared = true;
+        } else {
+            try {
+                new URL(url);
+            } catch {
+                setUrlError("有効なURLを入力してください");
+                errorCleared = true;
+            }
+        }
+
+        const isAnyBrowserSelected = Object.values(selectedBrowsers).some((selected) => selected);
+        if (!isAnyBrowserSelected) {
+            setBrowserError("ブラウザを選択してください");
+            errorCleared = true;
+        }
+
+        if (errorCleared) {
+            setTimeout(() => {
+                setUrlError(null);
+                setBrowserError(undefined);
+            }, 3000);
+            return;
+        }
+
+        setUrlError(null);
+        setBrowserError(undefined);
+    };
 
     return {
         url,
@@ -28,5 +63,10 @@ export function useScreenshotFormState() {
         setPassword,
         selectedBrowsers,
         setSelectedBrowsers,
+        urlError,
+        setUrlError,
+        browserError,
+        setBrowserError,
+        validate,
     };
 }
