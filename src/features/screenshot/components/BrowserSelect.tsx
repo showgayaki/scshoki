@@ -1,4 +1,6 @@
-import { Box, Tooltip } from "@mui/material";
+import { Box } from "@mui/material";
+
+import BottomArrowTooltip from "@/components/CustomTooltips";
 
 const browsers = [
     { name: "Chrome", colorImg: "/images/chrome--checked.png", grayImg: "/images/chrome--unchecked.png" },
@@ -23,9 +25,16 @@ export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers, e
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-            <label style={{ marginBottom: '5px' }}>ブラウザ選択</label>
-            <Tooltip title={error || ""} open={Boolean(error)} placement="bottom" arrow>
-                <Box sx={{ display: "flex", gap: "30px" }}>
+            <label>ブラウザ選択</label>
+            <BottomArrowTooltip title={error || ""}>
+                <Box sx={{
+                        display: "flex",
+                        gap: "30px",
+                        pt: 1,
+                        border: error ? "1px solid red" : "1px solid transparent",
+                        borderRadius: 1,
+                    }}
+                >
                     {browsers.map((browser) => (
                         <Box key={browser.name} onClick={() => toggleBrowser(browser.name)} sx={{ cursor: "pointer", textAlign: "center" }}>
                             <img
@@ -39,7 +48,7 @@ export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers, e
                         </Box>
                     ))}
                 </Box>
-            </Tooltip>
+            </BottomArrowTooltip>
         </Box>
     );
 }

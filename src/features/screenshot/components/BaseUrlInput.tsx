@@ -1,6 +1,7 @@
-import { Box, Tooltip } from "@mui/material";
+import { Box } from "@mui/material";
 
 import TextInput from "@/components/TextInput";
+import BottomArrowTooltip from "@/components/CustomTooltips";
 
 interface BaseUrlInputProps {
     url: string;
@@ -10,7 +11,7 @@ interface BaseUrlInputProps {
 
 export default function BaseUrlInput({ url, setUrl, error }: BaseUrlInputProps) {
     return (
-        <Tooltip title={error || ""} open={Boolean(error)} placement="bottom" arrow>
+        <BottomArrowTooltip title={error || ""}>
             <Box sx={{ display: "inline-block", width: "100%" }}>
                 <TextInput
                     id="urlInput"
@@ -24,6 +25,6 @@ export default function BaseUrlInput({ url, setUrl, error }: BaseUrlInputProps) 
                     }}
                 />
             </Box>
-        </Tooltip>
+        </BottomArrowTooltip>
     );
 }
