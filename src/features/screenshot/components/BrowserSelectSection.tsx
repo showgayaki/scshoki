@@ -9,13 +9,13 @@ const browsers = [
     { name: "Edge", colorImg: "/images/edge--checked.png", grayImg: "/images/edge--unchecked.png" },
 ];
 
-interface BrowserSelectProps {
+interface BrowserSelectSectionProps {
     selectedBrowsers: Record<string, boolean>;
     setSelectedBrowsers: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
     error?: string;
 }
 
-export default function BrowserSelect({ selectedBrowsers, setSelectedBrowsers, error }: BrowserSelectProps) {
+export default function BrowserSelectSection({ selectedBrowsers, setSelectedBrowsers, error }: BrowserSelectSectionProps) {
     const toggleBrowser = (name: string) => {
         setSelectedBrowsers((prev) => ({
             ...prev,

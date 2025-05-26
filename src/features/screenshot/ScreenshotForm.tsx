@@ -4,7 +4,7 @@ import BaseUrlInput from "./components/BaseUrlInput";
 import HiddenElementsSection from "./components/HiddenElementsSection";
 import TargetPagePathsSection from "./components/TargetPagePathsSection";
 import BasicAuthSection from "./components/BasicAuthSection";
-import BrowserSelect from "./components/BrowserSelect";
+import BrowserSelectSection from "./components/BrowserSelectSection";
 import ScreenshotButton from "./components/ScreenshotButton";
 import ScreenshotOverlay from "./components/ScreenshotOverlay";
 
@@ -52,7 +52,7 @@ export default function ScreenshotForm() {
                     password={password}
                     setPassword={setPassword}
                 />
-                <BrowserSelect selectedBrowsers={selectedBrowsers} setSelectedBrowsers={setSelectedBrowsers} error={browserError} />
+                <BrowserSelectSection selectedBrowsers={selectedBrowsers} setSelectedBrowsers={setSelectedBrowsers} error={browserError} />
                 <ScreenshotButton />
             </form>
         </>
