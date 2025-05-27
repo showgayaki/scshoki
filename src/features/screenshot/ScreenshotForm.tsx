@@ -15,7 +15,7 @@ export default function ScreenshotForm() {
         hiddenElements,
         setHiddenElements,
         targetPagePaths,
-        settargetPagePaths,
+        setTargetPagePaths,
         useAuth,
         setUseAuth,
         username,
@@ -46,7 +46,7 @@ export default function ScreenshotForm() {
             <form className="space-y-4" onSubmit={handleSubmit}>
                 <BaseUrlInput url={url} setUrl={setUrl} error={urlError} />
                 <HiddenElementsSection hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
-                <TargetPagePathsSection targetPages={targetPagePaths} setTargetPagesPaths={settargetPagePaths} />
+                <TargetPagePathsSection targetPagePaths={targetPagePaths} setTargetPagesPaths={setTargetPagePaths} />
                 <BasicAuthSection
                     useAuth={useAuth}
                     setUseAuth={setUseAuth}

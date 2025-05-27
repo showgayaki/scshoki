@@ -3,12 +3,13 @@ import { Box } from "@mui/material";
 import TagsInput from "@/components/TagsInput";
 
 interface TargetPagePathsSection {
-    targetPages: string[];
+    targetPagePaths: string[];
     setTargetPagesPaths: (value: string[]) => void;
 }
 
-export default function TargetPagePathsSection({ targetPages: targetPages, setTargetPagesPaths: setTargetPages }: TargetPagePathsSection) {
+export default function TargetPagePathsSection({ targetPagePaths, setTargetPagesPaths }: TargetPagePathsSection) {
     const options = [
+        "/",
         "/about",
         "/contact",
         "/access",
@@ -41,7 +42,7 @@ export default function TargetPagePathsSection({ targetPages: targetPages, setTa
         "/events",
         "/press",
         "/media",
-        "/team"
+        "/team",
     ];
 
     return (
@@ -51,8 +52,8 @@ export default function TargetPagePathsSection({ targetPages: targetPages, setTa
                 label="ページ"
                 placeholder="/contact, /about, /access"
                 options={options}
-                value={targetPages.join(", ")}
-                onChange={(newValues) => setTargetPages(newValues)}
+                value={targetPagePaths}
+                onChange={(newValues) => setTargetPagesPaths(newValues)}
             />
         </Box>
     );

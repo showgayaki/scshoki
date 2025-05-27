@@ -18,9 +18,8 @@ interface TagsInputProps {
     label: string;
     placeholder?: string;
     options?: string[];
-    value: string;
-    onChange?: (value: string[]) => void;
-    useInternalState?: boolean;
+    value: string[];
+    onChange: (value: string[]) => void;
 }
 
 export default function TagsInput({
@@ -30,18 +29,17 @@ export default function TagsInput({
     options = [],
     value,
     onChange,
-    useInternalState = false,
 }: TagsInputProps) {
-    const valueArray = value.split(",").map((s) => s.trim()).filter(Boolean);
-
     const {
-        currentTags,
+        tags,
         optionsOpen,
         setOptionsOpen,
         dialogOpen,
         setDialogOpen,
         handleChange,
-    } = useTagsInput(valueArray ?? [], useInternalState, onChange);
+        handleDelete,
+        handleKeyDown,
+    } = useTagsInput(value, id, onChange);
 
     return (
         <>
@@ -51,6 +49,7 @@ export default function TagsInput({
                     // 二重にpaddingがかかるので、Autocompleteのpaddingを0にしておく
                     "& .MuiInputBase-root": {
                         p: 0,
+                        // pl: 1, // 左側のpaddingは残す
                     },
                 }}
                 multiple
@@ -69,20 +68,42 @@ export default function TagsInput({
                         option.toLowerCase().includes(inputValue.toLowerCase())
                     )
                 }
-                value={currentTags}
-                onChange={(_, newValue) => handleChange(newValue)}
+                value={tags}
+                onChange={(_, newValue) => {
+                    console.log("newValue:", newValue);
+                    const filteredValue =
+                        id === "targetPages" && newValue.length === 0 && tags.length > 0
+                            ? [tags[0]]
+                            : newValue;
+                    handleChange(filteredValue);
+                }}
                 limitTags={3}
+                disableClearable={id === "targetPages" && tags.length === 1}
                 renderTags={(value: readonly string[], getTagProps) => {
                     const displayTags = value.slice(0, 3);
                     const hiddenTagCount = value.length - displayTags.length;
                     return (
                         <>
-                            {displayTags.map((option: string, index: number) => (
-                                <FilledPrimaryChip
-                                    label={option}
-                                    {...getTagProps({ index })}
-                                />
-                            ))}
+                            {displayTags.map((option, index) => {
+                                const { key, ...rest } = getTagProps({ index });
+                                return (
+                                    <FilledPrimaryChip
+                                        key={key}
+                                        {...rest}
+                                        label={option}
+                                        sx={{
+                                            "&.MuiChip-root": {
+                                                ml: index == 0 ? 1.5 : 0.5,
+                                            }
+                                        }}
+                                        onDelete={
+                                            id === "targetPages" && tags.length === 1
+                                                ? undefined
+                                                : () => handleDelete(option)
+                                        }
+                                    />
+                                );
+                            })}
                             {hiddenTagCount > 0 && (
                                 <Box onClick={() => setDialogOpen(true)} sx={{ cursor: "pointer" }}>
                                     <Chip
@@ -101,25 +122,13 @@ export default function TagsInput({
                         id={id}
                         label={label}
                         type="text"
-                        placeholder={currentTags.length ? "" : placeholder}  // 入力された時はplaceholderを非表示
+                        placeholder={tags.length ? "" : placeholder}  // 入力された時はplaceholderを非表示
                         textFieldProps={{
                             ...params,
-                            onKeyDown: (e) => {
-                                const inputValue = params.inputProps?.value;
-                                if (
-                                    e.key === "Enter" &&
-                                    typeof inputValue === "string" &&
-                                    inputValue.trim()
-                                ) {
-                                    e.preventDefault();
-                                    const input = inputValue.trim();
-                                    if (input && !currentTags.includes(input)) {
-                                        handleChange([...currentTags, input]);
-                                    }
-                                }
-                            },
+                            onKeyDown: handleKeyDown,
                         }}
-                        showClearButton={false}  // Autocompleteのクリアボタンはデフォルトで表示されるので不要
+                        // Autocompleteのクリアボタンはデフォルトで表示されるので不要
+                        showClearButton={false}
                     />
                 )}
             />
@@ -130,9 +139,9 @@ export default function TagsInput({
                 </DialogTitle>
                 <DialogContent dividers>
                     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ rowGap: 1, columnGap: 1, ml: 0 }}>
-                        {currentTags.map((tag, idx) => (
+                        {tags.map((tag, index) => (
                             <FilledPrimaryChip
-                                key={idx}
+                                key={index}
                                 label={tag}
                             />
                         ))}

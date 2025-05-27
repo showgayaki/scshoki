@@ -26,7 +26,7 @@ export default function HiddenElementsSection({ hiddenElements, setHiddenElement
                 label="スクロール中に非表示にする要素のセレクタ"
                 placeholder="header, .sticky, #footer"
                 options={options}
-                value={hiddenElements.join(", ")}
+                value={hiddenElements}
                 onChange={(newValues) => setHiddenElements(newValues)}
             />
         </Box>
