@@ -29,7 +29,7 @@ export default function ScreenshotForm() {
         validate,
     } = useScreenshotFormState();
 
-    const { status, isCapturing, takeScreenshot, cancelCapture } = useScreenshot();
+    const { status, isCapturing, takeScreenshot, cancelScreenshot } = useScreenshot();
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -42,7 +42,7 @@ export default function ScreenshotForm() {
 
     return (
         <>
-            {isCapturing && <ScreenshotOverlay />}
+            {isCapturing && <ScreenshotOverlay handleCancel={cancelScreenshot} />}
             <form className="space-y-4" onSubmit={handleSubmit}>
                 <BaseUrlInput url={url} setUrl={setUrl} error={urlError} />
                 <HiddenElementsSection hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
@@ -56,7 +56,7 @@ export default function ScreenshotForm() {
                     setPassword={setPassword}
                 />
                 <BrowserSelectSection selectedBrowsers={selectedBrowsers} setSelectedBrowsers={setSelectedBrowsers} error={browserError} />
-                <ScreenshotButton />
+                {!isCapturing && <ScreenshotButton />}
             </form>
         </>
     );

@@ -27,11 +27,11 @@ export function useScreenshot() {
         }
     };
 
-    const cancelCapture = () => {
+    const cancelScreenshot = () => {
         // ここでは単にフラグを落とすだけ。必要ならinvokeキャンセルなど追加検討
-        setStatus("スクリーンショット取得を中止しました");
+        setStatus("スクリーンショットを中止しました");
         setIsCapturing(false);
     };
 
-    return { status, isCapturing, takeScreenshot, cancelCapture };
+    return { status, isCapturing, takeScreenshot, cancelScreenshot };
 }
