@@ -119,6 +119,7 @@ export default function TagsInput({
                                 }
                             },
                         }}
+                        showClearButton={false}  // Autocompleteのクリアボタンはデフォルトで表示されるので不要
                     />
                 )}
             />

@@ -9,39 +9,39 @@ interface TargetPagePathsSection {
 
 export default function TargetPagePathsSection({ targetPages: targetPages, setTargetPagesPaths: setTargetPages }: TargetPagePathsSection) {
     const options = [
-        "about",
-        "contact",
-        "access",
-        "company",
-        "services",
-        "products",
-        "support",
-        "faq",
-        "privacy",
-        "terms",
-        "news",
-        "blog",
-        "careers",
-        "recruit",
-        "sitemap",
-        "profile",
-        "login",
-        "signup",
-        "dashboard",
-        "settings",
-        "account",
-        "help",
-        "guide",
-        "downloads",
-        "pricing",
-        "features",
-        "portfolio",
-        "testimonials",
-        "case-studies",
-        "events",
-        "press",
-        "media",
-        "team"
+        "/about",
+        "/contact",
+        "/access",
+        "/company",
+        "/services",
+        "/products",
+        "/support",
+        "/faq",
+        "/privacy",
+        "/terms",
+        "/news",
+        "/blog",
+        "/careers",
+        "/recruit",
+        "/sitemap",
+        "/profile",
+        "/login",
+        "/signup",
+        "/dashboard",
+        "/settings",
+        "/account",
+        "/help",
+        "/guide",
+        "/downloads",
+        "/pricing",
+        "/features",
+        "/portfolio",
+        "/testimonials",
+        "/case-studies",
+        "/events",
+        "/press",
+        "/media",
+        "/team"
     ];
 
     return (
@@ -49,7 +49,7 @@ export default function TargetPagePathsSection({ targetPages: targetPages, setTa
             <TagsInput
                 id="targetPages"
                 label="ページ"
-                placeholder="contact, about, access"
+                placeholder="/contact, /about, /access"
                 options={options}
                 value={targetPages.join(", ")}
                 onChange={(newValues) => setTargetPages(newValues)}

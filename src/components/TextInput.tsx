@@ -1,4 +1,5 @@
-import { FormControl, InputLabel, TextField, TextFieldProps } from "@mui/material";
+import { FormControl, InputLabel, TextField, TextFieldProps, InputAdornment, IconButton } from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 
 interface TextInputProps {
     id?: string;
@@ -8,6 +9,7 @@ interface TextInputProps {
     placeholder?: string;
     disabled?: boolean;
     type?: string;
+    showClearButton?: boolean;
     textFieldProps?: Partial<TextFieldProps>;
 }
 
@@ -18,7 +20,8 @@ export default function TextInput({
     onChange,
     placeholder,
     disabled,
-    type = "text",
+    type,
+    showClearButton = true,
     textFieldProps,
 }: TextInputProps) {
     return (
@@ -39,7 +42,7 @@ export default function TextInput({
                         padding: "8.5px 14px",
                     },
                 }}
-                id={id?? id}
+                id={id ?? id}
                 value={value}
                 onChange={(e) => onChange?.(e.target.value)}
                 placeholder={placeholder}
@@ -52,6 +55,23 @@ export default function TextInput({
                     inputLabel: {
                         shrink: true,
                     },
+                    ...(showClearButton && value
+                        ? {
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end" sx={{ marginRight: "-6px" }}>
+                                        <IconButton
+                                            onClick={() => onChange?.("")}
+                                            edge="end"
+                                            size="small"
+                                        >
+                                            <ClearIcon fontSize="small" />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            },
+                        }
+                        : {}),
                 }}
                 {...textFieldProps}
             />
