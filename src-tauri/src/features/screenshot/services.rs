@@ -13,7 +13,7 @@ use super::infrastructure::image::{cut_scroll_overlap, get_image_size, trim_extr
 
 pub async fn screenshot_full_page(
     driver: &WebDriver,
-    hidden_elements: &str,
+    hidden_elements: &[String],
     datetime_now: &str,
     device_os: &str,
     browser: &str,
@@ -112,17 +112,19 @@ pub async fn screenshot_full_page(
 
         // 最初のスクロール直後に指定した要素を非表示にする
         if index == 1 {
-            hide_elements(driver, hidden_elements)
-                .await
-                .map_err(|e| format!("Failed to hide elements: {}", e))?;
-            wait_for_elements_hidden(driver, hidden_elements).await?; // 非表示完了を待つ
+            for element in hidden_elements {
+                hide_elements(driver, element)
+                    .await
+                    .map_err(|e| format!("Failed to hide elements: {}", e))?;
+                wait_for_elements_hidden(driver, element).await?; // 非表示完了を待つ
+            }
         }
     }
-
-    // 非表示にした要素を元に戻す
-    show_elements(driver, hidden_elements)
-        .await
-        .map_err(|e| format!("Failed to restore elements: {}", e))?;
+    for element in hidden_elements {
+        show_elements(driver, element)
+            .await
+            .map_err(|e| format!("Failed to restore elements: {}", e))?;
+    }
 
     Ok(screenshots)
 }

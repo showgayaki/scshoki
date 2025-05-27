@@ -33,8 +33,11 @@ export default function ScreenshotForm() {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        validate();
-        takeScreenshot({url, hiddenElements, selectedBrowsers});
+        if (validate()) {
+            takeScreenshot({url, targetPagePaths, hiddenElements, selectedBrowsers});
+        }else {
+            console.warn("Validation failed, not submitting form");
+        }
     };
 
     return (

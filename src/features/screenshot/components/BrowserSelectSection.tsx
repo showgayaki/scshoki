@@ -10,18 +10,20 @@ const browsers = [
 ];
 
 interface BrowserSelectSectionProps {
-    selectedBrowsers: Record<string, boolean>;
-    setSelectedBrowsers: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+    selectedBrowsers: string[];
+    setSelectedBrowsers: React.Dispatch<React.SetStateAction<string[]>>;
     error?: string;
 }
 
 export default function BrowserSelectSection({ selectedBrowsers, setSelectedBrowsers, error }: BrowserSelectSectionProps) {
     const toggleBrowser = (name: string) => {
-        setSelectedBrowsers((prev) => ({
-            ...prev,
-            [name]: !prev[name], // 選択状態をトグル
-        }));
+        setSelectedBrowsers((prev) =>
+            prev.includes(name)
+                ? prev.filter((b) => b !== name)
+                : [...prev, name]
+        );
     };
+    console.log("selectedBrowsers", selectedBrowsers);
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -38,7 +40,7 @@ export default function BrowserSelectSection({ selectedBrowsers, setSelectedBrow
                     {browsers.map((browser) => (
                         <Box key={browser.name} onClick={() => toggleBrowser(browser.name)} sx={{ cursor: "pointer", textAlign: "center" }}>
                             <img
-                                src={selectedBrowsers[browser.name] ? browser.colorImg : browser.grayImg}
+                                src={selectedBrowsers.includes(browser.name) ? browser.colorImg : browser.grayImg}
                                 alt={browser.name}
                                 width={80}
                                 height={80}

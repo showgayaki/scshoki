@@ -3,8 +3,8 @@ import { Box } from "@mui/material";
 import TagsInput from "@/components/TagsInput";
 
 interface TargetPagePathsSection {
-    targetPages: string;
-    setTargetPagesPaths: (value: string) => void;
+    targetPages: string[];
+    setTargetPagesPaths: (value: string[]) => void;
 }
 
 export default function TargetPagePathsSection({ targetPages: targetPages, setTargetPagesPaths: setTargetPages }: TargetPagePathsSection) {
@@ -51,8 +51,8 @@ export default function TargetPagePathsSection({ targetPages: targetPages, setTa
                 label="ページ"
                 placeholder="contact, about, access"
                 options={options}
-                value={targetPages}
-                onChange={(newValues) => setTargetPages(newValues.join(", "))}
+                value={targetPages.join(", ")}
+                onChange={(newValues) => setTargetPages(newValues)}
             />
         </Box>
     );

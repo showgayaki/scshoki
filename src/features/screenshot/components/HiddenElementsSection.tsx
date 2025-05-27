@@ -3,8 +3,8 @@ import { Box } from "@mui/material";
 import TagsInput from "@/components/TagsInput";
 
 interface HiddenElementsSectionProps {
-    hiddenElements: string;
-    setHiddenElements: (value: string) => void;
+    hiddenElements: string[];
+    setHiddenElements: (value: string[]) => void;
 }
 
 export default function HiddenElementsSection({ hiddenElements, setHiddenElements }: HiddenElementsSectionProps) {
@@ -26,8 +26,8 @@ export default function HiddenElementsSection({ hiddenElements, setHiddenElement
                 label="スクロール中に非表示にする要素のセレクタ"
                 placeholder="header, .sticky, #footer"
                 options={options}
-                value={hiddenElements}
-                onChange={(newValues) => setHiddenElements(newValues.join(", "))}
+                value={hiddenElements.join(", ")}
+                onChange={(newValues) => setHiddenElements(newValues)}
             />
         </Box>
     );

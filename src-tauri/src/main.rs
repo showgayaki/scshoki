@@ -2,10 +2,12 @@ use log::{error, info};
 use rusb::Context;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
+use ts_rs::TS;
 
 mod constants;
 mod env;
 mod features;
+mod types;
 mod usecases;
 mod utils;
 
@@ -20,11 +22,15 @@ use features::dependencies::commands::{
 };
 use features::device::commands::{init_devive_info, start_usb_monitor};
 use features::screenshot::commands::take_screenshot;
+use types::screenshot::ScreenshotParams;
 use utils::logger::init_logger;
 
 fn main() {
     init_logger(); // ロガーの初期化
     info!("Application started on {}({}).", HOST_OS, HOST_ARCH);
+
+    // スクリーンショットのパラメータの型をReact用にエクスポート
+    ScreenshotParams::export().unwrap();
 
     // `~/.scshoki/bin` をPATHに設定
     add_to_path(&BINARY_DIR);

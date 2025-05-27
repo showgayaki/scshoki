@@ -2,50 +2,46 @@ import { useState } from "react";
 
 export function useScreenshotFormState() {
     const [url, setUrl] = useState("");
-    const [hiddenElements, setHiddenElements] = useState("");
-    const [targetPagePaths, settargetPagePaths] = useState("");
+    const [hiddenElements, setHiddenElements] = useState([] as string[]);
+    const [targetPagePaths, settargetPagePaths] = useState([] as string[]);
     const [useAuth, setUseAuth] = useState(false);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [selectedBrowsers, setSelectedBrowsers] = useState<Record<string, boolean>>({
-        Chrome: false,
-        Firefox: false,
-        Safari: false,
-    });
+    const [selectedBrowsers, setSelectedBrowsers] = useState([] as string[]);
     const [urlError, setUrlError] = useState<string | null>(null);
     const [browserError, setBrowserError] = useState<string | undefined>(undefined);
 
     const validate = () => {
-        let errorCleared = false;
+        let hasError = false;
 
         if (!url) {
             setUrlError("URLを入力してください");
-            errorCleared = true;
+            hasError = true;
         } else {
             try {
                 new URL(url);
             } catch {
                 setUrlError("有効なURLを入力してください");
-                errorCleared = true;
+                hasError = true;
             }
         }
 
-        const isAnyBrowserSelected = Object.values(selectedBrowsers).some((selected) => selected);
-        if (!isAnyBrowserSelected) {
+        if (selectedBrowsers.length === 0) {
             setBrowserError("ブラウザを選択してください");
-            errorCleared = true;
+            hasError = true;
         }
 
-        if (errorCleared) {
+        if (hasError) {
             setTimeout(() => {
                 setUrlError(null);
                 setBrowserError(undefined);
             }, 3000);
-            return;
+            return false;
         }
 
         setUrlError(null);
         setBrowserError(undefined);
+        return true;
     };
 
     return {

@@ -1,17 +1,23 @@
 use chrono::Local;
-use log::{error, info};
+use log::{debug, error, info};
 use std::fs;
 
 use crate::constants::{DEVICE_OS, SCREENSHOT_DIR};
 use crate::features::device::services::get_display_info;
 use crate::features::screenshot::services::{combine_screenshots, screenshot_full_page};
 use crate::features::webdriver::services::create_webdriver;
+use crate::types::screenshot::ScreenshotParams;
 
-pub async fn take_screenshot(
-    url: String,
-    hidden_elements: String,
-    selected_browsers: Vec<String>,
-) -> Result<(), String> {
+pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
+    debug!("take_screenshot called with params: {:?}", params);
+
+    let ScreenshotParams {
+        url,
+        target_page_paths,
+        hidden_elements,
+        selected_browsers,
+    } = params;
+
     info!(
         "Taking screenshot of {} for browsers: {:?}",
         url, selected_browsers

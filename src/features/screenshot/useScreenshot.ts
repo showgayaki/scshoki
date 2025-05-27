@@ -1,40 +1,26 @@
 import { useState } from "react";
 
+import type { ScreenshotParams } from "@/generated/ScreenshotParams";
 import { takeScreenshot as scsho } from "./api";
 
 export function useScreenshot() {
     const [status, setStatus] = useState<string | undefined>(undefined);
     const [isCapturing, setIsCapturing] = useState(false);
 
-    const takeScreenshot = async ({
-        url,
-        hiddenElements,
-        selectedBrowsers,
-    }: {
-        url: string;
-        hiddenElements: string;
-        selectedBrowsers: Record<string, boolean>;
-    }) => {
-        if (!url) {
-            setStatus("URLを入力してください");
-            return;
-        }
-
+    const takeScreenshot = async (params: ScreenshotParams) => {
+        console.log("screenshot params:", params);
         setStatus("スクリーンショットを取得中...");
         setIsCapturing(true);
 
-        const selectedBrowsersArray = Object.keys(selectedBrowsers).filter(
-            (browser) => selectedBrowsers[browser]
-        );
-
         try {
-            const response = await scsho(url, hiddenElements, selectedBrowsersArray);
+            const response = await scsho(params);
             if (response.success) {
                 setStatus(`スクリーンショットを保存しました: ${response.path}`);
             } else {
                 setStatus(`エラー: ${response.error}`);
             }
         } catch (error) {
+            console.error("スクリーンショット取得中にエラー:", error);
             setStatus(`エラー: ${error}`);
         } finally {
             setIsCapturing(false);
