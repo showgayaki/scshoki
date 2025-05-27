@@ -3,15 +3,16 @@ import { CircularProgress, IconButton, Typography, Box } from "@mui/material";
 import FullscreenOverlay from "@/components/FullscreenOverlay";
 
 interface ScreenshotOverlayProps {
+    status: string;
     handleCancel: () => void;
 }
 
-export default function ScreenshotOverlay({ handleCancel }: ScreenshotOverlayProps) {
+export default function ScreenshotOverlay({ status, handleCancel }: ScreenshotOverlayProps) {
     return (
         <FullscreenOverlay>
             <CircularProgress size={80} />
             <Typography variant="h6" sx={{ mt: 2 }}>
-                スクリーンショットを取得中…
+                {status}
             </Typography>
             <Box
                 sx={{

@@ -2,8 +2,10 @@ use image::{DynamicImage, GenericImageView, ImageBuffer};
 use log::{debug, info};
 use std::fs;
 use thirtyfour::prelude::*;
+use tokio_util::sync::CancellationToken;
 
 use crate::constants::SCREENSHOT_DIR;
+use crate::utils::cancel::check_cancellation;
 use crate::utils::wait::wait_for_elements_hidden;
 
 use super::infrastructure::dom::{
@@ -18,6 +20,7 @@ pub async fn screenshot_full_page(
     device_os: &str,
     browser: &str,
     navigationbar_height: f64,
+    token: CancellationToken,
 ) -> Result<Vec<Vec<u8>>, String> {
     info!("Capturing full page screenshot...");
 
@@ -59,8 +62,10 @@ pub async fn screenshot_full_page(
     let mut y_before_last_scroll = 0.0;
 
     for index in 1..=scroll_steps {
-        debug!("Screenshot count: {}", index);
+        // キャンセルチェック
+        check_cancellation(&token, Some(driver)).await?;
 
+        debug!("Screenshot count: {}", index);
         // スクリーンショットを撮る
         let screenshot: Vec<u8> = driver
             .screenshot_as_png()

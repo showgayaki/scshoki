@@ -30,6 +30,7 @@ rusb = "0.9.4"
 tauri-plugin-dialog = "2"
 thiserror = "2.0.12"
 ts-rs = "10.1.0"
+tokio-util = "0.7.15"
 
 [profile.dev]
 incremental = true

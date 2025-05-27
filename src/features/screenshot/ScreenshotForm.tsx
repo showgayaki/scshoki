@@ -42,7 +42,7 @@ export default function ScreenshotForm() {
 
     return (
         <>
-            {isCapturing && <ScreenshotOverlay handleCancel={cancelScreenshot} />}
+            {isCapturing && <ScreenshotOverlay status={status} handleCancel={cancelScreenshot} />}
             <form className="space-y-4" onSubmit={handleSubmit}>
                 <BaseUrlInput url={url} setUrl={setUrl} error={urlError} />
                 <HiddenElementsSection hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />

@@ -2,6 +2,7 @@ use log::{debug, error, info};
 use serde_json::{Map, Value};
 use thirtyfour::error::WebDriverErrorInfo;
 use thirtyfour::prelude::*;
+use tokio_util::sync::CancellationToken;
 
 use crate::constants::{APPIUM_SERVER_URL, DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
 use crate::utils::wait::wait_for_page_load;
@@ -12,6 +13,7 @@ use super::infrastructure::context::{get_contexts, set_context};
 use super::infrastructure::navigationbar::get_navigationbar_height;
 use super::infrastructure::url::format_url;
 use super::infrastructure::webdriver::webdriver;
+use crate::utils::cancel::check_cancellation;
 
 pub struct DriverContext {
     pub driver: WebDriver,
@@ -29,7 +31,11 @@ pub async fn goto_and_wait(driver: &WebDriver, url: &str) -> WebDriverResult<()>
     Ok(())
 }
 
-pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext, String> {
+pub async fn create_webdriver(
+    browser: &str,
+    url: &str,
+    token: CancellationToken,
+) -> Result<DriverContext, String> {
     info!("Creating WebDriver for {}", browser);
     let device_os = DEVICE_OS.lock().unwrap().clone();
 
@@ -48,6 +54,9 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
             debug!("WebDriver capabilities: {:?}", caps);
 
             let mut driver = webdriver(&APPIUM_SERVER_URL, caps.clone()).await?;
+            // キャンセルチェック
+            check_cancellation(&token, Some(&driver)).await?;
+
             let formated_url = format_url(url, browser);
             info!("Formatted URL: {}", formated_url);
             driver
@@ -55,19 +64,33 @@ pub async fn create_webdriver(browser: &str, url: &str) -> Result<DriverContext,
                 .await
                 .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
 
+            // キャンセルチェック
+            check_cancellation(&token, Some(&driver)).await?;
+
             // ブラウザ下部のナビゲーションバーの高さを取得
             let navigationbar_height = get_navigationbar_height(&driver, browser).await;
             debug!("Navigation bar height: {}", navigationbar_height);
 
+            // キャンセルチェック
+            check_cancellation(&token, Some(&driver)).await?;
+
             // コンテキストを適切なWEBVIEWに切り替える
             driver = switch_to_target_context(browser, &driver, &APPIUM_SERVER_URL, caps).await?;
+
+            // キャンセルチェック
+            check_cancellation(&token, Some(&driver)).await?;
 
             (driver, navigationbar_height)
         }
         "Android" => {
             let caps = android_capabilities(browser, &device_os).await?;
+            // キャンセルチェック
+            check_cancellation(&token, None).await?;
+
             debug!("WebDriver capabilities: {:?}", caps);
             let driver = webdriver(&APPIUM_SERVER_URL, caps).await?;
+            // キャンセルチェック
+            check_cancellation(&token, Some(&driver)).await?;
 
             if let Err(e) = goto_and_wait(&driver, url).await {
                 return Err(format!("Failed to navigate and wait for URL: {}", e));

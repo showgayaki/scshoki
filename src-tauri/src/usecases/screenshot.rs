@@ -1,14 +1,23 @@
 use chrono::Local;
 use log::{debug, error, info};
 use std::fs;
+use tokio_util::sync::CancellationToken;
 
 use crate::constants::{DEVICE_OS, SCREENSHOT_DIR};
 use crate::features::device::services::get_display_info;
+use crate::features::screenshot::constants::CANCEL_TOKEN;
 use crate::features::screenshot::services::{combine_screenshots, screenshot_full_page};
 use crate::features::webdriver::services::create_webdriver;
 use crate::types::screenshot::ScreenshotParams;
+use crate::utils::cancel::check_cancellation;
 
 pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
+    let token = CancellationToken::new();
+    {
+        let mut token_lock = CANCEL_TOKEN.lock().unwrap();
+        *token_lock = Some(token.clone());
+    }
+
     debug!("take_screenshot called with params: {:?}", params);
 
     let ScreenshotParams {
@@ -30,16 +39,17 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
     let datetime_now = Local::now().format("%Y%m%d-%H%M%S").to_string();
     let device_os = DEVICE_OS.lock().unwrap().clone();
 
-    // datetime取得
     for browser in selected_browsers {
         info!("Starting screenshot process for {}", browser);
         let browser_lowercased = browser.to_lowercase();
 
-        match create_webdriver(&browser_lowercased, &url).await {
+        match create_webdriver(&browser_lowercased, &url, token.clone()).await {
             Ok(driver_context) => {
                 let driver = driver_context.driver;
                 // Density取得
                 get_display_info(&driver, &device_os).await;
+                // キャンセルチェック
+                check_cancellation(&token, Some(&driver)).await?;
 
                 // スクロールしながらスクリーンショットを撮影
                 match screenshot_full_page(
@@ -49,10 +59,14 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
                     &device_os,
                     &browser,
                     driver_context.navigationbar_height,
+                    token.clone(),
                 )
                 .await
                 {
                     Ok(screenshots) => {
+                        // キャンセルチェック
+                        check_cancellation(&token, Some(&driver)).await?;
+
                         let final_screenshot = match combine_screenshots(&screenshots) {
                             Ok(img) => img,
                             Err(e) => {

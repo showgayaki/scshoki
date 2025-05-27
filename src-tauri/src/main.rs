@@ -21,7 +21,7 @@ use features::dependencies::commands::{
     install_nodejs,
 };
 use features::device::commands::{init_devive_info, start_usb_monitor};
-use features::screenshot::commands::take_screenshot;
+use features::screenshot::commands::{cancel_screenshot, take_screenshot};
 use types::screenshot::ScreenshotParams;
 use utils::logger::init_logger;
 
@@ -64,6 +64,7 @@ fn main() {
             stop_appium,
             start_usb_monitor,
             take_screenshot,
+            cancel_screenshot,
             init_devive_info,
         ])
         .run(tauri::generate_context!())

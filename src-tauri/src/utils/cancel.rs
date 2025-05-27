@@ -1,0 +1,19 @@
+use log::debug;
+use thirtyfour::prelude::*;
+use tokio_util::sync::CancellationToken;
+
+/// チェックしてキャンセルされていれば早期リターンする共通関数
+pub async fn check_cancellation(
+    token: &CancellationToken,
+    driver: Option<&WebDriver>,
+) -> Result<(), String> {
+    if token.is_cancelled() {
+        debug!("Cancellation token is cancelled.");
+        if let Some(driver) = driver {
+            debug!("Cancelled. Quitting driver...");
+            driver.clone().quit().await.ok(); // クリーンアップ
+        }
+        return Err("Screenshot cancelled".to_string());
+    }
+    Ok(())
+}

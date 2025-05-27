@@ -1,15 +1,15 @@
 import { useState } from "react";
 
 import type { ScreenshotParams } from "@/generated/ScreenshotParams";
-import { takeScreenshot as scsho } from "./api";
+import { takeScreenshot as scsho, cancelScreenshot as cancel } from "./api";
 
 export function useScreenshot() {
-    const [status, setStatus] = useState<string | undefined>(undefined);
+    const [status, setStatus] = useState("");
     const [isCapturing, setIsCapturing] = useState(false);
 
     const takeScreenshot = async (params: ScreenshotParams) => {
         console.log("screenshot params:", params);
-        setStatus("スクリーンショットを取得中...");
+        setStatus("スクリーンショット取得中...");
         setIsCapturing(true);
 
         try {
@@ -27,10 +27,18 @@ export function useScreenshot() {
         }
     };
 
-    const cancelScreenshot = () => {
-        // ここでは単にフラグを落とすだけ。必要ならinvokeキャンセルなど追加検討
-        setStatus("スクリーンショットを中止しました");
-        setIsCapturing(false);
+    const cancelScreenshot = async () => {
+        setStatus("スクリーンショットをキャンセルしています...");
+        const result = await cancel();
+        console.log("cancel result:", result);
+
+        if (result.success) {
+            setStatus("スクリーンショットをキャンセルしました");
+            // 少し待ってから isCapturing を false にする
+            setTimeout(() => {
+                setIsCapturing(false);
+            }, 1000);
+        }
     };
 
     return { status, isCapturing, takeScreenshot, cancelScreenshot };
