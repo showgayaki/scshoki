@@ -84,13 +84,13 @@ export default function TagsInput({
                     const hiddenTagCount = value.length - displayTags.length;
                     return (
                         <>
-                            {displayTags.map((option, index) => {
+                            {displayTags.map((tag, index) => {
                                 const { key, ...rest } = getTagProps({ index });
                                 return (
                                     <FilledPrimaryChip
                                         key={key}
                                         {...rest}
-                                        label={option}
+                                        label={tag}
                                         sx={{
                                             "&.MuiChip-root": {
                                                 ml: index == 0 ? 1.5 : 0.5,
@@ -99,7 +99,7 @@ export default function TagsInput({
                                         onDelete={
                                             id === "targetPages" && tags.length === 1
                                                 ? undefined
-                                                : () => handleDelete(option)
+                                                : () => handleDelete(tag)
                                         }
                                     />
                                 );
@@ -143,6 +143,11 @@ export default function TagsInput({
                             <FilledPrimaryChip
                                 key={index}
                                 label={tag}
+                                onDelete={
+                                    id === "targetPages" && tags.length === 1
+                                        ? undefined
+                                        : () => handleDelete(tag)
+                                }
                             />
                         ))}
                     </Stack>
