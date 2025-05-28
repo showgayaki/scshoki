@@ -8,10 +8,9 @@ use crate::features::device::services::get_display_info;
 use crate::features::screenshot::constants::CANCEL_TOKEN;
 use crate::features::screenshot::services::{combine_screenshots, screenshot_full_page};
 use crate::features::webdriver::services::create_webdriver;
-use crate::types::screenshot::ScreenshotParams;
-use crate::utils::cancel::check_cancellation;
+use crate::types::screenshot::{ScreenshotParams, ScreenshotResponse};
 
-pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
+pub async fn take_screenshot(params: ScreenshotParams) -> Result<ScreenshotResponse, String> {
     let token = CancellationToken::new();
     {
         let mut token_lock = CANCEL_TOKEN.lock().unwrap();
@@ -48,8 +47,6 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
                 let driver = driver_context.driver;
                 // Density取得
                 get_display_info(&driver, &device_os).await;
-                // キャンセルチェック
-                check_cancellation(&token, Some(&driver)).await?;
 
                 // スクロールしながらスクリーンショットを撮影
                 match screenshot_full_page(
@@ -64,9 +61,6 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
                 .await
                 {
                     Ok(screenshots) => {
-                        // キャンセルチェック
-                        check_cancellation(&token, Some(&driver)).await?;
-
                         let final_screenshot = match combine_screenshots(&screenshots) {
                             Ok(img) => img,
                             Err(e) => {
@@ -85,7 +79,18 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
                             info!("[{}] Screenshot saved at {:?}", browser, screenshot_path);
                         }
                     }
-                    Err(e) => error!("[{}] Failed to capture screenshots: {}", browser, e),
+                    Err(e) => {
+                        error!("[{}] Failed to capture screenshots: {}", browser, e);
+                        // キャンセルチェック
+                        if token.is_cancelled() {
+                            return Ok(ScreenshotResponse {
+                                success: false,
+                                cancelled: token.is_cancelled(),
+                                path: "".to_string(),
+                                error: Some(e),
+                            });
+                        }
+                    }
                 }
 
                 // セッションを終了
@@ -93,9 +98,25 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<(), String> {
                     error!("[{}] Failed to quit session: {}", browser, e);
                 }
             }
-            Err(e) => error!("[{}] WebDriver creation failed: {}", browser, e),
+            Err(e) => {
+                error!("[{}] WebDriver creation failed: {}", browser, e);
+                // キャンセルチェック
+                if token.is_cancelled() {
+                    return Ok(ScreenshotResponse {
+                        success: false,
+                        cancelled: token.is_cancelled(),
+                        path: "".to_string(),
+                        error: Some(e),
+                    });
+                }
+            }
         }
     }
 
-    Ok(())
+    Ok(ScreenshotResponse {
+        success: true,
+        cancelled: token.is_cancelled(),
+        path: "".to_string(),
+        error: None,
+    })
 }

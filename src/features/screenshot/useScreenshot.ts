@@ -14,31 +14,28 @@ export function useScreenshot() {
 
         try {
             const response = await scsho(params);
+            if (response.cancelled){
+                setStatus("スクリーンショットをキャンセルしました");
+                return;
+            }
             if (response.success) {
                 setStatus(`スクリーンショットを保存しました: ${response.path}`);
             } else {
                 setStatus(`エラー: ${response.error}`);
             }
         } catch (error) {
-            console.error("スクリーンショット取得中にエラー:", error);
+            console.error("スクリーンショット取得中にエラーが発生しました:", error);
             setStatus(`エラー: ${error}`);
         } finally {
-            setIsCapturing(false);
+            setTimeout(() => {
+                setIsCapturing(false);
+            }, 3000);
         }
     };
 
     const cancelScreenshot = async () => {
         setStatus("スクリーンショットをキャンセルしています...");
-        const result = await cancel();
-        console.log("cancel result:", result);
-
-        if (result.success) {
-            setStatus("スクリーンショットをキャンセルしました");
-            // 少し待ってから isCapturing を false にする
-            setTimeout(() => {
-                setIsCapturing(false);
-            }, 1000);
-        }
+        await cancel();
     };
 
     return { status, isCapturing, takeScreenshot, cancelScreenshot };

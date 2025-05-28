@@ -54,8 +54,6 @@ pub async fn create_webdriver(
             debug!("WebDriver capabilities: {:?}", caps);
 
             let mut driver = webdriver(&APPIUM_SERVER_URL, caps.clone()).await?;
-            // キャンセルチェック
-            check_cancellation(&token, Some(&driver)).await?;
 
             let formated_url = format_url(url, browser);
             info!("Formatted URL: {}", formated_url);
@@ -84,8 +82,6 @@ pub async fn create_webdriver(
         }
         "Android" => {
             let caps = android_capabilities(browser, &device_os).await?;
-            // キャンセルチェック
-            check_cancellation(&token, None).await?;
 
             debug!("WebDriver capabilities: {:?}", caps);
             let driver = webdriver(&APPIUM_SERVER_URL, caps).await?;

@@ -13,3 +13,14 @@ pub struct ScreenshotParams {
     pub hidden_elements: Vec<String>,
     pub selected_browsers: Vec<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "../../src/generated/ScreenshotResponse.ts")]
+pub struct ScreenshotResponse {
+    pub success: bool,
+    pub cancelled: bool,
+    pub path: String,
+    pub error: Option<String>,
+}
