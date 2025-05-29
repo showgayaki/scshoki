@@ -2,21 +2,41 @@ use log::{debug, error, info};
 use thirtyfour::error::WebDriverErrorInfo;
 use thirtyfour::prelude::*;
 use tokio_util::sync::CancellationToken;
+use url::Url;
 
 use crate::constants::{APPIUM_SERVER_URL, DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
+use crate::utils::cancel::check_cancellation;
 use crate::utils::wait::wait_for_page_load;
 
 use super::constants::WEBVIEW_BUNDLE_IDS;
 use super::infrastructure::capabilities::{android_capabilities, ios_capabilities};
 use super::infrastructure::context::switch_to_target_context;
 use super::infrastructure::navigationbar::get_navigationbar_height;
-use super::infrastructure::url::format_url;
+use super::infrastructure::url::format_base_url;
 use super::infrastructure::webdriver::webdriver;
-use crate::utils::cancel::check_cancellation;
 
 pub struct DriverContext {
     pub driver: WebDriver,
     pub navigationbar_height: f64,
+}
+
+pub struct PageContext {
+    pub url: String,
+    pub path: String,
+}
+
+pub fn format_url(base_url: &str, path: &str) -> Result<PageContext, String> {
+    let parsed_url = Url::parse(base_url).expect("Invalid base URL");
+    let page_url = if path == "/" {
+        parsed_url
+    } else {
+        parsed_url.join(path).expect("Invalid path for URL join")
+    };
+
+    Ok(PageContext {
+        url: page_url.to_string(),
+        path: page_url.path().to_string(),
+    })
 }
 
 pub async fn goto_and_wait(driver: &WebDriver, url: &str) -> WebDriverResult<()> {
@@ -54,7 +74,7 @@ pub async fn create_webdriver(
 
             let mut driver = webdriver(&APPIUM_SERVER_URL, caps.clone()).await?;
 
-            let formated_url = format_url(url, browser);
+            let formated_url = format_base_url(url, browser);
             info!("Formatted URL: {}", formated_url);
             driver
                 .goto(&formated_url)

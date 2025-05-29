@@ -1,10 +1,9 @@
 use image::{DynamicImage, GenericImageView, ImageBuffer};
 use log::{debug, info};
 use std::fs;
-use thirtyfour::prelude::*;
-use tokio_util::sync::CancellationToken;
 
 use crate::constants::SCREENSHOT_DIR;
+use crate::types::screenshot::ScreenshotContext;
 use crate::utils::cancel::check_cancellation;
 use crate::utils::wait::wait_for_elements_hidden;
 
@@ -13,16 +12,18 @@ use super::infrastructure::dom::{
 };
 use super::infrastructure::image::{cut_scroll_overlap, get_image_size, trim_extra_space};
 
-pub async fn screenshot_full_page(
-    driver: &WebDriver,
-    hidden_elements: &[String],
-    datetime_now: &str,
-    device_os: &str,
-    browser: &str,
-    navigationbar_height: f64,
-    token: &CancellationToken,
-) -> Result<Vec<Vec<u8>>, String> {
+pub async fn screenshot_full_page(context: ScreenshotContext<'_>) -> Result<Vec<Vec<u8>>, String> {
     info!("Capturing full page screenshot...");
+    let ScreenshotContext {
+        driver,
+        hidden_elements,
+        datetime_now,
+        device_os,
+        browser,
+        page_path,
+        navigationbar_height,
+        token,
+    } = context;
 
     // ページの各種メトリクスを取得
     let metrics = get_page_metrics(driver)
@@ -87,7 +88,14 @@ pub async fn screenshot_full_page(
 
         screenshots.push(cropped_screenshot.clone());
 
-        let filename = format!("{}_{}_{}_{}.png", datetime_now, device_os, browser, index);
+        let filename = format!(
+            "{}_{}_{}_{}_{}.png",
+            datetime_now,
+            device_os,
+            browser,
+            page_path.replace("/", ""),
+            index
+        );
         fs::write(SCREENSHOT_DIR.join(&filename), &cropped_screenshot)
             .map_err(|e| format!("Failed to save {}: {}", &filename, e))?;
         info!("Saved {}", &filename);
