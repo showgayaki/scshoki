@@ -116,7 +116,8 @@ pub async fn screenshot_full_page(
         info!("Scrolled to: {} px", y_offset);
 
         // 最初のスクロール直後に指定した要素を非表示にする
-        if index == 1 {
+        if index == 1 && !hidden_elements.is_empty() {
+            info!("Hiding specified elements...");
             for element in hidden_elements {
                 hide_elements(driver, element)
                     .await
@@ -125,10 +126,14 @@ pub async fn screenshot_full_page(
             }
         }
     }
-    for element in hidden_elements {
-        show_elements(driver, element)
-            .await
-            .map_err(|e| format!("Failed to restore elements: {}", e))?;
+
+    if !hidden_elements.is_empty() {
+        info!("Showing hidden elements...");
+        for element in hidden_elements {
+            show_elements(driver, element)
+                .await
+                .map_err(|e| format!("Failed to restore elements: {}", e))?;
+        }
     }
 
     Ok(screenshots)
