@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 export function useScreenshotFormState() {
-    const [url, setUrl] = useState("");
+    const [baseUrl, setBaseUrl] = useState("");
     const [hiddenElements, setHiddenElements] = useState([] as string[]);
     const [targetPagePaths, setTargetPagePaths] = useState([] as string[]);
     const [useAuth, setUseAuth] = useState(false);
@@ -15,12 +15,12 @@ export function useScreenshotFormState() {
         let hasError = false;
         console.log("targetPagePaths:", targetPagePaths);
 
-        if (!url) {
+        if (!baseUrl) {
             setUrlError("URLを入力してください");
             hasError = true;
         } else {
             try {
-                new URL(url);
+                new URL(baseUrl);
             } catch {
                 setUrlError("有効なURLを入力してください");
                 hasError = true;
@@ -48,8 +48,8 @@ export function useScreenshotFormState() {
 
     useEffect(() => {
         try {
-            new URL(url);
-            console.log("useScreenshotFormState initialized with URL:", url);
+            new URL(baseUrl);
+            console.log("useScreenshotFormState initialized with URL:", baseUrl);
             if (!targetPagePaths.includes("/")) {
                 console.log("Adding default path '/' to targetPagePaths");
                 setTargetPagePaths((prev) => ["/", ...prev]);
@@ -58,15 +58,15 @@ export function useScreenshotFormState() {
             // Do nothing if URL is invalid
         }
 
-        if(url === "") {
+        if(baseUrl === "") {
             console.log("Resetting targetPagePaths to default");
             setTargetPagePaths([]);
         }
-    }, [url]);
+    }, [baseUrl]);
 
     return {
-        url,
-        setUrl,
+        baseUrl,
+        setBaseUrl,
         hiddenElements,
         setHiddenElements,
         targetPagePaths,

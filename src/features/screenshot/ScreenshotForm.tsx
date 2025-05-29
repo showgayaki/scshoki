@@ -10,8 +10,8 @@ import ScreenshotOverlay from "./components/ScreenshotOverlay";
 
 export default function ScreenshotForm() {
     const {
-        url,
-        setUrl,
+        baseUrl,
+        setBaseUrl,
         hiddenElements,
         setHiddenElements,
         targetPagePaths,
@@ -34,7 +34,7 @@ export default function ScreenshotForm() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (validate()) {
-            takeScreenshot({url, targetPagePaths, hiddenElements, selectedBrowsers});
+            takeScreenshot({baseUrl, targetPagePaths, hiddenElements, selectedBrowsers});
         }else {
             console.warn("Validation failed, not submitting form");
         }
@@ -44,7 +44,7 @@ export default function ScreenshotForm() {
         <>
             {isCapturing && <ScreenshotOverlay status={status} handleCancel={cancelScreenshot} />}
             <form className="space-y-4" onSubmit={handleSubmit}>
-                <BaseUrlInput url={url} setUrl={setUrl} error={urlError} />
+                <BaseUrlInput url={baseUrl} setUrl={setBaseUrl} error={urlError} />
                 <HiddenElementsSection hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
                 <TargetPagePathsSection targetPagePaths={targetPagePaths} setTargetPagesPaths={setTargetPagePaths} />
                 <BasicAuthSection

@@ -1,6 +1,6 @@
-use crate::features::webdriver::constants::BROWSER_SCHEMES;
+use super::super::constants::BROWSER_SCHEMES;
 
-pub fn format_url(url: &str, browser_name: &str) -> String {
+pub fn format_base_url(url: &str, browser_name: &str) -> String {
     // Safariの場合はURLをそのまま返す
     if browser_name == "safari" {
         return url.to_string();
