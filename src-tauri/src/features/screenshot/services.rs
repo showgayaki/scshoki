@@ -20,7 +20,7 @@ pub async fn screenshot_full_page(
     device_os: &str,
     browser: &str,
     navigationbar_height: f64,
-    token: CancellationToken,
+    token: &CancellationToken,
 ) -> Result<Vec<Vec<u8>>, String> {
     info!("Capturing full page screenshot...");
 
@@ -63,7 +63,7 @@ pub async fn screenshot_full_page(
 
     for index in 1..=scroll_steps {
         // キャンセルチェック
-        check_cancellation(&token, Some(driver)).await?;
+        check_cancellation(token, Some(driver)).await?;
 
         debug!("Screenshot count: {}", index);
         // スクリーンショットを撮る

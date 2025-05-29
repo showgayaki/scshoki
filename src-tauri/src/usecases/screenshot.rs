@@ -42,7 +42,7 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<ScreenshotRespo
         info!("Starting screenshot process for {}", browser);
         let browser_lowercased = browser.to_lowercase();
 
-        match create_webdriver(&browser_lowercased, &url, token.clone()).await {
+        match create_webdriver(&browser_lowercased, &url, &token).await {
             Ok(driver_context) => {
                 let driver = driver_context.driver;
                 // Density取得
@@ -56,7 +56,7 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<ScreenshotRespo
                     &device_os,
                     &browser,
                     driver_context.navigationbar_height,
-                    token.clone(),
+                    &token,
                 )
                 .await
                 {
