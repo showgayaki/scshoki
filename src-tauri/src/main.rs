@@ -1,4 +1,4 @@
-use log::{error, info};
+use log::{debug, error, info};
 use rusb::Context;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State, WindowEvent};
@@ -30,8 +30,12 @@ fn main() {
     info!("Application started on {}({}).", HOST_OS, HOST_ARCH);
 
     // スクリーンショットのパラメータの型をReact用にエクスポート
-    ScreenshotParams::export().unwrap();
-    ScreenshotResponse::export().unwrap();
+    #[cfg(debug_assertions)]
+    {
+        debug!("Exporting ScreenshotParams and ScreenshotResponse for React.");
+        ScreenshotParams::export().unwrap();
+        ScreenshotResponse::export().unwrap();
+    }
 
     // `~/.scshoki/bin` をPATHに設定
     add_to_path(&BINARY_DIR);
