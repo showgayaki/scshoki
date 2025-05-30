@@ -33,9 +33,19 @@ pub fn format_url(base_url: &str, path: &str) -> Result<PageContext, String> {
         parsed_url.join(path).expect("Invalid path for URL join")
     };
 
+    // `/hoge/fuga/` を `hoge-fuga` の形に変換(ファイル名用)
+    let path = page_url
+        .path()
+        .trim_start_matches('/')
+        .trim_end_matches('/')
+        .replace("/", "-");
+
+    info!("Formatted URL: {}", page_url);
+    info!("Formatted path: {}", path);
+
     Ok(PageContext {
         url: page_url.to_string(),
-        path: page_url.path().to_string(),
+        path,
     })
 }
 
