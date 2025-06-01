@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { CircularProgress, Typography, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import { Box, CircularProgress, Typography, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
@@ -25,8 +25,13 @@ export default function InstallationProgress({ onComplete }: { onComplete: () =>
         <>
             {isInstalling && (
                 <FullscreenOverlay>
-                    {success ? <CheckCircleIcon color="success" sx={{ width: 80, height: 80 }} /> : <CircularProgress size={80} />}
-                    <Typography variant="h6" sx={{ mt: 2 }}>
+                    <Box sx={{ mb: 4 }}>
+                        {success
+                            ? <CheckCircleIcon color="success" sx={{ width: 80, height: 80 }} />
+                            : <CircularProgress size={80} />
+                        }
+                    </Box>
+                    <Typography variant="h6">
                         {currentTask ? `${currentTask} をインストール中です...` : "インストールが完了しました！"}
                     </Typography>
                     <List sx={{ mt: 2 }}>
