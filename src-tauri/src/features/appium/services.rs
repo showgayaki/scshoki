@@ -15,11 +15,11 @@ pub struct AppiumState {
 impl AppiumState {
     const APPIUM_TIMEOUT: Duration = Duration::from_secs(10);
 
-    pub async fn start_appium(&self, app: AppHandle) -> Result<(), String> {
+    pub async fn start_appium(&self, app_handle: AppHandle) -> Result<(), String> {
         let mut lock = self.process.lock().unwrap();
         if lock.is_some() {
             error!("Appium is already running.");
-            let _ = app.emit("appium_ready", ());
+            let _ = app_handle.emit("appium_ready", ());
             return Err("Appium is already running.".to_string());
         }
 
@@ -38,7 +38,7 @@ impl AppiumState {
         *lock = Some(process);
 
         // wait for Appium and emit event
-        tokio::spawn(wait_for_appium_ready(app, Self::APPIUM_TIMEOUT));
+        tokio::spawn(wait_for_appium_ready(app_handle, Self::APPIUM_TIMEOUT));
 
         Ok(())
     }

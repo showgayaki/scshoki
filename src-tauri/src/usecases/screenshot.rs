@@ -1,16 +1,22 @@
 use chrono::Local;
 use log::{debug, error, info};
 use std::fs;
+use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::constants::{DEVICE_OS, SCREENSHOT_DIR};
 use crate::features::device::services::get_display_info;
-use crate::features::screenshot::constants::CANCEL_TOKEN;
-use crate::features::screenshot::services::{combine_screenshots, screenshot_full_page};
+use crate::features::screenshot::constants::{status_messages, CANCEL_TOKEN};
+use crate::features::screenshot::services::{
+    combine_screenshots, notify_screenshot_status, screenshot_full_page,
+};
 use crate::features::webdriver::services::{create_webdriver, format_url, goto_and_wait};
 use crate::types::screenshot::{ScreenshotContext, ScreenshotParams, ScreenshotResponse};
 
-pub async fn take_screenshot(params: ScreenshotParams) -> Result<ScreenshotResponse, String> {
+pub async fn take_screenshot(
+    app_handle: &AppHandle,
+    params: ScreenshotParams,
+) -> Result<ScreenshotResponse, String> {
     let token = CancellationToken::new();
     {
         let mut token_lock = CANCEL_TOKEN.lock().unwrap();
@@ -42,22 +48,28 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<ScreenshotRespo
         info!("Starting screenshot process for {}", browser);
         let browser_lowercased = browser.to_lowercase();
 
+        notify_screenshot_status(app_handle, status_messages::CREATING_WEBDRIVER);
         match create_webdriver(&browser_lowercased, &base_url, &token).await {
             Ok(driver_context) => {
+                notify_screenshot_status(app_handle, status_messages::CREATED_WEBDRIVER);
                 let driver = driver_context.driver;
                 // Density取得
+                notify_screenshot_status(app_handle, status_messages::GETTING_DISPLAY_INFO);
                 get_display_info(&driver, &device_os).await;
 
                 for (i, page_path) in target_page_paths.iter().enumerate() {
                     let page_context = format_url(&base_url, page_path)?;
                     info!("Target URL: {}", page_context.url);
 
+                    let page_url = page_context.url.as_str();
+                    notify_screenshot_status(app_handle, status_messages::capturing(page_url));
+
                     // 最初が"/"の時は、driverの作成時にすでに開いているのでgoto()しない
                     if i == 0 && page_path == "/" {
                         {} // 何もしない
                     } else {
-                        info!("[{}] Navigating to {}", browser, page_context.url);
-                        if let Err(e) = goto_and_wait(&driver, &page_context.url).await {
+                        info!("[{}] Navigating to {}", browser, page_url);
+                        if let Err(e) = goto_and_wait(&driver, page_url).await {
                             error!("Failed to navigate to {}: {}", page_context.url, e);
                         }
                     }
@@ -67,7 +79,7 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<ScreenshotRespo
                         hidden_elements: &hidden_elements,
                         datetime_now: &datetime_now,
                         device_os: &device_os,
-                        browser: &browser_lowercased,
+                        browser: &browser,
                         page_path: &page_context.path,
                         navigationbar_height: driver_context.navigationbar_height,
                         token: &token,
@@ -76,6 +88,7 @@ pub async fn take_screenshot(params: ScreenshotParams) -> Result<ScreenshotRespo
                     // スクロールしながらスクリーンショットを撮影
                     match screenshot_full_page(screenshot_context).await {
                         Ok(screenshots) => {
+                            notify_screenshot_status(app_handle, status_messages::COMBINING);
                             let final_screenshot = match combine_screenshots(&screenshots) {
                                 Ok(img) => img,
                                 Err(e) => {

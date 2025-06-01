@@ -6,8 +6,8 @@ use crate::constants::{DEFAULT_DEVICE_VALUE, DEVICE_MANUFACTURE, DEVICE_OS, DEVI
 use super::services::start_usb_hotplug_monitor;
 
 #[command]
-pub fn start_usb_monitor(app: AppHandle) {
-    start_usb_hotplug_monitor(app);
+pub fn start_usb_monitor(app_handle: AppHandle) {
+    start_usb_hotplug_monitor(app_handle);
 }
 
 #[command]

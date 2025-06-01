@@ -1,5 +1,5 @@
 use log::debug;
-use tauri::command;
+use tauri::{command, AppHandle};
 
 use crate::types::screenshot::{ScreenshotParams, ScreenshotResponse};
 use crate::usecases::screenshot;
@@ -7,9 +7,12 @@ use crate::usecases::screenshot;
 use super::constants::CANCEL_TOKEN;
 
 #[command]
-pub async fn take_screenshot(params: ScreenshotParams) -> Result<ScreenshotResponse, String> {
+pub async fn take_screenshot(
+    app_handle: AppHandle,
+    params: ScreenshotParams,
+) -> Result<ScreenshotResponse, String> {
     debug!("take_screenshot command called");
-    screenshot::take_screenshot(params).await
+    screenshot::take_screenshot(&app_handle, params).await
 }
 
 #[tauri::command]

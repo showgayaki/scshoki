@@ -1,13 +1,13 @@
-use tauri::{command, State};
+use tauri::{command, AppHandle, State};
 
 use super::services::AppiumState;
 
 #[command]
 pub async fn start_appium(
     state: State<'_, AppiumState>,
-    app: tauri::AppHandle,
+    app_handle: AppHandle,
 ) -> Result<(), String> {
-    state.start_appium(app).await
+    state.start_appium(app_handle).await
 }
 
 #[command]

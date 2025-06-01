@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { listen } from "@tauri-apps/api/event";
 
 import type { ScreenshotParams } from "@/generated/ScreenshotParams";
 import { takeScreenshot as scsho, cancelScreenshot as cancel } from "./api";
@@ -14,7 +15,7 @@ export function useScreenshot() {
 
         try {
             const response = await scsho(params);
-            if (response.cancelled){
+            if (response.cancelled) {
                 setStatus("スクリーンショットをキャンセルしました");
                 return;
             }
@@ -37,6 +38,16 @@ export function useScreenshot() {
         setStatus("スクリーンショットをキャンセルしています...");
         await cancel();
     };
+
+    useEffect(() => {
+        const unlisten = listen<string>("screenshot_status", (event) => {
+            setStatus(event.payload);
+        });
+
+        return () => {
+            unlisten.then((f) => f());
+        };
+    }, []);
 
     return { status, isCapturing, takeScreenshot, cancelScreenshot };
 }

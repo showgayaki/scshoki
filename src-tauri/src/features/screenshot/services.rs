@@ -1,6 +1,7 @@
 use image::{DynamicImage, GenericImageView, ImageBuffer};
 use log::{debug, info};
 use std::fs;
+use tauri::AppHandle;
 
 use crate::constants::SCREENSHOT_DIR;
 use crate::types::screenshot::ScreenshotContext;
@@ -11,6 +12,11 @@ use super::infrastructure::dom::{
     get_page_metrics, get_scroll_position, hide_elements, scroll_by, show_elements,
 };
 use super::infrastructure::image::{cut_scroll_overlap, get_image_size, trim_extra_space};
+use super::infrastructure::status::emit_screenshot_status;
+
+pub fn notify_screenshot_status(app_handle: &AppHandle, message: impl Into<String>) {
+    emit_screenshot_status(app_handle, message.into().as_str());
+}
 
 pub async fn screenshot_full_page(context: ScreenshotContext<'_>) -> Result<Vec<Vec<u8>>, String> {
     info!("Capturing full page screenshot...");
