@@ -3,7 +3,7 @@ import { useAppiumReady } from "@/features/appium/useAppiumReady";
 
 import InstallationProgress from "@/features/installation/InstallationProgress";
 import { startAppium } from "@/features/appium/api";
-import AppiumStartupOverlay from "@/features/appium/AppiumStartupOverlay";
+import AppiumStartupOverlay from "@/features/appium/AppiumStartupProgress";
 import { useDependencies } from "@/features/dependencies/useDependencies";
 import DependenciesAlert from "@/features/dependencies/DependenciesAlert";
 
