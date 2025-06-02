@@ -11,7 +11,13 @@ pub mod status_messages {
     pub const GETTING_DISPLAY_INFO: &str = "ディスプレイ情報を取得しています...";
     pub const COMBINING: &str = "スクショ画像を結合しています...";
 
-    pub fn capturing(page: &str) -> String {
-        format!("{page} のスクショ中です...")
+    pub fn taking(page_path: &str) -> String {
+        format!("taking:{page_path}")
+    }
+    pub fn success(page_path: &str) -> String {
+        format!("success:{page_path}")
+    }
+    pub fn error(page_path: &str) -> String {
+        format!("error:{page_path}")
     }
 }

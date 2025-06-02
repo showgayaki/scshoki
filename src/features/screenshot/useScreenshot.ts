@@ -1,17 +1,23 @@
 import { useState, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 
+import type { TaskStatus } from "@/types/taskStatus";
 import type { ScreenshotParams } from "@/generated/ScreenshotParams";
+
 import { takeScreenshot as scsho, cancelScreenshot as cancel } from "./api";
 
 export function useScreenshot() {
     const [status, setStatus] = useState("");
-    const [isCapturing, setIsCapturing] = useState(false);
+    const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
+    const [taskStatuses, setTaskStatuses] = useState<TaskStatus>({});
 
     const takeScreenshot = async (params: ScreenshotParams) => {
         console.log("screenshot params:", params);
-        setStatus("スクリーンショット取得中...");
-        setIsCapturing(true);
+        setIsTakingScreenshot(true);
+        setStatus("スクショを開始しています...");
+        setTaskStatuses(
+            Object.fromEntries(params.targetPagePaths.map((path) => [path, "pending"]))
+        );
 
         try {
             const response = await scsho(params);
@@ -29,7 +35,7 @@ export function useScreenshot() {
             setStatus(`エラー: ${error}`);
         } finally {
             setTimeout(() => {
-                setIsCapturing(false);
+                setIsTakingScreenshot(false);
             }, 3000);
         }
     };
@@ -41,7 +47,25 @@ export function useScreenshot() {
 
     useEffect(() => {
         const unlisten = listen<string>("screenshot_status", (event) => {
-            setStatus(event.payload);
+            const payload = event.payload;
+            if (payload.includes(":")) {
+                const status = payload.split(":")[0];
+                const path = payload.split(":")[1];
+                switch (status) {
+                    case "taking":
+                        setStatus("スクショ中...");
+                        break;
+                    case "success":
+                    case "error":
+                        setTaskStatuses((prev) => ({
+                            ...prev,
+                            [path]: status,
+                        }));
+                        break;
+                }
+            }else{
+                setStatus(payload);
+            }
         });
 
         return () => {
@@ -49,5 +73,11 @@ export function useScreenshot() {
         };
     }, []);
 
-    return { status, isCapturing, takeScreenshot, cancelScreenshot };
+    return {
+        status,
+        isTakingScreenshot,
+        taskStatuses,
+        takeScreenshot,
+        cancelScreenshot,
+    };
 }

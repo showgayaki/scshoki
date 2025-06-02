@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 
+import type { TaskStatus } from "@/types/taskStatus";
+
 import { checkInstalledBinaries, installTask } from "./api";
 import { delay } from "./utils";
 
 export function useInstallationTasks(tasks: { key: string; label: string }[]) {
-    const [completedTasks, setCompletedTasks] = useState<string[]>([]);
+    const [taskStatuses, setTaskStatuses] = useState<TaskStatus>(() =>
+        Object.fromEntries(tasks.map((label) => [label, "pending"]))
+    );
     const [currentTask, setCurrentTask] = useState<string | null>(null);
     const [isInstalling, setIsInstalling] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -17,7 +21,12 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
 
         try {
             const installed = await checkInstalledBinaries();
-            setCompletedTasks(installed);
+            setTaskStatuses(
+                Object.fromEntries(tasks.map(
+                    (task) => [task.label, installed.includes(task.label) ? "success" : "pending"]
+                ))
+            );
+
             const missing = tasks.filter(task => !installed.includes(task.label));
             if (missing.length > 0) {
                 setCurrentTask(missing[0].label);
@@ -33,15 +42,16 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
 
     const installedBinaries = async () => {
         for (const task of tasks) {
-            if (completedTasks.includes(task.label)) continue;
+            if (taskStatuses[task.label] !== "pending") continue;
             setCurrentTask(task.label);
             await delay(100);
             try {
                 await installTask(task.key);
-                setCompletedTasks(prev => [...prev, task.label]);
+                setTaskStatuses(prev => ({ ...prev, [task.label]: "success" }));
                 await delay(100);
             } catch (error) {
                 console.error(`Error in ${task.key}:`, error);
+                setTaskStatuses(prev => ({ ...prev, [task.label]: "error" }));
                 break;
             }
         }
@@ -64,7 +74,7 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
     }, [isInstalling]);
 
     return {
-        completedTasks,
+        taskStatuses,
         currentTask,
         isInstalling,
         success,

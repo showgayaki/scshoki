@@ -23,6 +23,7 @@ pub struct DriverContext {
 pub struct PageContext {
     pub url: String,
     pub path: String,
+    pub path_for_filename: String,
 }
 
 pub fn format_url(base_url: &str, path: &str) -> Result<PageContext, String> {
@@ -33,9 +34,9 @@ pub fn format_url(base_url: &str, path: &str) -> Result<PageContext, String> {
         parsed_url.join(path).expect("Invalid path for URL join")
     };
 
+    let path = page_url.path().to_string();
     // `/hoge/fuga/` を `hoge-fuga` の形に変換(ファイル名用)
-    let path = page_url
-        .path()
+    let path_for_filename = path
         .trim_start_matches('/')
         .trim_end_matches('/')
         .replace("/", "-");
@@ -46,6 +47,7 @@ pub fn format_url(base_url: &str, path: &str) -> Result<PageContext, String> {
     Ok(PageContext {
         url: page_url.to_string(),
         path,
+        path_for_filename,
     })
 }
 

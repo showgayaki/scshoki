@@ -62,7 +62,10 @@ pub async fn take_screenshot(
                     info!("Target URL: {}", page_context.url);
 
                     let page_url = page_context.url.as_str();
-                    notify_screenshot_status(app_handle, status_messages::capturing(page_url));
+                    notify_screenshot_status(
+                        app_handle,
+                        status_messages::taking(&page_context.path),
+                    );
 
                     // 最初が"/"の時は、driverの作成時にすでに開いているのでgoto()しない
                     if i == 0 && page_path == "/" {
@@ -80,7 +83,7 @@ pub async fn take_screenshot(
                         datetime_now: &datetime_now,
                         device_os: &device_os,
                         browser: &browser,
-                        page_path: &page_context.path,
+                        page_path: &page_context.path_for_filename,
                         navigationbar_height: driver_context.navigationbar_height,
                         token: &token,
                     };
@@ -90,8 +93,18 @@ pub async fn take_screenshot(
                         Ok(screenshots) => {
                             notify_screenshot_status(app_handle, status_messages::COMBINING);
                             let final_screenshot = match combine_screenshots(&screenshots) {
-                                Ok(img) => img,
+                                Ok(img) => {
+                                    notify_screenshot_status(
+                                        app_handle,
+                                        status_messages::success(page_path),
+                                    );
+                                    img
+                                }
                                 Err(e) => {
+                                    notify_screenshot_status(
+                                        app_handle,
+                                        status_messages::error(page_path),
+                                    );
                                     error!("[{}] Failed to combine screenshots: {}", browser, e);
                                     continue;
                                 }
@@ -99,7 +112,7 @@ pub async fn take_screenshot(
 
                             let screenshot_path = SCREENSHOT_DIR.join(format!(
                                 "{}_{}_{}_{}_full.png",
-                                datetime_now, device_os, browser, page_context.path
+                                datetime_now, device_os, browser, page_context.path_for_filename
                             ));
                             if let Err(e) = fs::write(&screenshot_path, final_screenshot) {
                                 error!("[{}] Failed to save screenshot: {}", browser, e);
@@ -108,6 +121,7 @@ pub async fn take_screenshot(
                             }
                         }
                         Err(e) => {
+                            notify_screenshot_status(app_handle, status_messages::error(page_path));
                             error!("[{}] Failed to capture screenshots: {}", browser, e);
                             // キャンセルチェック
                             if token.is_cancelled() {
