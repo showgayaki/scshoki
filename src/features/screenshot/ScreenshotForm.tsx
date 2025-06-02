@@ -6,7 +6,7 @@ import TargetPagePathsSection from "./components/TargetPagePathsSection";
 import BasicAuthSection from "./components/BasicAuthSection";
 import BrowserSelectSection from "./components/BrowserSelectSection";
 import ScreenshotButton from "./components/ScreenshotButton";
-import ScreenshotOverlay from "./components/ScreenshotOverlay";
+import ScreenshotOverlay from "./components/ScreenshotProgress";
 
 export default function ScreenshotForm() {
     const {
