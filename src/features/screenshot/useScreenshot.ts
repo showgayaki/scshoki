@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 
-import type { TaskStatus } from "@/types/taskStatus";
+import type { TaskStatuses } from "@/types/taskStatuses";
 import type { ScreenshotParams } from "@/generated/ScreenshotParams";
 
 import { takeScreenshot as scsho, cancelScreenshot as cancel } from "./api";
@@ -9,7 +9,7 @@ import { takeScreenshot as scsho, cancelScreenshot as cancel } from "./api";
 export function useScreenshot() {
     const [status, setStatus] = useState("");
     const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
-    const [taskStatuses, setTaskStatuses] = useState<TaskStatus>({});
+    const [taskStatuses, setTaskStatuses] = useState<TaskStatuses>({});
 
     const takeScreenshot = async (params: ScreenshotParams) => {
         console.log("screenshot params:", params);

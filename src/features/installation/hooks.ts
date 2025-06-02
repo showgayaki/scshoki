@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 
-import type { TaskStatus } from "@/types/taskStatus";
+import type { TaskStatuses } from "@/types/taskStatuses";
 
 import { checkInstalledBinaries, installTask } from "./api";
 import { delay } from "./utils";
 
 export function useInstallationTasks(tasks: { key: string; label: string }[]) {
-    const [taskStatuses, setTaskStatuses] = useState<TaskStatus>(() =>
+    const [taskStatuses, setTaskStatuses] = useState<TaskStatuses>(() =>
         Object.fromEntries(tasks.map((label) => [label, "pending"]))
     );
     const [currentTask, setCurrentTask] = useState<string | null>(null);

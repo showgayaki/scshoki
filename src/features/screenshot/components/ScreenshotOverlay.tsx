@@ -7,11 +7,11 @@ import {
 
 import FullscreenOverlay from "@/components/FullscreenOverlay";
 import TaskList from "@/components/TaskList";
-import type { TaskStatus } from "@/types/taskStatus";
+import type { TaskStatuses } from "@/types/taskStatuses";
 
 interface ScreenshotOverlayProps {
     status: string;
-    taskStatuses: TaskStatus;
+    taskStatuses: TaskStatuses;
     handleCancel: () => void;
 }
 

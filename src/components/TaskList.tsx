@@ -8,10 +8,10 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CancelIcon from "@mui/icons-material/Cancel";
 
-import type { TaskStatus } from "@/types/taskStatus";
+import type { TaskStatuses } from "@/types/taskStatuses";
 
 interface TaskListProps {
-    taskStatuses: TaskStatus;
+    taskStatuses: TaskStatuses;
 }
 
 export default function TaskList({ taskStatuses }: TaskListProps) {
