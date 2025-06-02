@@ -1,7 +1,7 @@
 import { CircularProgress, Typography } from "@mui/material";
 import FullscreenOverlay from "@/components/FullscreenOverlay";
 
-export default function AppiumStartupOverlay() {
+export default function AppiumStartupProgress() {
     return (
         <FullscreenOverlay>
             <CircularProgress size={80} />

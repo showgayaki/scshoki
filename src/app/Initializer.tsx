@@ -3,7 +3,7 @@ import { useAppiumReady } from "@/features/appium/useAppiumReady";
 
 import InstallationProgress from "@/features/installation/InstallationProgress";
 import { startAppium } from "@/features/appium/api";
-import AppiumStartupOverlay from "@/features/appium/AppiumStartupProgress";
+import AppiumStartupProgress from "@/features/appium/AppiumStartupProgress";
 import { useDependencies } from "@/features/dependencies/useDependencies";
 import DependenciesAlert from "@/features/dependencies/DependenciesAlert";
 
@@ -21,7 +21,7 @@ export const AppInitializer = () => {
     return (
         <>
             {!installComplete && <InstallationProgress onComplete={() => setInstallComplete(true)} />}
-            {installComplete && !appiumReady && <AppiumStartupOverlay />}
+            {installComplete && !appiumReady && <AppiumStartupProgress />}
             <DependenciesAlert open={open} dependencies={dependencies} onClose={() => setOpen(false)} />
         </>
     );

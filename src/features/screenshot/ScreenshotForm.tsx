@@ -6,7 +6,7 @@ import TargetPagePathsSection from "./components/TargetPagePathsSection";
 import BasicAuthSection from "./components/BasicAuthSection";
 import BrowserSelectSection from "./components/BrowserSelectSection";
 import ScreenshotButton from "./components/ScreenshotButton";
-import ScreenshotOverlay from "./components/ScreenshotProgress";
+import ScreenshotProgress from "./components/ScreenshotProgress";
 
 export default function ScreenshotForm() {
     const {
@@ -48,7 +48,7 @@ export default function ScreenshotForm() {
 
     return (
         <>
-            {isTakingScreenshot && <ScreenshotOverlay status={status} taskStatuses={taskStatuses} handleCancel={cancelScreenshot} />}
+            {isTakingScreenshot && <ScreenshotProgress status={status} taskStatuses={taskStatuses} handleCancel={cancelScreenshot} />}
             <form className="space-y-4" onSubmit={handleSubmit}>
                 <BaseUrlInput url={baseUrl} setUrl={setBaseUrl} error={urlError} />
                 <HiddenElementsSection hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
