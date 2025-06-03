@@ -9,13 +9,14 @@ import FullscreenOverlay from "@/components/FullscreenOverlay";
 import TaskList from "@/components/TaskList";
 import type { TaskStatuses } from "@/types/taskStatuses";
 
-interface ScreenshotOverlayProps {
+interface ScreenshotProgressProps {
     status: string;
+    selectedBrowsers: string[];
     taskStatuses: TaskStatuses;
     handleCancel: () => void;
 }
 
-export default function ScreenshotOverlay({ status, taskStatuses, handleCancel }: ScreenshotOverlayProps) {
+export default function ScreenshotProgress({ status, selectedBrowsers, taskStatuses, handleCancel }: ScreenshotProgressProps) {
     return (
         <FullscreenOverlay>
             <CircularProgress size={80} />
@@ -26,7 +27,7 @@ export default function ScreenshotOverlay({ status, taskStatuses, handleCancel }
             >
                 {status}
             </Typography>
-            <TaskList taskStatuses={taskStatuses} />
+            <TaskList groups={selectedBrowsers} taskStatuses={taskStatuses} />
             <CancelButton onClick={handleCancel} />
         </FullscreenOverlay>
     );
@@ -36,8 +37,6 @@ function CancelButton({ onClick }: { onClick: () => void }) {
     return (
         <Box
             sx={{
-                position: "absolute",
-                bottom: 180,
                 display: "flex",
                 justifyContent: "center",
                 width: "100%",

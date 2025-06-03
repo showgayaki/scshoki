@@ -1,38 +1,107 @@
 import {
+    Box,
     List,
     ListItem,
     ListItemIcon,
-    ListItemText,
+    Typography,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CancelIcon from "@mui/icons-material/Cancel";
 
 import type { TaskStatuses } from "@/types/taskStatuses";
+import { BROWSERS } from "@/constants/browsers";
+import ThumbUp from "@mui/icons-material/ThumbUp";
 
 interface TaskListProps {
+    groups?: string[];
     taskStatuses: TaskStatuses;
 }
 
-export default function TaskList({ taskStatuses }: TaskListProps) {
+export default function TaskList({ groups, taskStatuses }: TaskListProps) {
+    groups = groups || ["GroupsIsFalsy"];
     return (
-        <List>
-            {Object.entries(taskStatuses).map(([path, status]) => {
-                return (
-                    <ListItem key={path}>
-                        <ListItemIcon sx={{ minWidth: "40px" }}>
-                            {status === "success" ? (
-                                <CheckCircleIcon color="success" />
-                            ) : status === "error" ? (
-                                <CancelIcon color="error" />
-                            ) : (
-                                <RadioButtonUncheckedIcon color="warning" />
-                            )}
-                        </ListItemIcon>
-                        <ListItemText primary={path} />
-                    </ListItem>
-                );
-            })}
-        </List>
+        <>
+            <Box sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 0.3,
+                minWidth: "50%",
+                maxWidth: "80%",
+                maxHeight: "180px",
+                overflowY: "auto",
+                overflowX: "hidden",
+                mb: 3,
+            }}>
+                {groups.map((group) => (
+                    <Box sx={{ px: 2, mb: 2, width: "100%" }}>
+                        {(groups.length > 1)
+                            ? <GroupTitle
+                                group={group}
+                                image={BROWSERS.find(browser => browser.name === group)?.colorImg}
+                            />
+                            : null
+                        }
+                        <List
+                            sx={{
+                                p: 0,
+                                width: "fit-content",
+                                mx: "auto",
+                                ml: (groups.length > 1)? "30px": undefined, // GroupTitleがあるときは、アイコン分marginを取る
+                            }}
+                        >
+                            {Object.entries(taskStatuses).map(([name, status]) => {
+                                return (
+                                    <ListItem key={name} sx={{ py: 1, px: 0, mx: "auto" }}>
+                                        <ListItemIcon sx={{ minWidth: "40px" }}>
+                                            {status === "success" ? (
+                                                <CheckCircleIcon color="success" />
+                                            ) : status === "error" ? (
+                                                <CancelIcon color="error" />
+                                            ) : (
+                                                <RadioButtonUncheckedIcon color="warning" />
+                                            )}
+                                        </ListItemIcon>
+                                        <Typography
+                                            sx={{
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                maxWidth: "80%",
+                                            }}
+                                        >
+                                            {name}
+                                        </Typography>
+                                    </ListItem>
+                                );
+                            })}
+                        </List>
+
+                    </Box>
+                ))}
+            </Box>
+        </>
+    );
+}
+
+function GroupTitle({ group, image }: { group: string, image?: string }) {
+    const imageSize = 30;
+    return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}>
+            {
+                image ?
+                    <img
+                        src={`/images/${group.toLowerCase()}--checked.png`}
+                        alt={`${group} icon`}
+                        width={imageSize}
+                        height={imageSize}
+                        style={{ display: "inline-block" }}
+                    />
+                    : <ThumbUp color="info" sx={{ width: imageSize, height: imageSize }} />
+
+            }
+            <Typography>{group}</Typography>
+        </Box>
+
     );
 }

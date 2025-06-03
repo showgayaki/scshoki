@@ -40,15 +40,21 @@ export default function ScreenshotForm() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (validate()) {
-            takeScreenshot({baseUrl, targetPagePaths, hiddenElements, selectedBrowsers});
-        }else {
+            takeScreenshot({ baseUrl, targetPagePaths, hiddenElements, selectedBrowsers });
+        } else {
             console.warn("Validation failed, not submitting form");
         }
     };
 
     return (
         <>
-            {isTakingScreenshot && <ScreenshotProgress status={status} taskStatuses={taskStatuses} handleCancel={cancelScreenshot} />}
+            {isTakingScreenshot &&
+                <ScreenshotProgress
+                    status={status}
+                    selectedBrowsers={selectedBrowsers}
+                    taskStatuses={taskStatuses}
+                    handleCancel={cancelScreenshot}
+                />}
             <form className="space-y-4" onSubmit={handleSubmit}>
                 <BaseUrlInput url={baseUrl} setUrl={setBaseUrl} error={urlError} />
                 <HiddenElementsSection hiddenElements={hiddenElements} setHiddenElements={setHiddenElements} />
