@@ -1,11 +1,10 @@
 import {
     Box,
-    CircularProgress,
     IconButton,
     Typography,
 } from "@mui/material";
 
-import FullscreenOverlay from "@/components/FullscreenOverlay";
+import FullscreenCircularProgress from "@/components/FullscreenCircularProgress";
 import TaskList from "@/components/TaskList";
 import type { TaskStatuses } from "@/types/taskStatuses";
 
@@ -13,23 +12,23 @@ interface ScreenshotProgressProps {
     status: string;
     selectedBrowsers: string[];
     taskStatuses: TaskStatuses;
+    success: boolean;
     handleCancel: () => void;
 }
 
-export default function ScreenshotProgress({ status, selectedBrowsers, taskStatuses, handleCancel }: ScreenshotProgressProps) {
+export default function ScreenshotProgress({ status, selectedBrowsers, taskStatuses, success, handleCancel }: ScreenshotProgressProps) {
     return (
-        <FullscreenOverlay>
-            <CircularProgress size={80} />
+        <FullscreenCircularProgress success={success}>
             <Typography
                 variant="h6"
-                sx={{ mt: 2, textAlign: "center" }}
+                sx={{ textAlign: "center", mb: 3 }}
                 className="whitespace-pre-line"
             >
                 {status}
             </Typography>
             <TaskList groups={selectedBrowsers} taskStatuses={taskStatuses} />
             <CancelButton onClick={handleCancel} />
-        </FullscreenOverlay>
+        </FullscreenCircularProgress>
     );
 }
 

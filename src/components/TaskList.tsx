@@ -19,7 +19,8 @@ interface TaskListProps {
 }
 
 export default function TaskList({ groups, taskStatuses }: TaskListProps) {
-    groups = groups || ["GroupsIsFalsy"];
+    const falsy = ["GroupsIsFalsy"];
+    groups = groups || falsy;
     return (
         <>
             <Box sx={{
@@ -34,8 +35,8 @@ export default function TaskList({ groups, taskStatuses }: TaskListProps) {
                 mb: 3,
             }}>
                 {groups.map((group) => (
-                    <Box sx={{ px: 2, mb: 2, width: "100%" }}>
-                        {(groups.length > 1)
+                    <Box key={group} sx={{ px: 2, mb: 2, width: "100%" }}>
+                        {(groups != falsy)
                             ? <GroupTitle
                                 group={group}
                                 image={BROWSERS.find(browser => browser.name === group)?.colorImg}
@@ -47,12 +48,12 @@ export default function TaskList({ groups, taskStatuses }: TaskListProps) {
                                 p: 0,
                                 width: "fit-content",
                                 mx: "auto",
-                                ml: (groups.length > 1)? "30px": undefined, // GroupTitleがあるときは、アイコン分marginを取る
+                                ml: (groups != falsy)? "30px": undefined, // GroupTitleがあるときは、アイコン分marginを取る
                             }}
                         >
                             {Object.entries(taskStatuses).map(([name, status]) => {
                                 return (
-                                    <ListItem key={name} sx={{ py: 1, px: 0, mx: "auto" }}>
+                                    <ListItem key={`${group}-${name}`} sx={{ py: 1, px: 0, mx: "auto" }}>
                                         <ListItemIcon sx={{ minWidth: "40px" }}>
                                             {status === "success" ? (
                                                 <CheckCircleIcon color="success" />

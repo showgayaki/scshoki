@@ -33,6 +33,7 @@ export default function ScreenshotForm() {
         status,
         isTakingScreenshot,
         taskStatuses,
+        success,
         takeScreenshot,
         cancelScreenshot,
     } = useScreenshot();
@@ -53,6 +54,7 @@ export default function ScreenshotForm() {
                     status={status}
                     selectedBrowsers={selectedBrowsers}
                     taskStatuses={taskStatuses}
+                    success={success}
                     handleCancel={cancelScreenshot}
                 />}
             <form className="space-y-4" onSubmit={handleSubmit}>

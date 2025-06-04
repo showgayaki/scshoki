@@ -10,6 +10,7 @@ export function useScreenshot() {
     const [status, setStatus] = useState("");
     const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
     const [taskStatuses, setTaskStatuses] = useState<TaskStatuses>({});
+    const [success, setSuccess] = useState(false);
 
     const takeScreenshot = async (params: ScreenshotParams) => {
         console.log("screenshot params:", params);
@@ -27,6 +28,7 @@ export function useScreenshot() {
             }
             if (response.success) {
                 setStatus(`スクリーンショットを保存しました: ${response.path}`);
+                setSuccess(true);
             } else {
                 setStatus(`エラー: ${response.error}`);
             }
@@ -77,6 +79,7 @@ export function useScreenshot() {
         status,
         isTakingScreenshot,
         taskStatuses,
+        success,
         takeScreenshot,
         cancelScreenshot,
     };

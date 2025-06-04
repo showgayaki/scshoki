@@ -1,12 +1,7 @@
 import { useEffect } from "react";
-import {
-    Box,
-    CircularProgress,
-    Typography,
-} from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { Typography } from "@mui/material";
 
-import FullscreenOverlay from "@/components/FullscreenOverlay";
+import FullscreenCircularProgress from "@/components/FullscreenCircularProgress";
 import TaskList from "@/components/TaskList";
 
 import { INSTALL_TASKS } from "./constants";
@@ -29,18 +24,12 @@ export default function InstallationProgress({ onComplete }: { onComplete: () =>
     return (
         <>
             {isInstalling && (
-                <FullscreenOverlay>
-                    <Box sx={{ mb: 4 }}>
-                        {success
-                            ? <CheckCircleIcon color="success" sx={{ width: 80, height: 80 }} />
-                            : <CircularProgress size={80} />
-                        }
-                    </Box>
+                <FullscreenCircularProgress success={success}>
                     <Typography variant="h6" sx={{ mb: 2 }}>
                         {currentTask ? `${currentTask} をインストール中です...` : "インストールが完了しました！"}
                     </Typography>
                     <TaskList taskStatuses={taskStatuses} />
-                </FullscreenOverlay>
+                </FullscreenCircularProgress>
             )}
         </>
     );

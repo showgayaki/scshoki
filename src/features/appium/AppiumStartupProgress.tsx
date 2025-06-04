@@ -1,13 +1,12 @@
-import { CircularProgress, Typography } from "@mui/material";
-import FullscreenOverlay from "@/components/FullscreenOverlay";
+import { Typography } from "@mui/material";
+import FullscreenCircularProgress from "@/components/FullscreenCircularProgress";
 
 export default function AppiumStartupProgress() {
     return (
-        <FullscreenOverlay>
-            <CircularProgress size={80} />
-            <Typography variant="h6" sx={{ mt: 2 }}>
+        <FullscreenCircularProgress>
+            <Typography variant="h6">
                 Appiumを起動しています…
             </Typography>
-        </FullscreenOverlay>
+        </FullscreenCircularProgress>
     );
 }
