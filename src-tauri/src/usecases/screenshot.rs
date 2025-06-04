@@ -64,7 +64,7 @@ pub async fn take_screenshot(
                     let page_url = page_context.url.as_str();
                     notify_screenshot_status(
                         app_handle,
-                        status_messages::taking(&page_context.path),
+                        status_messages::taking(&browser, &page_context.path),
                     );
 
                     // 最初が"/"の時は、driverの作成時にすでに開いているのでgoto()しない
@@ -96,14 +96,14 @@ pub async fn take_screenshot(
                                 Ok(img) => {
                                     notify_screenshot_status(
                                         app_handle,
-                                        status_messages::success(page_path),
+                                        status_messages::success(&browser, page_path),
                                     );
                                     img
                                 }
                                 Err(e) => {
                                     notify_screenshot_status(
                                         app_handle,
-                                        status_messages::error(page_path),
+                                        status_messages::error(&browser, page_path),
                                     );
                                     error!("[{}] Failed to combine screenshots: {}", browser, e);
                                     continue;
@@ -121,7 +121,10 @@ pub async fn take_screenshot(
                             }
                         }
                         Err(e) => {
-                            notify_screenshot_status(app_handle, status_messages::error(page_path));
+                            notify_screenshot_status(
+                                app_handle,
+                                status_messages::error(&browser, page_path),
+                            );
                             error!("[{}] Failed to capture screenshots: {}", browser, e);
                             // キャンセルチェック
                             if token.is_cancelled() {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 
-import type { TaskStatuses } from "@/types/taskStatuses";
+import type { GroupedTaskStatuses } from "@/types/taskStatuses";
 import type { ScreenshotParams } from "@/generated/ScreenshotParams";
 
 import { takeScreenshot as scsho, cancelScreenshot as cancel } from "./api";
@@ -9,15 +9,20 @@ import { takeScreenshot as scsho, cancelScreenshot as cancel } from "./api";
 export function useScreenshot() {
     const [status, setStatus] = useState("");
     const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
-    const [taskStatuses, setTaskStatuses] = useState<TaskStatuses>({});
+    const [groupedTaskStatuses, setGroupedTaskStatuses] = useState<GroupedTaskStatuses>({});
     const [success, setSuccess] = useState(false);
 
     const takeScreenshot = async (params: ScreenshotParams) => {
         console.log("screenshot params:", params);
         setIsTakingScreenshot(true);
         setStatus("スクショを開始しています...");
-        setTaskStatuses(
-            Object.fromEntries(params.targetPagePaths.map((path) => [path, "pending"]))
+        setGroupedTaskStatuses(
+            Object.fromEntries(
+                params.selectedBrowsers.map(browser => [
+                    browser,
+                    Object.fromEntries(params.targetPagePaths.map((path) => [path, "pending"]))
+                ])
+            )
         );
 
         try {
@@ -38,6 +43,7 @@ export function useScreenshot() {
         } finally {
             setTimeout(() => {
                 setIsTakingScreenshot(false);
+                setSuccess(false);
             }, 3000);
         }
     };
@@ -51,21 +57,23 @@ export function useScreenshot() {
         const unlisten = listen<string>("screenshot_status", (event) => {
             const payload = event.payload;
             if (payload.includes(":")) {
-                const status = payload.split(":")[0];
-                const path = payload.split(":")[1];
+                const [browser, path, status] = payload.split(":");
                 switch (status) {
                     case "taking":
                         setStatus("スクショ中...");
                         break;
                     case "success":
                     case "error":
-                        setTaskStatuses((prev) => ({
+                        setGroupedTaskStatuses((prev) => ({
                             ...prev,
-                            [path]: status,
+                            [browser]: {
+                                ...prev[browser],
+                                [path]: status,
+                            },
                         }));
                         break;
                 }
-            }else{
+            } else {
                 setStatus(payload);
             }
         });
@@ -78,7 +86,7 @@ export function useScreenshot() {
     return {
         status,
         isTakingScreenshot,
-        taskStatuses,
+        groupedTaskStatuses,
         success,
         takeScreenshot,
         cancelScreenshot,

@@ -9,7 +9,7 @@ import { useInstallationTasks } from "./hooks";
 
 export default function InstallationProgress({ onComplete }: { onComplete: () => void }) {
     const {
-        taskStatuses,
+        groupedTaskStatuses,
         currentTask,
         isInstalling,
         success,
@@ -28,7 +28,7 @@ export default function InstallationProgress({ onComplete }: { onComplete: () =>
                     <Typography variant="h6" sx={{ mb: 2 }}>
                         {currentTask ? `${currentTask} をインストール中です...` : "インストールが完了しました！"}
                     </Typography>
-                    <TaskList taskStatuses={taskStatuses} />
+                    <TaskList groupedTaskStatuses={groupedTaskStatuses} />
                 </FullscreenCircularProgress>
             )}
         </>

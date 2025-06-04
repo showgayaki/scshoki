@@ -32,7 +32,7 @@ export default function ScreenshotForm() {
     const {
         status,
         isTakingScreenshot,
-        taskStatuses,
+        groupedTaskStatuses,
         success,
         takeScreenshot,
         cancelScreenshot,
@@ -52,8 +52,7 @@ export default function ScreenshotForm() {
             {isTakingScreenshot &&
                 <ScreenshotProgress
                     status={status}
-                    selectedBrowsers={selectedBrowsers}
-                    taskStatuses={taskStatuses}
+                    groupedTaskStatuses={groupedTaskStatuses}
                     success={success}
                     handleCancel={cancelScreenshot}
                 />}

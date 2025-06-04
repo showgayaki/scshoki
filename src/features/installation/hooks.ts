@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
-import type { TaskStatuses } from "@/types/taskStatuses";
+import type { GroupedTaskStatuses } from "@/types/taskStatuses";
 
 import { checkInstalledBinaries, installTask } from "./api";
 import { delay } from "./utils";
 
 export function useInstallationTasks(tasks: { key: string; label: string }[]) {
-    const [taskStatuses, setTaskStatuses] = useState<TaskStatuses>(() =>
-        Object.fromEntries(tasks.map((label) => [label, "pending"]))
+    const [groupedTaskStatuses, setGroupedTaskStatuses] = useState<GroupedTaskStatuses>(() =>
+        ({ Installation: Object.fromEntries(tasks.map((label) => [label.label, "pending"])) })
     );
     const [currentTask, setCurrentTask] = useState<string | null>(null);
     const [isInstalling, setIsInstalling] = useState(false);
@@ -21,10 +21,12 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
 
         try {
             const installed = await checkInstalledBinaries();
-            setTaskStatuses(
-                Object.fromEntries(tasks.map(
-                    (task) => [task.label, installed.includes(task.label) ? "success" : "pending"]
-                ))
+            setGroupedTaskStatuses(
+                {
+                    Installation: Object.fromEntries(tasks.map(
+                        (task) => [task.label, installed.includes(task.label) ? "success" : "pending"]
+                    ))
+                }
             );
 
             const missing = tasks.filter(task => !installed.includes(task.label));
@@ -42,16 +44,16 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
 
     const installedBinaries = async () => {
         for (const task of tasks) {
-            if (taskStatuses[task.label] !== "pending") continue;
+            if (groupedTaskStatuses.Installation[task.label] !== "pending") continue;
             setCurrentTask(task.label);
             await delay(100);
             try {
                 await installTask(task.key);
-                setTaskStatuses(prev => ({ ...prev, [task.label]: "success" }));
+                setGroupedTaskStatuses(prev => ({ Installation: { ...prev.Installation, [task.label]: "success" } }));
                 await delay(100);
             } catch (error) {
                 console.error(`Error in ${task.key}:`, error);
-                setTaskStatuses(prev => ({ ...prev, [task.label]: "error" }));
+                setGroupedTaskStatuses(prev => ({ Installation: { ...prev.Installation, [task.label]: "error" } }));
                 break;
             }
         }
@@ -74,7 +76,7 @@ export function useInstallationTasks(tasks: { key: string; label: string }[]) {
     }, [isInstalling]);
 
     return {
-        taskStatuses,
+        groupedTaskStatuses,
         currentTask,
         isInstalling,
         success,

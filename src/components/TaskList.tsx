@@ -9,18 +9,16 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CancelIcon from "@mui/icons-material/Cancel";
 
-import type { TaskStatuses } from "@/types/taskStatuses";
+import type { GroupedTaskStatuses } from "@/types/taskStatuses";
 import { BROWSERS } from "@/constants/browsers";
 import ThumbUp from "@mui/icons-material/ThumbUp";
 
 interface TaskListProps {
-    groups?: string[];
-    taskStatuses: TaskStatuses;
+    groupedTaskStatuses: GroupedTaskStatuses;
 }
 
-export default function TaskList({ groups, taskStatuses }: TaskListProps) {
-    const falsy = ["GroupsIsFalsy"];
-    groups = groups || falsy;
+export default function TaskList({ groupedTaskStatuses }: TaskListProps) {
+    const groups = Object.keys(groupedTaskStatuses);
     return (
         <>
             <Box sx={{
@@ -36,22 +34,21 @@ export default function TaskList({ groups, taskStatuses }: TaskListProps) {
             }}>
                 {groups.map((group) => (
                     <Box key={group} sx={{ px: 2, mb: 2, width: "100%" }}>
-                        {(groups != falsy)
-                            ? <GroupTitle
+                        {(groups.length > 1 || group !== "Installation") && (
+                            <GroupTitle
                                 group={group}
                                 image={BROWSERS.find(browser => browser.name === group)?.colorImg}
                             />
-                            : null
-                        }
+                        )}
                         <List
                             sx={{
                                 p: 0,
                                 width: "fit-content",
                                 mx: "auto",
-                                ml: (groups != falsy)? "30px": undefined, // GroupTitleがあるときは、アイコン分marginを取る
+                                ml: (groups.length > 1 || group !== "Installation") ? "30px" : undefined, // GroupTitleがあるときは、アイコン分marginを取る
                             }}
                         >
-                            {Object.entries(taskStatuses).map(([name, status]) => {
+                            {Object.entries(groupedTaskStatuses[group] || {}).map(([name, status]) => {
                                 return (
                                     <ListItem key={`${group}-${name}`} sx={{ py: 1, px: 0, mx: "auto" }}>
                                         <ListItemIcon sx={{ minWidth: "40px" }}>

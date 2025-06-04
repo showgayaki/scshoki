@@ -6,17 +6,16 @@ import {
 
 import FullscreenCircularProgress from "@/components/FullscreenCircularProgress";
 import TaskList from "@/components/TaskList";
-import type { TaskStatuses } from "@/types/taskStatuses";
+import type { GroupedTaskStatuses } from "@/types/taskStatuses";
 
 interface ScreenshotProgressProps {
     status: string;
-    selectedBrowsers: string[];
-    taskStatuses: TaskStatuses;
+    groupedTaskStatuses: GroupedTaskStatuses;
     success: boolean;
     handleCancel: () => void;
 }
 
-export default function ScreenshotProgress({ status, selectedBrowsers, taskStatuses, success, handleCancel }: ScreenshotProgressProps) {
+export default function ScreenshotProgress({ status, groupedTaskStatuses, success, handleCancel }: ScreenshotProgressProps) {
     return (
         <FullscreenCircularProgress success={success}>
             <Typography
@@ -26,7 +25,7 @@ export default function ScreenshotProgress({ status, selectedBrowsers, taskStatu
             >
                 {status}
             </Typography>
-            <TaskList groups={selectedBrowsers} taskStatuses={taskStatuses} />
+            <TaskList groupedTaskStatuses={groupedTaskStatuses} />
             <CancelButton onClick={handleCancel} />
         </FullscreenCircularProgress>
     );

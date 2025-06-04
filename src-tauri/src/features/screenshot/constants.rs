@@ -11,13 +11,13 @@ pub mod status_messages {
     pub const GETTING_DISPLAY_INFO: &str = "ディスプレイ情報を取得しています...";
     pub const COMBINING: &str = "スクショ画像を結合しています...";
 
-    pub fn taking(page_path: &str) -> String {
-        format!("taking:{page_path}")
+    pub fn taking(browser: &str, page_path: &str) -> String {
+        format!("{browser}:{page_path}:taking")
     }
-    pub fn success(page_path: &str) -> String {
-        format!("success:{page_path}")
+    pub fn success(browser: &str, page_path: &str) -> String {
+        format!("{browser}:{page_path}:success")
     }
-    pub fn error(page_path: &str) -> String {
-        format!("error:{page_path}")
+    pub fn error(browser: &str, page_path: &str) -> String {
+        format!("{browser}:{page_path}:error")
     }
 }
