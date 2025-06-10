@@ -3,6 +3,16 @@ use thirtyfour::prelude::*;
 use tokio_util::sync::CancellationToken;
 use ts_rs::TS;
 
+pub struct WebdriverParams<'a> {
+    pub appium_server_url: &'a str,
+    pub device_os: &'a str,
+    pub device_os_version: &'a str,
+    pub device_udid: &'a str,
+    pub browser: &'a str,
+    pub base_url: &'a str,
+    pub token: &'a CancellationToken,
+}
+
 // スクリーンショットのパラメータを定義
 // React用にエクスポートされるので、パラメーターの更新があったら、ここだけ変えればOK
 #[derive(Debug, Serialize, Deserialize, TS)]

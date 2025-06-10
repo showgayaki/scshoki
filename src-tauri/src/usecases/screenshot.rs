@@ -4,14 +4,18 @@ use std::fs;
 use tauri::AppHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::constants::{DEVICE_OS, SCREENSHOT_DIR};
+use crate::constants::{
+    APPIUM_SERVER_URL, DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID, SCREENSHOT_DIR,
+};
 use crate::features::device::services::get_display_info;
 use crate::features::screenshot::constants::{status_messages, CANCEL_TOKEN};
 use crate::features::screenshot::services::{
     combine_screenshots, notify_screenshot_status, screenshot_full_page,
 };
 use crate::features::webdriver::services::{create_webdriver, format_url, goto_and_wait};
-use crate::types::screenshot::{ScreenshotContext, ScreenshotParams, ScreenshotResponse};
+use crate::types::screenshot::{
+    ScreenshotContext, ScreenshotParams, ScreenshotResponse, WebdriverParams,
+};
 
 pub async fn take_screenshot(
     app_handle: &AppHandle,
@@ -42,14 +46,26 @@ pub async fn take_screenshot(
     }
 
     let datetime_now = Local::now().format("%Y%m%d-%H%M%S").to_string();
-    let device_os = DEVICE_OS.lock().unwrap().clone();
 
     for browser in selected_browsers {
         info!("Starting screenshot process for {}", browser);
-        let browser_lowercased = browser.to_lowercase();
+        let device_os = DEVICE_OS.lock().unwrap().clone();
+
+        let browser_lower = browser.to_lowercase();
+        let device_os_version = IDEVICE_OS_VERSION.lock().unwrap().clone();
+        let device_udid = IDEVICE_UDID.lock().unwrap().clone();
+        let webdriver_params = WebdriverParams {
+            appium_server_url: &APPIUM_SERVER_URL,
+            device_os: device_os.as_str(),
+            device_os_version: device_os_version.as_str(),
+            device_udid: device_udid.as_str(),
+            browser: browser_lower.as_str(),
+            base_url: base_url.as_str(),
+            token: &token,
+        };
 
         notify_screenshot_status(app_handle, status_messages::CREATING_WEBDRIVER);
-        match create_webdriver(&browser_lowercased, &base_url, &token).await {
+        match create_webdriver(webdriver_params).await {
             Ok(driver_context) => {
                 notify_screenshot_status(app_handle, status_messages::CREATED_WEBDRIVER);
                 let driver = driver_context.driver;

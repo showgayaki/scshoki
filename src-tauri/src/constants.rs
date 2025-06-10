@@ -16,6 +16,10 @@ pub(crate) static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
 pub(crate) static BINARY_DIR: LazyLock<PathBuf> =
     LazyLock::new(|| HOME_DIR.join(BASE_DIR).join("bin"));
 pub(crate) static NODE_DIR: LazyLock<PathBuf> = LazyLock::new(|| BINARY_DIR.join("node"));
+pub(crate) static LOG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    std::fs::canonicalize(HOME_DIR.join(BASE_DIR).join("log"))
+        .unwrap_or_else(|_| HOME_DIR.join(BASE_DIR).join("log"))
+});
 
 // `canonicalize()` を使用して相対パスを絶対パスに変換
 pub(crate) static SCREENSHOT_DIR: LazyLock<PathBuf> = LazyLock::new(|| {

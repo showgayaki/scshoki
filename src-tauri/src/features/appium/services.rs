@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
-use crate::constants::NODE_DIR;
+use crate::constants::{LOG_DIR, NODE_DIR};
 
 use super::infrastructure::wait::wait_for_appium_ready;
 
@@ -26,11 +26,19 @@ impl AppiumState {
         let npm_bin = NODE_DIR.join("bin/npm");
         info!("Starting Appium with Node.js: {:?}", npm_bin);
 
+        let appium_log = LOG_DIR.join("appium.log");
+
         let process = Command::new(npm_bin)
             .current_dir(&*NODE_DIR)
             .arg("exec")
             .arg("appium")
+            .arg("--")
+            .arg("--log")
+            .arg(appium_log)
+            .arg("--log-level")
+            .arg("debug")
             .arg("--allow-insecure")
+            .arg("all")
             .arg("--session-override")
             .spawn()
             .map_err(|e| format!("Failed to start Appium: {}", e))?;

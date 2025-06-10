@@ -4,8 +4,12 @@ use tokio::task::spawn_blocking;
 
 use crate::constants::NODE_DIR;
 
-const APPIUM_VER: &str = "2.17.1";
-const DRIVER_LIST: [&str; 3] = ["uiautomator2@4.1.5", "gecko@1.4.3", "xcuitest@9.1.2"];
+const APPIUM_VER: &str = "2.19.0";
+const DRIVER_LIST: [&str; 3] = [
+    "uiautomator2@4.2.3", // https://github.com/appium/appium-uiautomator2-driver/releases
+    "gecko@1.4.3",        // https://github.com/appium/appium-geckodriver/releases
+    "xcuitest@9.4.0",     // https://github.com/appium/appium-xcuitest-driver/releases
+];
 
 pub async fn install() -> Result<(), String> {
     return spawn_blocking(install_appium)

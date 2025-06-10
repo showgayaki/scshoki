@@ -14,7 +14,7 @@ pub async fn switch_to_target_context(
     browser: &str,
     driver: &WebDriver,
     appium_server_url: &str,
-    caps: Map<String, Value>,
+    caps: &Map<String, Value>,
 ) -> Result<WebDriver, String> {
     debug!("Selecting best context for browser: {}", browser);
 
@@ -109,11 +109,15 @@ async fn get_contexts(session_id: &str, appium_url: &str) -> Result<Vec<String>,
 }
 
 /// Appiumでcontext（例: "WEBVIEW_660.4"）を切り替える
-async fn set_context(
+pub async fn set_context(
     session_id: &str,
     appium_url: &str,
     context_name: &str,
 ) -> Result<(), Box<dyn Error>> {
+    debug!(
+        "Setting context to: {} for session: {}",
+        context_name, session_id
+    );
     #[derive(Serialize)]
     struct SetContextRequest {
         name: String,
@@ -137,4 +141,31 @@ async fn set_context(
     }
 
     Ok(())
+}
+
+async fn get_context(session_id: &str, appium_url: &str) -> Result<String, Box<dyn Error>> {
+    debug!("Getting current context for session: {}", session_id);
+    let endpoint = format!(
+        "{}/session/{}/context",
+        appium_url.trim_end_matches('/'),
+        session_id
+    );
+
+    let client = Client::builder().timeout(Duration::from_secs(5)).build()?;
+    let response = client.get(&endpoint).send().await?;
+
+    if !response.status().is_success() {
+        return Err(format!("Failed to get context: {}", response.status()).into());
+    }
+
+    let context: String = response
+        .json::<Value>()
+        .await?
+        .get("value")
+        .and_then(|v| v.as_str())
+        .ok_or("Failed to parse context from response")?
+        .to_string();
+
+    debug!("Get Context: {}", context);
+    Ok(context)
 }

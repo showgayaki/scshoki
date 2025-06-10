@@ -10,9 +10,8 @@ use log4rs::{
     encode::pattern::PatternEncoder,
 };
 use std::path::PathBuf;
-use std::sync::LazyLock;
 
-use crate::constants::{BASE_DIR, HOME_DIR};
+use crate::constants::LOG_DIR;
 
 pub fn init_logger() {
     const LOG_FILE_NAME: &str = "scshoki.log";
@@ -21,10 +20,6 @@ pub fn init_logger() {
     const MB: u64 = 1024 * 1024;
     const LOG_ROTATE_SIZE_MB: u64 = 3;
     const LOG_ROTATE_SIZE: u64 = LOG_ROTATE_SIZE_MB * MB;
-    static LOG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-        std::fs::canonicalize(HOME_DIR.join(BASE_DIR).join("log"))
-            .unwrap_or_else(|_| HOME_DIR.join(BASE_DIR).join("log"))
-    });
     // ログのフォーマット
     const LOG_PATTERN: &str = "[{d(%Y-%m-%d %H:%M:%S%:z)}] [{l}] [{f}:{L}]: {m}{n}";
 

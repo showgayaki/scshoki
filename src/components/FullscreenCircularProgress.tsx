@@ -26,9 +26,9 @@ export default function FullscreenCircularProgress({ success, children }: Fullsc
                 zIndex: 1300,
             }}
         >
-            <Box sx={{ mb: 4 }}>
+            <Box sx={{ width: 80, height: 80, mb: 4 }}>
                 {success
-                    ? <CheckCircleIcon color="success" sx={{ width: 80, height: 80 }} />
+                    ? <CheckCircleIcon color="success" sx={{ width: "100%", height: "100%" }} />
                     : <CircularProgress size={80} />
                 }
             </Box>

@@ -28,17 +28,17 @@ export function useScreenshot() {
         try {
             const response = await scsho(params);
             if (response.cancelled) {
-                setStatus("スクリーンショットをキャンセルしました");
+                setStatus("スクショをキャンセルしました");
                 return;
             }
             if (response.success) {
-                setStatus(`スクリーンショットを保存しました: ${response.path}`);
+                setStatus(`スクショを保存しました: ${response.path}`);
                 setSuccess(true);
             } else {
                 setStatus(`エラー: ${response.error}`);
             }
         } catch (error) {
-            console.error("スクリーンショット取得中にエラーが発生しました:", error);
+            console.error("スクショ取得中にエラーが発生しました:", error);
             setStatus(`エラー: ${error}`);
         } finally {
             setTimeout(() => {
@@ -49,7 +49,7 @@ export function useScreenshot() {
     };
 
     const cancelScreenshot = async () => {
-        setStatus("スクリーンショットをキャンセルしています...");
+        setStatus("スクショをキャンセルしています...");
         await cancel();
     };
 

@@ -1,10 +1,10 @@
 use log::{debug, error, info};
 use thirtyfour::error::WebDriverErrorInfo;
 use thirtyfour::prelude::*;
-use tokio_util::sync::CancellationToken;
 use url::Url;
 
-use crate::constants::{APPIUM_SERVER_URL, DEVICE_OS, IDEVICE_OS_VERSION, IDEVICE_UDID};
+use crate::features::appium;
+use crate::types::screenshot::WebdriverParams;
 use crate::utils::cancel::check_cancellation;
 use crate::utils::wait::wait_for_page_load;
 
@@ -52,7 +52,9 @@ pub fn format_url(base_url: &str, path: &str) -> Result<PageContext, String> {
 }
 
 pub async fn goto_and_wait(driver: &WebDriver, url: &str) -> WebDriverResult<()> {
+    debug!("goto_and_wait called with URL: {}", url);
     driver.goto(url).await?;
+
     if let Err(e) = wait_for_page_load(driver, url).await {
         error!("Failed to wait for page load: {}", e);
         return Err(WebDriverError::UnknownError(WebDriverErrorInfo::new(
@@ -63,30 +65,33 @@ pub async fn goto_and_wait(driver: &WebDriver, url: &str) -> WebDriverResult<()>
 }
 
 pub async fn create_webdriver(
-    browser: &str,
-    url: &str,
-    token: &CancellationToken,
+    webdriver_params: WebdriverParams<'_>,
 ) -> Result<DriverContext, String> {
-    info!("Creating WebDriver for {}", browser);
-    let device_os = DEVICE_OS.lock().unwrap().clone();
+    let WebdriverParams {
+        appium_server_url,
+        device_os,
+        device_os_version,
+        device_udid,
+        browser,
+        base_url,
+        token,
+    } = webdriver_params;
 
+    info!("Creating WebDriver for {}", browser);
     // OSごとのWebDriverを取得
-    let (driver, navigationbar_height) = match device_os.as_str() {
+    let (driver, navigationbar_height) = match device_os {
         // iOSの場合は最初に`NATIVE_APP`としてブラウザを開いておく必要がある
         "iOS" => {
-            // UDIDとiOSバージョン、ブラウザのBundle IDを取得
-            let device_udid = IDEVICE_UDID.lock().unwrap().clone();
-            let ios_version = IDEVICE_OS_VERSION.lock().unwrap().clone();
             let bundle_id = WEBVIEW_BUNDLE_IDS
                 .get(browser)
                 .ok_or_else(|| format!("No bundle ID found for browser: {}", browser))?;
 
-            let caps = ios_capabilities(&device_os, &device_udid, &ios_version, bundle_id)?;
+            let caps = ios_capabilities(device_os, device_udid, device_os_version, bundle_id)?;
             debug!("WebDriver capabilities: {:?}", caps);
 
-            let mut driver = webdriver(&APPIUM_SERVER_URL, caps.clone()).await?;
+            let mut driver = webdriver(appium_server_url, caps.clone()).await?;
 
-            let formated_url = format_base_url(url, browser);
+            let formated_url = format_base_url(base_url, browser);
             info!("Formatted URL: {}", formated_url);
             driver
                 .goto(&formated_url)
@@ -104,7 +109,7 @@ pub async fn create_webdriver(
             check_cancellation(token, Some(&driver)).await?;
 
             // コンテキストを適切なWEBVIEWに切り替える
-            driver = switch_to_target_context(browser, &driver, &APPIUM_SERVER_URL, caps).await?;
+            driver = switch_to_target_context(browser, &driver, appium_server_url, &caps).await?;
 
             // キャンセルチェック
             check_cancellation(token, Some(&driver)).await?;
@@ -112,14 +117,14 @@ pub async fn create_webdriver(
             (driver, navigationbar_height)
         }
         "Android" => {
-            let caps = android_capabilities(browser, &device_os).await?;
+            let caps = android_capabilities(browser, device_os).await?;
 
             debug!("WebDriver capabilities: {:?}", caps);
-            let driver = webdriver(&APPIUM_SERVER_URL, caps).await?;
+            let driver = webdriver(appium_server_url, caps.clone()).await?;
             // キャンセルチェック
             check_cancellation(token, Some(&driver)).await?;
 
-            if let Err(e) = goto_and_wait(&driver, url).await {
+            if let Err(e) = goto_and_wait(&driver, base_url).await {
                 return Err(format!("Failed to navigate and wait for URL: {}", e));
             }
 
