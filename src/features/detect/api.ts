@@ -4,4 +4,4 @@ export const startUsbMonitor = (): Promise<string[]> =>
     invoke("start_usb_monitor");
 
 export const initDeviveInfo = (): Promise<string[]> =>
-    invoke("start_usb_monitor");
+    invoke("init_devive_info");

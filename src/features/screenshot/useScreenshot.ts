@@ -4,13 +4,23 @@ import { listen } from "@tauri-apps/api/event";
 import type { GroupedTaskStatuses } from "@/types/taskStatuses";
 import type { ScreenshotParams } from "@/generated/ScreenshotParams";
 
-import { takeScreenshot as scsho, cancelScreenshot as cancel } from "./api";
+import {
+    checkDeviceConnected as checkDevice,
+    takeScreenshot as scsho,
+    cancelScreenshot as cancel
+} from "./api";
 
 export function useScreenshot() {
+    const [showDeviceNotFoundDialog, setShowDeviceNotFoundDialog] = useState(false);
     const [status, setStatus] = useState("");
     const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
     const [groupedTaskStatuses, setGroupedTaskStatuses] = useState<GroupedTaskStatuses>({});
     const [success, setSuccess] = useState(false);
+
+    const checkDeviceConnected = async (): Promise<boolean> => {
+        const isConnected = await checkDevice();
+        return isConnected;
+    };
 
     const takeScreenshot = async (params: ScreenshotParams) => {
         console.log("screenshot params:", params);
@@ -88,6 +98,9 @@ export function useScreenshot() {
         isTakingScreenshot,
         groupedTaskStatuses,
         success,
+        showDeviceNotFoundDialog,
+        setShowDeviceNotFoundDialog,
+        checkDeviceConnected,
         takeScreenshot,
         cancelScreenshot,
     };

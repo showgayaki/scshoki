@@ -2,12 +2,10 @@ import {
     Autocomplete,
     Box,
     Chip,
-    Dialog,
-    DialogTitle,
-    DialogContent,
     Stack,
 } from "@mui/material";
 
+import CustomDialog from "@/components/CustomDialog";
 import TextInput from "@/components/TextInput";
 import FilledPrimaryChip from "@/components/CustomChips";
 
@@ -133,26 +131,27 @@ export default function TagsInput({
                 )}
             />
 
-            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-                <DialogTitle sx={{ typography: 'subtitle1', py: 1 }}>
-                    {label}
-                </DialogTitle>
-                <DialogContent dividers>
-                    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ rowGap: 1, columnGap: 1, ml: 0 }}>
-                        {tags.map((tag, index) => (
-                            <FilledPrimaryChip
-                                key={index}
-                                label={tag}
-                                onDelete={
-                                    id === "targetPages" && tags.length === 1
-                                        ? undefined
-                                        : () => handleDelete(tag)
-                                }
-                            />
-                        ))}
-                    </Stack>
-                </DialogContent>
-            </Dialog>
+            <CustomDialog open={dialogOpen} onClose={() => setDialogOpen(false)} title={label}>
+                <Stack
+                    direction="row"
+                    spacing={1}
+                    useFlexGap
+                    flexWrap="wrap"
+                    sx={{ rowGap: 1, columnGap: 1, ml: 0 }}
+                >
+                    {tags.map((tag, index) => (
+                        <FilledPrimaryChip
+                            key={index}
+                            label={tag}
+                            onDelete={
+                                id === "targetPages" && tags.length === 1
+                                    ? undefined
+                                    : () => handleDelete(tag)
+                            }
+                        />
+                    ))}
+                </Stack>
+            </CustomDialog>
         </>
     );
 }

@@ -4,9 +4,10 @@ use std::thread;
 use tauri::AppHandle;
 use thirtyfour::prelude::*;
 
+use crate::constants::DEVICE_DENSITY;
+
 use super::infrastructure::detect::{detect_device, emit_device_event};
 use super::infrastructure::display::{get_android_density, get_ios_screen_info};
-use crate::constants::DEVICE_DENSITY;
 
 struct UsbEventHandler {
     pub app_handle: AppHandle,

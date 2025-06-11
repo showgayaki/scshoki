@@ -3,7 +3,6 @@ use thirtyfour::error::WebDriverErrorInfo;
 use thirtyfour::prelude::*;
 use url::Url;
 
-use crate::features::appium;
 use crate::types::screenshot::WebdriverParams;
 use crate::utils::cancel::check_cancellation;
 use crate::utils::wait::wait_for_page_load;

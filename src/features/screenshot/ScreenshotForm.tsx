@@ -1,5 +1,6 @@
 import { useScreenshotFormState } from "./useScreenshotFormState";
 import { useScreenshot } from "./useScreenshot";
+import DeviceNotFoundDialog from "./components/DeviceNotFoundDialog";
 import BaseUrlInput from "./components/BaseUrlInput";
 import HiddenElementsSection from "./components/HiddenElementsSection";
 import TargetPagePathsSection from "./components/TargetPagePathsSection";
@@ -34,21 +35,38 @@ export default function ScreenshotForm() {
         isTakingScreenshot,
         groupedTaskStatuses,
         success,
+        showDeviceNotFoundDialog,
+        setShowDeviceNotFoundDialog,
+        checkDeviceConnected,
         takeScreenshot,
         cancelScreenshot,
     } = useScreenshot();
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (validate()) {
-            takeScreenshot({ baseUrl, targetPagePaths, hiddenElements, selectedBrowsers });
+        // デバイス接続をチェック
+        const isConnected = await checkDeviceConnected();
+        console.log("Device connected:", isConnected);
+
+        if (!isConnected) {
+            console.warn("No device connected, cannot take screenshot");
+            setShowDeviceNotFoundDialog(true);
+            return;
         } else {
-            console.warn("Validation failed, not submitting form");
+            if (validate()) {
+                takeScreenshot({ baseUrl, targetPagePaths, hiddenElements, selectedBrowsers });
+            } else {
+                console.warn("Validation failed, not submitting form");
+            }
         }
     };
 
     return (
         <>
+            <DeviceNotFoundDialog
+                open={showDeviceNotFoundDialog}
+                onClose={() => setShowDeviceNotFoundDialog(false)}
+            />
             {isTakingScreenshot &&
                 <ScreenshotProgress
                     status={status}
