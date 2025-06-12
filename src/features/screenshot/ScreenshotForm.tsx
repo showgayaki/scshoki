@@ -44,20 +44,17 @@ export default function ScreenshotForm() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // デバイス接続をチェック
-        const isConnected = await checkDeviceConnected();
-        console.log("Device connected:", isConnected);
 
+        const isConnected = await checkDeviceConnected();
         if (!isConnected) {
             console.warn("No device connected, cannot take screenshot");
             setShowDeviceNotFoundDialog(true);
             return;
+        }
+        if (validate()) {
+            takeScreenshot({ baseUrl, targetPagePaths, hiddenElements, selectedBrowsers });
         } else {
-            if (validate()) {
-                takeScreenshot({ baseUrl, targetPagePaths, hiddenElements, selectedBrowsers });
-            } else {
-                console.warn("Validation failed, not submitting form");
-            }
+            console.warn("Validation failed, not submitting form");
         }
     };
 

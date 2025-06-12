@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 
-import type { GroupedTaskStatuses } from "@/types/taskStatuses";
 import type { ScreenshotParams } from "@/generated/ScreenshotParams";
+import { useDeviceStore } from "@/stores/device";
+import type { GroupedTaskStatuses } from "@/types/taskStatuses";
 
 import {
-    checkDeviceConnected as checkDevice,
     takeScreenshot as scsho,
     cancelScreenshot as cancel
 } from "./api";
 
+
 export function useScreenshot() {
+    const isConnected = useDeviceStore((s) => s.isConnected);
     const [showDeviceNotFoundDialog, setShowDeviceNotFoundDialog] = useState(false);
     const [status, setStatus] = useState("");
     const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
@@ -18,8 +20,7 @@ export function useScreenshot() {
     const [success, setSuccess] = useState(false);
 
     const checkDeviceConnected = async (): Promise<boolean> => {
-        const isConnected = await checkDevice();
-        return isConnected;
+        return useDeviceStore.getState().isConnected;
     };
 
     const takeScreenshot = async (params: ScreenshotParams) => {
@@ -92,6 +93,12 @@ export function useScreenshot() {
             unlisten.then((f) => f());
         };
     }, []);
+
+    useEffect(() => {
+        if (isConnected) {
+            setShowDeviceNotFoundDialog(false);
+        }
+    }, [isConnected]);
 
     return {
         status,

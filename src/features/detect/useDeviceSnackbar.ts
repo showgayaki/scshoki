@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 
+import { useDeviceStore } from "@/stores/device";
 import { SnackbarSeverity } from "@/types/snackbar";
+
 import { startUsbMonitor } from "./api";
 
 export function useDeviceSnackbar() {
@@ -19,11 +21,13 @@ export function useDeviceSnackbar() {
             setMessage(event.payload);
             setSeverity("info");
             setOpen(true);
+            useDeviceStore.getState().setIsConnected(true);
         });
         const unlistenDisconnected = listen<string>("device_disconnected", (event) => {
             setMessage(event.payload);
             setSeverity("warning");
             setOpen(true);
+            useDeviceStore.getState().setIsConnected(false);
         });
 
         return () => {

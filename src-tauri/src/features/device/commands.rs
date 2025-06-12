@@ -21,25 +21,3 @@ pub fn init_devive_info() {
     *product_name = DEFAULT_DEVICE_VALUE.to_string();
     *manufacturer = DEFAULT_DEVICE_VALUE.to_string();
 }
-
-#[command]
-pub fn check_device_connected() -> bool {
-    debug!("check_device_connected called!!!");
-    let os = DEVICE_OS.lock().unwrap();
-    let product_name = DEVICE_PRODUCT_NAME.lock().unwrap();
-    let manufacturer = DEVICE_MANUFACTURE.lock().unwrap();
-
-    if *os == DEFAULT_DEVICE_VALUE
-        || *product_name == DEFAULT_DEVICE_VALUE
-        || *manufacturer == DEFAULT_DEVICE_VALUE
-    {
-        info!("Device is not connected.");
-        return false;
-    } else {
-        info!(
-            "Device connected: OS: {}, Product Name: {}, Manufacturer: {}",
-            *os, *product_name, *manufacturer
-        );
-        return true;
-    }
-}

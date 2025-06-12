@@ -20,7 +20,7 @@ use features::dependencies::commands::{
     check_installed_binaries, install_appium, install_chromedriver, install_geckodriver,
     install_nodejs,
 };
-use features::device::commands::{check_device_connected, init_devive_info, start_usb_monitor};
+use features::device::commands::{init_devive_info, start_usb_monitor};
 use features::screenshot::commands::{cancel_screenshot, take_screenshot};
 use types::screenshot::{ScreenshotParams, ScreenshotResponse};
 use utils::logger::init_logger;
@@ -68,7 +68,6 @@ fn main() {
             start_appium,
             stop_appium,
             start_usb_monitor,
-            check_device_connected,
             take_screenshot,
             cancel_screenshot,
             init_devive_info,
