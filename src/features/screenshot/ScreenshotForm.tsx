@@ -52,7 +52,14 @@ export default function ScreenshotForm() {
             return;
         }
         if (validate()) {
-            takeScreenshot({ baseUrl, targetPagePaths, hiddenElements, selectedBrowsers });
+            takeScreenshot({
+                baseUrl,
+                targetPagePaths,
+                hiddenElements,
+                selectedBrowsers,
+                basicAuthUsername: username,
+                basicAuthPassword: password,
+            });
         } else {
             console.warn("Validation failed, not submitting form");
         }

@@ -34,6 +34,8 @@ pub async fn take_screenshot(
         target_page_paths,
         hidden_elements,
         selected_browsers,
+        basic_auth_username: _,
+        basic_auth_password: _,
     } = params;
 
     info!(

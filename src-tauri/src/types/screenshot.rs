@@ -24,6 +24,8 @@ pub struct ScreenshotParams {
     pub target_page_paths: Vec<String>,
     pub hidden_elements: Vec<String>,
     pub selected_browsers: Vec<String>,
+    pub basic_auth_username: Option<String>,
+    pub basic_auth_password: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
