@@ -9,6 +9,8 @@ export function useScreenshotFormState() {
     const [password, setPassword] = useState("");
     const [selectedBrowsers, setSelectedBrowsers] = useState([] as string[]);
     const [urlError, setUrlError] = useState<string | null>(null);
+    const [usernameError, setUsernameError] = useState<string | null>(null);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
     const [browserError, setBrowserError] = useState<string | undefined>(undefined);
 
     const validate = () => {
@@ -32,16 +34,27 @@ export function useScreenshotFormState() {
             hasError = true;
         }
 
+        if (useAuth) {
+            if (username === "") {
+                setUsernameError("ユーザー名を入力してください");
+                hasError = true;
+            }
+            if (password === "") {
+                setPasswordError("パスワードを入力してください");
+                hasError = true;
+            }
+        }
+
         if (hasError) {
             setTimeout(() => {
                 setUrlError(null);
+                setUsernameError(null);
+                setPasswordError(null);
                 setBrowserError(undefined);
             }, 3000);
             return false;
         }
 
-        setUrlError(null);
-        setBrowserError(undefined);
         return true;
     };
 
@@ -58,7 +71,7 @@ export function useScreenshotFormState() {
             // Do nothing if URL is invalid
         }
 
-        if(baseUrl === "") {
+        if (baseUrl === "") {
             console.log("Resetting targetPagePaths to default");
             setTargetPagePaths([]);
         }
@@ -80,9 +93,9 @@ export function useScreenshotFormState() {
         selectedBrowsers,
         setSelectedBrowsers,
         urlError,
-        setUrlError,
+        usernameError,
+        passwordError,
         browserError,
-        setBrowserError,
         validate,
     };
 }

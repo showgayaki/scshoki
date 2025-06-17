@@ -10,6 +10,8 @@ pub struct WebdriverParams<'a> {
     pub device_udid: &'a str,
     pub browser: &'a str,
     pub base_url: &'a str,
+    pub basic_auth_username: &'a str,
+    pub basic_auth_password: &'a str,
     pub token: &'a CancellationToken,
 }
 

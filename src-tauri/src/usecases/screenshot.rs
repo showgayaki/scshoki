@@ -34,8 +34,8 @@ pub async fn take_screenshot(
         target_page_paths,
         hidden_elements,
         selected_browsers,
-        basic_auth_username: _,
-        basic_auth_password: _,
+        basic_auth_username,
+        basic_auth_password,
     } = params;
 
     info!(
@@ -63,6 +63,8 @@ pub async fn take_screenshot(
             device_udid: device_udid.as_str(),
             browser: browser_lower.as_str(),
             base_url: base_url.as_str(),
+            basic_auth_username: basic_auth_username.as_deref().unwrap_or(""),
+            basic_auth_password: basic_auth_password.as_deref().unwrap_or(""),
             token: &token,
         };
 

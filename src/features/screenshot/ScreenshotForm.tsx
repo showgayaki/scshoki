@@ -26,6 +26,8 @@ export default function ScreenshotForm() {
         selectedBrowsers,
         setSelectedBrowsers,
         urlError,
+        usernameError,
+        passwordError,
         browserError,
         validate,
     } = useScreenshotFormState();
@@ -87,8 +89,10 @@ export default function ScreenshotForm() {
                     setUseAuth={setUseAuth}
                     username={username}
                     setUsername={setUsername}
+                    usernameError={usernameError}
                     password={password}
                     setPassword={setPassword}
+                    passwordError={passwordError}
                 />
                 <BrowserSelectSection selectedBrowsers={selectedBrowsers} setSelectedBrowsers={setSelectedBrowsers} error={browserError} />
                 {!isTakingScreenshot && <ScreenshotButton />}

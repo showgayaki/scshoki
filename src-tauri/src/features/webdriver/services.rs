@@ -8,6 +8,7 @@ use crate::utils::cancel::check_cancellation;
 use crate::utils::wait::wait_for_page_load;
 
 use super::constants::WEBVIEW_BUNDLE_IDS;
+use super::infrastructure::basic_auth::submit_basic_auth;
 use super::infrastructure::capabilities::{android_capabilities, ios_capabilities};
 use super::infrastructure::context::switch_to_target_context;
 use super::infrastructure::navigationbar::get_navigationbar_height;
@@ -73,6 +74,8 @@ pub async fn create_webdriver(
         device_udid,
         browser,
         base_url,
+        basic_auth_username,
+        basic_auth_password,
         token,
     } = webdriver_params;
 
@@ -96,6 +99,14 @@ pub async fn create_webdriver(
                 .goto(&formated_url)
                 .await
                 .map_err(|e| format!("Failed to navigate to URL: {}", e))?;
+
+            // BASIC認証ユーザー名が空じゃなければ、BASIC認証あるでしょう
+            if !basic_auth_username.is_empty() {
+                debug!("Use BASIC Auth");
+                submit_basic_auth(&driver, basic_auth_username, basic_auth_password)
+                    .await
+                    .map_err(|e| format!("Basic authorization failed: {}", e))?;
+            }
 
             // キャンセルチェック
             check_cancellation(token, Some(&driver)).await?;
